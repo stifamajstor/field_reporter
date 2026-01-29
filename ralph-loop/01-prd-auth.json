@@ -141,7 +141,7 @@
       "Verify action completes successfully",
       "Verify new token is stored"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "validation",
