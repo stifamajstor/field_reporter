@@ -72,7 +72,7 @@
       "Verify success message is displayed",
       "Verify instruction to check email is shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

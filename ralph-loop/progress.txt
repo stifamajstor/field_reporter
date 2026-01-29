@@ -2,3 +2,4 @@
 [2026-01-29 15:46] | auth | User can login with biometric authentication | PASS | lib/features/auth/providers/biometric_provider.dart, test/unit/services/auth/biometric_auth_test.dart
 [2026-01-29 15:50] | auth | User can enable biometric authentication after login | PASS | lib/features/settings/presentation/settings_screen.dart, lib/features/auth/providers/biometric_provider.dart, test/widget/screens/settings/enable_biometric_settings_test.dart
 [2026-01-29 15:57] | auth | User can register a new account | PASS | lib/features/auth/presentation/registration_screen.dart, lib/features/auth/providers/auth_provider.dart
+[2026-01-29 15:59] | auth | User can request password reset | PASS | lib/features/auth/presentation/forgot_password_screen.dart, lib/features/auth/providers/password_reset_provider.dart, lib/features/auth/domain/password_reset_state.dart, test/widget/screens/auth/forgot_password_screen_test.dart
