@@ -1,0 +1,311 @@
+[
+  {
+    "category": "functional",
+    "description": "App restores state after being killed",
+    "steps": [
+      "Open a report and start adding entries",
+      "Force kill the app",
+      "Reopen the app",
+      "Verify navigation returns to last screen",
+      "Verify unsaved data is preserved or properly warned",
+      "Verify session is still valid"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "App resumes correctly from background",
+    "steps": [
+      "Open app and navigate to a report",
+      "Press home button to background",
+      "Wait 5 minutes",
+      "Return to app",
+      "Verify app resumes to same screen",
+      "Verify data is current",
+      "Verify no re-login required"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Background upload continues when app backgrounded",
+    "steps": [
+      "Start uploading large video",
+      "Background the app",
+      "Wait for upload to complete",
+      "Verify upload continues in background",
+      "Verify notification shows progress and completion",
+      "Return to app",
+      "Verify upload status reflects completion"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "GPS tracking continues in background",
+    "steps": [
+      "Start GPS tracking for a report",
+      "Background the app",
+      "Walk to a new location",
+      "Return to app",
+      "Verify track includes movement while backgrounded",
+      "Verify track is continuous with no gaps"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Recording stops gracefully when app terminated",
+    "steps": [
+      "Start video recording",
+      "Force terminate app simulating crash",
+      "Reopen app",
+      "Verify partial recording is saved if possible",
+      "Or verify clean state with explanation"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "App handles low memory gracefully",
+    "steps": [
+      "Open multiple apps to consume memory",
+      "Return to Field Reporter",
+      "Verify app may need to reload but does not crash",
+      "Verify data integrity maintained",
+      "Verify user session preserved"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "App handles incoming calls during capture",
+    "steps": [
+      "Start recording video",
+      "Receive phone call",
+      "Verify recording pauses or saves",
+      "End phone call",
+      "Return to app",
+      "Verify can continue or review recording"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Deep links open correct content",
+    "steps": [
+      "Receive deep link to specific report",
+      "Tap link when app is closed",
+      "Verify app opens",
+      "Verify navigates directly to linked report",
+      "Tap link when app is in background",
+      "Verify app brings to foreground at correct screen"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Push notification opens correct screen",
+    "steps": [
+      "Receive push notification about PDF ready",
+      "Tap notification",
+      "Verify app opens to report with PDF",
+      "Receive notification about team mention",
+      "Tap notification",
+      "Verify app opens to relevant comment"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "App handles orientation changes",
+    "steps": [
+      "Open report editor in portrait",
+      "Rotate to landscape",
+      "Verify layout adapts correctly",
+      "Verify no data loss",
+      "Rotate back to portrait",
+      "Verify layout returns correctly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Share intent receives files from other apps",
+    "steps": [
+      "Open device gallery",
+      "Select photos",
+      "Tap share and select Field Reporter",
+      "Verify Field Reporter opens",
+      "Verify prompt to add photos to report",
+      "Select or create report",
+      "Verify photos added successfully"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Cold start time is acceptable",
+    "steps": [
+      "Force kill the app",
+      "Clear from recent apps",
+      "Tap app icon",
+      "Measure time to interactive screen",
+      "Verify under 3 seconds on modern device"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Warm start is fast",
+    "steps": [
+      "Open app and use briefly",
+      "Background app",
+      "Immediately return to app",
+      "Verify instant resume under 500ms"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Splash screen displays during load",
+    "steps": [
+      "Cold start the app",
+      "Verify splash screen displays immediately",
+      "Verify splash shows app branding",
+      "Verify smooth transition to main UI"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "App handles permission revocation",
+    "steps": [
+      "Grant all permissions",
+      "Use app normally",
+      "Go to device settings and revoke camera permission",
+      "Return to app and try to use camera",
+      "Verify graceful handling with re-request option"
+    ],
+    "dependencies": ["05-prd-camera-media.json"],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "App recovers from crash",
+    "steps": [
+      "Simulate app crash",
+      "Reopen app",
+      "Verify app starts successfully",
+      "Verify no data corruption",
+      "Verify crash report sent if enabled"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Database migration handles upgrade",
+    "steps": [
+      "Install older version of app",
+      "Create data including projects reports and entries",
+      "Upgrade to newer version",
+      "Verify app handles database migration",
+      "Verify all existing data preserved",
+      "Verify new features available"
+    ],
+    "passes": false
+  },
+  {
+    "category": "battery",
+    "description": "Background services do not drain battery excessively",
+    "steps": [
+      "Use app with background sync enabled",
+      "Monitor battery usage over 24 hours",
+      "Verify app battery usage is reasonable",
+      "Verify no battery drain when app unused"
+    ],
+    "passes": false
+  },
+  {
+    "category": "storage",
+    "description": "App handles full storage gracefully",
+    "steps": [
+      "Fill device storage nearly full",
+      "Attempt to capture photo",
+      "Verify clear error message",
+      "Verify suggestion to free space",
+      "Free some space",
+      "Verify capture works again"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "App handles network type changes",
+    "steps": [
+      "Start on WiFi",
+      "Begin upload",
+      "Switch to cellular mid-upload",
+      "If WiFi-only enabled verify upload pauses",
+      "If cellular allowed verify upload continues",
+      "Switch back to WiFi",
+      "Verify seamless continuation"
+    ],
+    "dependencies": ["09-prd-offline-sync.json", "13-prd-settings.json"],
+    "passes": false
+  },
+  {
+    "category": "ios",
+    "description": "iOS background app refresh works correctly",
+    "steps": [
+      "Enable Background App Refresh for Field Reporter in iOS Settings",
+      "Queue uploads and background the app",
+      "Verify uploads continue via background task",
+      "Verify iOS background task limits respected",
+      "Verify app resumes gracefully when reopened"
+    ],
+    "dependencies": ["09-prd-offline-sync.json"],
+    "passes": false
+  },
+  {
+    "category": "ios",
+    "description": "iOS app handles scene lifecycle",
+    "steps": [
+      "On iPad with multi-window support",
+      "Open app in split view",
+      "Verify app functions correctly in reduced width",
+      "Move app to slide-over",
+      "Verify app adapts to narrow layout",
+      "Close and reopen scene",
+      "Verify state preserved"
+    ],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "Android WorkManager handles background sync",
+    "steps": [
+      "Queue uploads on Android device",
+      "Background the app",
+      "Verify WorkManager executes sync tasks",
+      "Verify battery optimization doesn't kill sync",
+      "Verify sync completes even with Doze mode"
+    ],
+    "dependencies": ["09-prd-offline-sync.json"],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "Android handles configuration changes",
+    "steps": [
+      "Open report editor with unsaved changes",
+      "Rotate device",
+      "Verify no data lost on configuration change",
+      "Change system font size",
+      "Verify app adapts without crash",
+      "Switch to dark mode",
+      "Verify theme updates correctly"
+    ],
+    "passes": false
+  }
+]

@@ -1,0 +1,372 @@
+[
+  {
+    "category": "functional",
+    "description": "App requests notification permission on first relevant action",
+    "steps": [
+      "Fresh install of app",
+      "Complete first sync or report submission",
+      "Verify notification permission prompt appears",
+      "Verify explanation of notification benefits",
+      "Grant permission",
+      "Verify no further permission prompts"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Sync complete notification when app backgrounded",
+    "steps": [
+      "Start sync with multiple pending items",
+      "Background the app",
+      "Wait for sync to complete",
+      "Verify push notification appears",
+      "Verify notification says 'Sync complete' with count",
+      "Tap notification",
+      "Verify app opens to Dashboard or Sync Status"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "PDF ready notification when generation complete",
+    "steps": [
+      "Request PDF generation for a report",
+      "Background the app during processing",
+      "Wait for PDF generation",
+      "Verify notification about PDF ready",
+      "Verify notification includes report name",
+      "Tap notification",
+      "Verify app opens to Report with PDF download"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "AI processing complete notification",
+    "steps": [
+      "Queue AI transcription for audio entry",
+      "Background the app",
+      "Wait for transcription completion",
+      "Verify notification appears",
+      "Verify notification indicates transcription ready",
+      "Tap notification",
+      "Verify app opens to Entry Detail with transcription"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Team mention notification",
+    "steps": [
+      "Have team member mention you in a report comment (via web)",
+      "Verify push notification received on mobile",
+      "Verify notification shows who mentioned you",
+      "Verify notification preview shows context",
+      "Tap notification",
+      "Verify app opens to the report with comment"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Project assignment notification",
+    "steps": [
+      "Have admin assign you to new project (via web)",
+      "Verify push notification received",
+      "Verify notification indicates project assignment",
+      "Verify project name in notification",
+      "Tap notification",
+      "Verify app opens to new project detail"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Report shared with you notification",
+    "steps": [
+      "Have team member share report with you",
+      "Verify notification received",
+      "Verify notification indicates shared report",
+      "Verify who shared it in notification",
+      "Tap notification",
+      "Verify app opens to shared report"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Upload failed notification",
+    "steps": [
+      "Have uploads fail due to network issues",
+      "Verify notification about failed uploads",
+      "Verify notification shows failure count",
+      "Tap notification",
+      "Verify app opens to Sync Status with failed items"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Reminder notification for pending reports",
+    "steps": [
+      "Have reports in draft status for extended period",
+      "Verify reminder notification after configured period",
+      "Verify notification mentions pending reports",
+      "Tap notification",
+      "Verify app opens to Reports list filtered to drafts"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Silent notification updates app data",
+    "steps": [
+      "Have new data added on web (new report created)",
+      "Receive silent push notification",
+      "Open app",
+      "Verify new report appears without manual refresh",
+      "Verify no visible notification shown for silent push"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Notification badge shows unread count",
+    "steps": [
+      "Receive multiple notifications without opening app",
+      "Check app icon on home screen",
+      "Verify badge shows notification count",
+      "Open app and view notifications",
+      "Verify badge clears or decrements"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "In-app notification center shows history",
+    "steps": [
+      "Receive several notifications",
+      "Open app",
+      "Tap notification bell icon",
+      "Verify notification center opens",
+      "Verify recent notifications listed",
+      "Verify unread notifications highlighted",
+      "Tap on notification",
+      "Verify navigation to relevant content"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Notifications can be marked as read",
+    "steps": [
+      "Open notification center with unread notifications",
+      "Tap on an unread notification",
+      "Verify notification marked as read",
+      "Return to notification center",
+      "Verify notification no longer highlighted as unread",
+      "Swipe to mark as read without viewing",
+      "Verify notification marked read"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Notifications can be dismissed",
+    "steps": [
+      "Open notification center",
+      "Swipe notification to dismiss (or tap dismiss)",
+      "Verify notification removed from list",
+      "Verify action is reversible (undo) briefly",
+      "Verify dismissed notification doesn't reappear"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Mark all as read option works",
+    "steps": [
+      "Have multiple unread notifications",
+      "Open notification center",
+      "Tap 'Mark all as read'",
+      "Verify all notifications marked read",
+      "Verify notification badge cleared"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can disable specific notification types",
+    "steps": [
+      "Navigate to Settings > Notifications",
+      "Disable 'Sync complete' notifications",
+      "Perform sync and background app",
+      "Verify no notification received for sync",
+      "Verify other notification types still work",
+      "Re-enable 'Sync complete'",
+      "Verify sync notifications resume"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can enable/disable all notifications",
+    "steps": [
+      "Navigate to Settings > Notifications",
+      "Toggle 'All Notifications' off",
+      "Verify all notification toggles disabled",
+      "Trigger various notification events",
+      "Verify no notifications received",
+      "Toggle 'All Notifications' on",
+      "Verify notifications resume"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Notification preferences sync across devices",
+    "steps": [
+      "Configure notification preferences on device A",
+      "Login on device B",
+      "Navigate to notification settings",
+      "Verify preferences match device A settings"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ios",
+    "description": "iOS notification actions work correctly",
+    "steps": [
+      "Receive notification on iOS",
+      "Long press or swipe notification",
+      "Verify action buttons appear",
+      "Tap 'View' action",
+      "Verify app opens to relevant content",
+      "Tap 'Dismiss' action",
+      "Verify notification dismissed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ios",
+    "description": "iOS notification grouping works",
+    "steps": [
+      "Receive multiple notifications of same type",
+      "Check notification center",
+      "Verify notifications grouped appropriately",
+      "Expand notification group",
+      "Verify individual notifications visible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "Android notification channels configured",
+    "steps": [
+      "Install app on Android 8+",
+      "Go to device Settings > Apps > Field Reporter > Notifications",
+      "Verify notification channels visible",
+      "Verify channels: Sync, Reports, Team, Reminders",
+      "Toggle individual channel",
+      "Verify only that channel affected"
+    ],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "Android notification priority respected",
+    "steps": [
+      "Configure channels with different priorities",
+      "Trigger high-priority notification (upload failed)",
+      "Verify notification appears prominently",
+      "Trigger low-priority notification",
+      "Verify notification appears silently"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "Notifications received when coming online",
+    "steps": [
+      "Put device offline",
+      "Have notifications generated on server",
+      "Bring device online",
+      "Verify queued notifications received",
+      "Verify notifications are current (not stale)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Notification center shows empty state appropriately",
+    "steps": [
+      "Clear all notifications",
+      "Open notification center",
+      "Verify empty state message",
+      "Verify message is helpful (e.g., 'No notifications yet')",
+      "Verify no broken layout"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Notifications display correctly in both themes",
+    "steps": [
+      "Receive notification in light mode",
+      "Verify notification readable and styled correctly",
+      "Switch to dark mode",
+      "Receive notification",
+      "Verify notification readable in dark mode",
+      "Verify app icon visible in notification"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Notification permission denied handled gracefully",
+    "steps": [
+      "Deny notification permission",
+      "Attempt action that would trigger notification",
+      "Verify in-app alternative or message",
+      "Navigate to settings",
+      "Verify prompt to enable notifications with instructions"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Push token refresh handled transparently",
+    "steps": [
+      "Receive notifications normally",
+      "Force push token refresh (reinstall or token expiry)",
+      "Verify new token registered with server",
+      "Verify notifications continue to work"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Notifications don't drain battery excessively",
+    "steps": [
+      "Enable all notifications",
+      "Use app normally for a day",
+      "Check battery usage for app",
+      "Verify battery usage reasonable",
+      "Verify no excessive background activity"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "Notifications accessible with screen reader",
+    "steps": [
+      "Enable screen reader",
+      "Receive notification",
+      "Verify notification content read aloud",
+      "Open notification center",
+      "Verify all notifications navigable",
+      "Verify actions accessible"
+    ],
+    "passes": false
+  }
+]

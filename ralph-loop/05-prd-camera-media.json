@@ -1,0 +1,618 @@
+[
+  {
+    "category": "functional",
+    "description": "Camera opens and displays live preview",
+    "steps": [
+      "Navigate to capture photo flow",
+      "Verify camera permission prompt if not granted",
+      "Grant camera permission",
+      "Verify camera preview is displayed",
+      "Verify preview fills capture area",
+      "Verify preview is smooth (no lag)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can capture a photo",
+    "steps": [
+      "Open camera in photo mode",
+      "Frame the subject",
+      "Tap capture button",
+      "Verify shutter animation plays",
+      "Verify haptic feedback",
+      "Verify captured photo preview appears",
+      "Verify accept/retake options visible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can switch between front and back camera",
+    "steps": [
+      "Open camera",
+      "Verify back camera is active by default",
+      "Tap camera switch button",
+      "Verify switch animation plays",
+      "Verify front camera preview now active",
+      "Tap switch button again",
+      "Verify back camera preview restored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can toggle flash mode",
+    "steps": [
+      "Open camera",
+      "Verify flash mode indicator visible",
+      "Tap flash button",
+      "Verify mode changes (auto -> on -> off -> auto)",
+      "Verify icon updates to reflect mode",
+      "Capture photo with flash on in low light",
+      "Verify flash fires during capture"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Camera displays GPS coordinates overlay",
+    "steps": [
+      "Ensure location permission granted",
+      "Open camera",
+      "Verify GPS coordinates displayed in corner",
+      "Verify coordinates update as device moves",
+      "Verify coordinates are accurate to visible precision",
+      "Toggle overlay off in settings",
+      "Verify overlay hidden"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Camera displays timestamp overlay",
+    "steps": [
+      "Open camera",
+      "Verify current date/time displayed in overlay",
+      "Verify time updates in real-time",
+      "Capture photo",
+      "Verify timestamp is embedded in photo metadata",
+      "Verify timestamp visible in overlay on captured preview"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Camera shows level indicator using accelerometer",
+    "steps": [
+      "Open camera",
+      "Verify level indicator is visible",
+      "Tilt device left",
+      "Verify level indicator shows tilt",
+      "Tilt device right",
+      "Verify level indicator reflects change",
+      "Hold device perfectly level",
+      "Verify level indicator shows green/centered",
+      "Verify haptic feedback when level achieved"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Camera captures compass direction metadata",
+    "steps": [
+      "Open camera facing north",
+      "Capture photo",
+      "View photo metadata in entry detail",
+      "Verify compass direction is recorded (e.g., 'N' or '0°')",
+      "Rotate to face east",
+      "Capture another photo",
+      "Verify direction is different ('E' or '90°')"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can record video",
+    "steps": [
+      "Open camera and switch to video mode",
+      "Verify video mode UI (record button changes)",
+      "Tap record button",
+      "Verify recording indicator appears",
+      "Verify timer counting up",
+      "Wait a few seconds",
+      "Tap stop button",
+      "Verify video preview plays automatically",
+      "Verify accept/retake options visible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Video recording captures audio",
+    "steps": [
+      "Ensure microphone permission granted",
+      "Open camera in video mode",
+      "Start recording while speaking",
+      "Stop recording",
+      "Play back video preview",
+      "Verify audio is captured and audible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Video recording shows duration limit warning",
+    "steps": [
+      "Open camera in video mode",
+      "Start recording",
+      "Continue recording for extended period",
+      "Verify warning appears near max duration (e.g., 5 min)",
+      "Verify recording auto-stops at max duration",
+      "Verify video is saved successfully"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can record voice memo",
+    "steps": [
+      "Navigate to add voice memo flow",
+      "Verify microphone permission prompt if needed",
+      "Grant permission",
+      "Verify audio recording UI appears",
+      "Tap record button",
+      "Verify recording indicator (waveform/pulse)",
+      "Verify timer counting up",
+      "Speak for several seconds",
+      "Tap stop button",
+      "Verify recording stops",
+      "Verify playback controls appear"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can play back recorded voice memo before saving",
+    "steps": [
+      "Record a voice memo",
+      "Tap play button in preview",
+      "Verify audio plays through speaker",
+      "Verify progress indicator updates",
+      "Tap pause button",
+      "Verify playback pauses",
+      "Tap play again",
+      "Verify playback resumes from pause point"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can re-record voice memo",
+    "steps": [
+      "Record a voice memo",
+      "Preview the recording",
+      "Tap 'Re-record' or 'Discard' button",
+      "Verify confirmation if recording will be lost",
+      "Confirm re-record",
+      "Verify recording UI resets",
+      "Record new audio",
+      "Verify new recording replaces old"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shake-to-record starts voice recording",
+    "steps": [
+      "Open report in editing mode",
+      "Shake device firmly",
+      "Verify voice recording starts automatically",
+      "Verify haptic confirmation",
+      "Shake again to stop",
+      "Verify recording stops",
+      "Verify recording is added to report"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "QR code scanner detects and decodes QR codes",
+    "steps": [
+      "Navigate to scan entry flow",
+      "Verify camera opens with scan overlay",
+      "Point camera at QR code",
+      "Verify automatic detection (highlight around code)",
+      "Verify automatic capture when stable",
+      "Verify decoded content displayed",
+      "Verify option to save or rescan"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Barcode scanner detects various barcode formats",
+    "steps": [
+      "Open scanner",
+      "Scan EAN-13 barcode (common product)",
+      "Verify successful decode",
+      "Scan UPC-A barcode",
+      "Verify successful decode",
+      "Scan Code 128 barcode",
+      "Verify successful decode",
+      "Verify all formats display decoded number"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Scanner can use flashlight for low light",
+    "steps": [
+      "Open scanner in low light environment",
+      "Tap flashlight toggle button",
+      "Verify device flashlight turns on",
+      "Verify improved visibility in camera preview",
+      "Scan a barcode successfully",
+      "Tap flashlight toggle again",
+      "Verify flashlight turns off"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Captured photo is saved with full EXIF metadata",
+    "steps": [
+      "Capture a photo outdoors",
+      "Save to report entry",
+      "Examine entry metadata",
+      "Verify GPS coordinates present",
+      "Verify timestamp present",
+      "Verify camera info (device, lens)",
+      "Verify orientation data",
+      "Verify compass direction"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can add annotation to photo immediately after capture",
+    "steps": [
+      "Capture a photo",
+      "On preview screen, tap 'Annotate' or annotation icon",
+      "Verify annotation tools appear (draw, text, arrow)",
+      "Draw on the photo",
+      "Add text label",
+      "Tap 'Done'",
+      "Verify annotations visible on saved photo",
+      "Verify original photo preserved separately"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can zoom camera preview",
+    "steps": [
+      "Open camera",
+      "Pinch outward to zoom in",
+      "Verify preview zooms smoothly",
+      "Verify zoom level indicator appears",
+      "Pinch inward to zoom out",
+      "Verify preview zooms out",
+      "Capture photo at zoomed level",
+      "Verify saved photo reflects zoom"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can tap to focus camera",
+    "steps": [
+      "Open camera with scene having varying depth",
+      "Tap on foreground object",
+      "Verify focus animation at tap point",
+      "Verify foreground becomes sharp",
+      "Tap on background",
+      "Verify focus shifts to background",
+      "Verify foreground becomes blurry"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Camera captures sensor data for gyroscope",
+    "steps": [
+      "Capture photo while device is stationary",
+      "View entry metadata",
+      "Verify gyroscope data recorded",
+      "Capture photo while rotating device",
+      "Verify different gyroscope values recorded"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "All captures work without network connection",
+    "steps": [
+      "Enable airplane mode",
+      "Capture photo",
+      "Verify photo saves locally",
+      "Record video",
+      "Verify video saves locally",
+      "Record voice memo",
+      "Verify audio saves locally",
+      "Scan barcode",
+      "Verify scan saves locally",
+      "All entries marked for sync when online"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "GPS capture works with cached location when no signal",
+    "steps": [
+      "Enable airplane mode",
+      "Open camera",
+      "Verify last known location displayed (if available)",
+      "Verify indicator that location may be stale",
+      "Capture photo",
+      "Verify cached location attached to metadata"
+    ],
+    "passes": false
+  },
+  {
+    "category": "storage",
+    "description": "Large video files are stored efficiently",
+    "steps": [
+      "Record a 2-minute video",
+      "Verify video saves without error",
+      "Check storage usage for video file",
+      "Verify compression applied (file size reasonable)",
+      "Play back video",
+      "Verify quality is acceptable"
+    ],
+    "passes": false
+  },
+  {
+    "category": "storage",
+    "description": "Photo quality settings affect file size",
+    "steps": [
+      "Navigate to Settings > Quality Settings",
+      "Set photo quality to 'High'",
+      "Capture a photo",
+      "Note file size",
+      "Set photo quality to 'Medium'",
+      "Capture similar photo",
+      "Note file size",
+      "Verify Medium is smaller than High",
+      "Verify both photos are usable quality"
+    ],
+    "passes": false
+  },
+  {
+    "category": "storage",
+    "description": "Thumbnail is generated locally for all media",
+    "steps": [
+      "Capture a photo",
+      "Verify thumbnail exists immediately in report list",
+      "Verify thumbnail loads without network",
+      "Record a video",
+      "Verify video thumbnail generated from first frame",
+      "Verify thumbnail displayed in report list"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Camera UI overlays don't obstruct capture area",
+    "steps": [
+      "Open camera",
+      "Verify capture button at bottom",
+      "Verify controls (flash, switch camera) accessible",
+      "Verify GPS/timestamp overlays in corners",
+      "Verify center of frame clear for subject",
+      "Verify on small phone screen",
+      "Verify on large phone/tablet"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Recording indicator is clearly visible",
+    "steps": [
+      "Start video recording",
+      "Verify red recording dot visible",
+      "Verify timer visible",
+      "Verify indicator has high contrast",
+      "Move camera around",
+      "Verify indicator stays visible regardless of background"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Voice memo shows audio waveform visualization",
+    "steps": [
+      "Start voice recording",
+      "Speak into microphone",
+      "Verify waveform responds to voice",
+      "Verify waveform peaks with loud sounds",
+      "Stop speaking",
+      "Verify waveform flattens",
+      "Play back recording",
+      "Verify waveform displays during playback"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Camera gracefully handles permission denial",
+    "steps": [
+      "Deny camera permission",
+      "Attempt to open camera",
+      "Verify error message explaining permission needed",
+      "Verify button to open device settings",
+      "Tap button",
+      "Verify navigation to app settings"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Microphone permission denial shows clear message",
+    "steps": [
+      "Deny microphone permission",
+      "Attempt to record voice memo",
+      "Verify error message explaining permission needed",
+      "Attempt to record video",
+      "Verify warning that video will have no audio",
+      "Verify option to proceed without audio or fix permissions"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Location permission denial shows fallback",
+    "steps": [
+      "Deny location permission",
+      "Open camera",
+      "Verify GPS overlay shows 'Location unavailable'",
+      "Verify capture still works",
+      "Verify metadata notes location unavailable",
+      "Verify option to add location manually later"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Storage full prevents capture with clear message",
+    "steps": [
+      "Fill device storage",
+      "Attempt to capture photo",
+      "Verify error message about insufficient storage",
+      "Verify suggestion to free space",
+      "Free some storage",
+      "Retry capture",
+      "Verify capture succeeds"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Camera preview maintains 30fps minimum",
+    "steps": [
+      "Open camera",
+      "Observe preview smoothness",
+      "Pan camera around quickly",
+      "Verify no visible frame drops",
+      "Use developer tools to verify frame rate",
+      "Verify 30fps minimum maintained"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Photo capture to preview under 1 second",
+    "steps": [
+      "Open camera",
+      "Tap capture button",
+      "Measure time until preview displayed",
+      "Verify total time under 1 second",
+      "Repeat multiple times",
+      "Verify consistent performance"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "Camera controls accessible with screen reader",
+    "steps": [
+      "Enable screen reader",
+      "Open camera",
+      "Verify capture button announced as 'Take photo, button'",
+      "Verify flash toggle announced with current state",
+      "Verify switch camera announced properly",
+      "Execute capture using accessibility action"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ios",
+    "description": "iOS camera permission flow follows Apple guidelines",
+    "steps": [
+      "Fresh install on iOS device",
+      "Navigate to camera",
+      "Verify iOS-style permission dialog appears",
+      "Verify 'Allow While Using App' option",
+      "Grant permission",
+      "Verify camera works",
+      "Revoke permission in iOS Settings",
+      "Return to app and verify graceful handling"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ios",
+    "description": "iOS photo library access follows permission model",
+    "steps": [
+      "Attempt to save photo to library",
+      "Verify photo library permission prompt",
+      "Verify 'Select Photos' vs 'All Photos' options on iOS 14+",
+      "Grant limited access",
+      "Verify save works within granted access"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ios",
+    "description": "iOS Live Photo capture handled correctly",
+    "steps": [
+      "On device with Live Photo capability",
+      "Open camera",
+      "Verify Live Photo toggle available (if supported)",
+      "Capture with Live Photo enabled",
+      "Verify Live Photo saved correctly",
+      "Verify fallback to still photo when not supported"
+    ],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "Android camera permission flow follows platform guidelines",
+    "steps": [
+      "Fresh install on Android device",
+      "Navigate to camera",
+      "Verify Android permission dialog appears",
+      "On Android 11+, verify 'Only this time' option",
+      "Grant permission",
+      "Verify camera works",
+      "Revoke in Android Settings",
+      "Return to app and verify graceful handling"
+    ],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "Android scoped storage handles media correctly",
+    "steps": [
+      "On Android 10+ device",
+      "Capture photo",
+      "Verify photo saved using MediaStore API",
+      "Verify app-specific directory used for cache",
+      "Verify no WRITE_EXTERNAL_STORAGE permission needed",
+      "Verify photos accessible after app reinstall via MediaStore"
+    ],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "Android Camera2 API handles device variations",
+    "steps": [
+      "Test on device with Camera2 FULL support",
+      "Verify all camera features available",
+      "Test on device with Camera2 LIMITED support",
+      "Verify graceful feature degradation",
+      "Verify no crashes on legacy camera devices"
+    ],
+    "passes": false
+  }
+]

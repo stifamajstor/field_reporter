@@ -1,0 +1,449 @@
+[
+  {
+    "category": "functional",
+    "description": "AI generates description for captured photo",
+    "steps": [
+      "Capture a photo of a scene with visible details",
+      "Navigate to Entry Detail",
+      "Tap 'Generate Description' button",
+      "Verify loading indicator appears",
+      "Wait for AI processing (may take 5-15 seconds)",
+      "Verify AI-generated description appears",
+      "Verify description is relevant to photo content",
+      "Verify description uses professional language appropriate for reports"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "AI description identifies damage in photos",
+    "steps": [
+      "Capture photo of damaged property (crack, water damage, etc.)",
+      "Generate AI description",
+      "Verify description identifies type of damage",
+      "Verify description notes location/extent of damage",
+      "Verify description avoids speculation on cause"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "AI description identifies equipment and assets",
+    "steps": [
+      "Capture photo of equipment or asset",
+      "Generate AI description",
+      "Verify description identifies equipment type if recognizable",
+      "Verify description notes visible condition",
+      "Verify description mentions any visible labels/serial numbers"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can edit AI-generated description",
+    "steps": [
+      "Generate AI description for a photo",
+      "Tap on the description text",
+      "Verify text becomes editable",
+      "Make corrections or additions",
+      "Tap save or tap outside",
+      "Verify edited description is saved",
+      "Verify original AI text is not recoverable (privacy)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "AI transcribes audio recording",
+    "steps": [
+      "Record a voice memo with clear speech",
+      "Navigate to Entry Detail",
+      "Tap 'Transcribe' button",
+      "Verify processing indicator appears",
+      "Wait for transcription (time varies by length)",
+      "Verify transcribed text appears",
+      "Verify transcription accuracy is reasonable (>90%)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "AI transcribes video audio track",
+    "steps": [
+      "Record video with spoken narration",
+      "Navigate to Entry Detail for video",
+      "Tap 'Transcribe Audio' button",
+      "Verify processing indicator",
+      "Wait for transcription",
+      "Verify transcribed text appears",
+      "Verify transcription syncs with video timeline (timestamps)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can edit AI transcription",
+    "steps": [
+      "Generate AI transcription for audio",
+      "Review transcription for errors",
+      "Tap on text to edit",
+      "Correct misheard words",
+      "Add punctuation if missing",
+      "Save changes",
+      "Verify edited transcription persists"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "AI generates summary for entire report",
+    "steps": [
+      "Create report with multiple entries (photos, notes, audio)",
+      "Tap 'Generate AI Summary' button",
+      "Verify processing indicator",
+      "Wait for AI processing",
+      "Verify summary appears at top of report",
+      "Verify summary covers key points from all entries",
+      "Verify summary is coherent and professional"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "AI summary respects report type context",
+    "steps": [
+      "Set report type to 'Insurance Claim'",
+      "Add entries documenting damage",
+      "Generate AI summary",
+      "Verify summary uses insurance-appropriate language",
+      "Verify summary highlights damage observations",
+      "Verify summary includes relevant details for claims"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "AI summary for construction inspection",
+    "steps": [
+      "Set report type to 'Construction Inspection'",
+      "Add entries documenting site conditions",
+      "Generate AI summary",
+      "Verify summary uses construction terminology",
+      "Verify summary organizes by inspection areas",
+      "Verify summary notes compliance observations"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can regenerate AI summary",
+    "steps": [
+      "Generate AI summary for report",
+      "Add more entries to the report",
+      "Tap 'Regenerate Summary' button",
+      "Verify confirmation that current summary will be replaced",
+      "Confirm regeneration",
+      "Verify new summary includes new entries"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can edit AI summary",
+    "steps": [
+      "Generate AI summary",
+      "Tap on summary text",
+      "Verify summary becomes editable",
+      "Make modifications",
+      "Save changes",
+      "Verify edited summary persists",
+      "Verify regenerate would overwrite edits (with warning)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "AI processes multiple entries in batch",
+    "steps": [
+      "Add 5 photos without descriptions",
+      "Tap 'Process All with AI' option",
+      "Verify batch processing starts",
+      "Verify progress indicator shows X of Y",
+      "Wait for all to complete",
+      "Verify all entries now have AI descriptions"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "AI processing can be queued for later",
+    "steps": [
+      "Add photo entry while offline",
+      "Note that AI generation is unavailable",
+      "Tap 'Queue for AI processing'",
+      "Verify entry marked for AI processing when online",
+      "Go online",
+      "Verify automatic AI processing begins",
+      "Verify notification when complete"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can disable automatic AI suggestions",
+    "steps": [
+      "Navigate to Settings > AI Preferences",
+      "Toggle off 'Automatic AI descriptions'",
+      "Capture new photo",
+      "Verify AI description is not auto-generated",
+      "Verify manual 'Generate' button still works"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "AI respects user's language preference",
+    "steps": [
+      "Set app language to German (or other language)",
+      "Capture photo",
+      "Generate AI description",
+      "Verify description is in German",
+      "Generate report summary",
+      "Verify summary is in German"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "PDF generation includes AI content",
+    "steps": [
+      "Create report with AI descriptions and summary",
+      "Generate PDF",
+      "Open generated PDF",
+      "Verify AI summary appears in PDF",
+      "Verify AI descriptions under photos",
+      "Verify transcriptions included for audio entries"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "AI identifies and flags safety concerns",
+    "steps": [
+      "Capture photo with visible safety hazard",
+      "Generate AI description",
+      "Verify description mentions potential safety concern",
+      "Verify special indicator/flag on entry",
+      "Verify safety concerns highlighted in report summary"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "AI features unavailable offline with clear message",
+    "steps": [
+      "Enable airplane mode",
+      "Navigate to Entry Detail for photo",
+      "Tap 'Generate Description'",
+      "Verify message that AI features require internet",
+      "Verify option to queue for later",
+      "Verify entry remains usable without AI"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "Queued AI tasks process when online",
+    "steps": [
+      "Queue multiple AI tasks while offline",
+      "Go online",
+      "Verify automatic processing of queue begins",
+      "Verify progress indicator for batch",
+      "Verify all queued items eventually processed",
+      "Verify notifications for completed items"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "AI processing shows clear loading state",
+    "steps": [
+      "Trigger AI description generation",
+      "Verify loading spinner appears",
+      "Verify loading message (e.g., 'Analyzing image...')",
+      "Verify button is disabled during processing",
+      "Verify cancel option available for long operations"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "AI content visually distinguished from user content",
+    "steps": [
+      "View entry with AI-generated description",
+      "Verify subtle visual indicator (icon, badge, or style)",
+      "Verify 'AI Generated' label visible",
+      "After user edits, verify indicator changes or removes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Transcription displays with timestamps",
+    "steps": [
+      "View transcription for audio or video entry",
+      "Verify timestamps shown alongside text segments",
+      "Tap on a timestamp",
+      "Verify audio/video jumps to that position"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "AI API failure shows appropriate error",
+    "steps": [
+      "Simulate AI API failure",
+      "Request AI description",
+      "Verify error message displayed",
+      "Verify message is user-friendly (not technical)",
+      "Verify 'Retry' button available",
+      "Verify entry remains usable without AI"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "AI timeout handled gracefully",
+    "steps": [
+      "Simulate very slow AI response",
+      "Request AI processing",
+      "Wait for timeout threshold",
+      "Verify timeout message displayed",
+      "Verify option to retry or cancel",
+      "Verify no duplicate processing if retry"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Unsupported content type shows clear message",
+    "steps": [
+      "Attempt AI transcription on unsupported audio format",
+      "Verify clear error about unsupported format",
+      "Verify suggestion for supported formats",
+      "Verify option to convert or re-record"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Poor quality input warns user",
+    "steps": [
+      "Record very quiet or noisy audio",
+      "Request transcription",
+      "Verify low confidence warning",
+      "Verify transcription still attempted",
+      "Verify suggestion to re-record for better results"
+    ],
+    "passes": false
+  },
+  {
+    "category": "security",
+    "description": "AI processing respects data privacy settings",
+    "steps": [
+      "Review AI data usage settings",
+      "Verify clear explanation of what data is sent",
+      "Verify option to opt-out of AI features",
+      "Verify media is processed but not retained by AI service"
+    ],
+    "dependencies": ["13-prd-settings.json"],
+    "passes": false
+  },
+  {
+    "category": "security",
+    "description": "AI does not identify individuals in photos",
+    "steps": [
+      "Capture photo with people visible",
+      "Generate AI description",
+      "Verify description does not name individuals",
+      "Verify description uses generic terms (e.g., 'a person', 'workers')"
+    ],
+    "dependencies": ["05-prd-camera-media.json"],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Image description completes within reasonable time",
+    "steps": [
+      "Capture standard resolution photo",
+      "Request AI description",
+      "Measure processing time",
+      "Verify completion within 15 seconds",
+      "Verify no UI blocking during processing"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Audio transcription scales with length",
+    "steps": [
+      "Record 30-second audio clip",
+      "Request transcription, note time",
+      "Record 2-minute audio clip",
+      "Request transcription, note time",
+      "Verify processing time scales reasonably with length"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Report summary generation scales with entries",
+    "steps": [
+      "Create report with 5 entries",
+      "Generate summary, note time",
+      "Add 15 more entries (total 20)",
+      "Regenerate summary, note time",
+      "Verify summary quality maintained",
+      "Verify time increase is acceptable"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "AI descriptions are factually accurate",
+    "steps": [
+      "Capture photos of known objects/scenes",
+      "Generate AI descriptions for each",
+      "Review descriptions for accuracy",
+      "Verify no hallucinated details",
+      "Verify descriptions match visible content only"
+    ],
+    "dependencies": ["05-prd-camera-media.json"],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "AI uses appropriate professional tone",
+    "steps": [
+      "Generate descriptions and summary for typical report",
+      "Review language and tone",
+      "Verify professional, neutral language",
+      "Verify no casual or emotional language",
+      "Verify appropriate for business/legal documents"
+    ],
+    "dependencies": ["04-prd-reports.json"],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "AI content accessible to screen readers",
+    "steps": [
+      "Enable screen reader",
+      "Navigate to entry with AI description",
+      "Verify description is read aloud",
+      "Verify 'AI generated' indicator announced",
+      "Verify transcription text accessible"
+    ],
+    "passes": false
+  }
+]

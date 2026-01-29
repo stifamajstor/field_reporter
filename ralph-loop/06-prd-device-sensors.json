@@ -1,0 +1,345 @@
+[
+  {
+    "category": "functional",
+    "description": "Accelerometer data captured with entries",
+    "steps": [
+      "Hold device still and capture photo",
+      "View entry metadata",
+      "Verify accelerometer data present",
+      "Verify values indicate still device (~0 on x,y; ~9.8 on z)",
+      "Shake device while capturing",
+      "Verify different accelerometer values recorded"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Gyroscope data captured with entries",
+    "steps": [
+      "Hold device still and capture photo",
+      "View entry metadata",
+      "Verify gyroscope data present",
+      "Verify values indicate no rotation (~0)",
+      "Rotate device while capturing",
+      "Verify gyroscope values reflect rotation"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Compass/magnetometer provides heading",
+    "steps": [
+      "Face device north and capture photo",
+      "View entry metadata",
+      "Verify heading/bearing is approximately 0° or 'N'",
+      "Face east and capture",
+      "Verify heading is approximately 90° or 'E'",
+      "Face south and capture",
+      "Verify heading is approximately 180° or 'S'"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Device orientation calculated from sensors",
+    "steps": [
+      "Hold device in portrait orientation",
+      "Capture photo",
+      "View entry metadata",
+      "Verify orientation indicates portrait",
+      "Rotate to landscape",
+      "Capture photo",
+      "Verify orientation indicates landscape"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Level indicator uses accelerometer",
+    "steps": [
+      "Open camera with level indicator enabled",
+      "Hold device perfectly flat",
+      "Verify level indicator shows level (green/centered)",
+      "Tilt device forward",
+      "Verify level indicator reflects tilt",
+      "Tilt device sideways",
+      "Verify level indicator reflects side tilt"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Haptic feedback on level achieved",
+    "steps": [
+      "Open camera with level indicator",
+      "Tilt device off-level",
+      "Slowly bring device to level",
+      "Verify haptic feedback when level achieved",
+      "Verify haptic only fires once at level transition"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shake gesture triggers voice recording",
+    "steps": [
+      "Enable shake-to-record in settings",
+      "Open report in edit mode",
+      "Shake device firmly",
+      "Verify haptic confirmation",
+      "Verify voice recording starts automatically",
+      "Shake again",
+      "Verify recording stops"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Shake gesture sensitivity is configurable",
+    "steps": [
+      "Navigate to Settings > Gestures",
+      "Find shake sensitivity setting",
+      "Set to 'Low' (requires harder shake)",
+      "Test shake - gentle shake should not trigger",
+      "Set to 'High' (easier trigger)",
+      "Test shake - gentle shake should trigger"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Barometer data captured if available",
+    "steps": [
+      "On device with barometer sensor",
+      "Capture entry at ground level",
+      "View entry metadata",
+      "Verify atmospheric pressure recorded",
+      "Move to higher elevation",
+      "Capture entry",
+      "Verify pressure difference (lower at higher elevation)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Light sensor data captured if available",
+    "steps": [
+      "On device with light sensor",
+      "Capture entry in bright light",
+      "View entry metadata",
+      "Verify ambient light level recorded (high lux)",
+      "Cover light sensor or go to dark room",
+      "Capture entry",
+      "Verify lower light level recorded"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Sensor data displayed in human-readable format",
+    "steps": [
+      "Capture entry with various sensor data",
+      "View entry metadata",
+      "Verify compass shows cardinal direction, not just degrees",
+      "Verify orientation shows 'Portrait' or 'Landscape'",
+      "Verify units displayed for measurable values",
+      "Verify technical values have explanatory labels"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Sensor data included in PDF reports",
+    "steps": [
+      "Create report with entries having sensor data",
+      "Generate PDF",
+      "Open PDF",
+      "Verify relevant sensor data in entry details",
+      "Verify compass direction shown for photos",
+      "Verify orientation indicated"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "App handles missing sensors gracefully",
+    "steps": [
+      "Test on device without all sensors",
+      "Capture an entry",
+      "View metadata",
+      "Verify available sensors show data",
+      "Verify missing sensors show 'Not available'",
+      "Verify no crashes or errors"
+    ],
+    "dependencies": ["05-prd-camera-media.json"],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Sensor features degrade gracefully on older devices",
+    "steps": [
+      "Test on older device with fewer sensors",
+      "Verify app functions without all sensors",
+      "Verify level indicator works if accelerometer available",
+      "Verify compass works if magnetometer available",
+      "Verify no mandatory sensor requirements"
+    ],
+    "dependencies": ["05-prd-camera-media.json"],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Compass calibration prompt when needed",
+    "steps": [
+      "Detect compass needs calibration (erratic readings)",
+      "Verify calibration prompt appears",
+      "Follow calibration instructions (figure-8 motion)",
+      "Complete calibration",
+      "Verify compass readings stabilize"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Sensor data is timestamped with capture moment",
+    "steps": [
+      "Capture entry while moving device",
+      "View metadata",
+      "Verify sensor data reflects state at capture moment",
+      "Verify not an average or delayed reading"
+    ],
+    "dependencies": ["05-prd-camera-media.json"],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Sensor reading doesn't impact camera performance",
+    "steps": [
+      "Open camera with all overlays enabled",
+      "Observe camera preview frame rate",
+      "Verify smooth 30fps preview",
+      "Capture photos rapidly",
+      "Verify no delay from sensor reading"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Sensor polling is efficient",
+    "steps": [
+      "Open camera for extended period",
+      "Monitor battery usage",
+      "Monitor CPU usage",
+      "Verify no excessive battery drain from sensors",
+      "Verify CPU usage stays reasonable"
+    ],
+    "passes": false
+  },
+  {
+    "category": "battery",
+    "description": "Continuous GPS tracking has reasonable battery impact",
+    "steps": [
+      "Start GPS tracking for report",
+      "Note battery level",
+      "Track for 30 minutes",
+      "Note battery level after",
+      "Verify battery drain is reasonable",
+      "Compare to expected for GPS usage"
+    ],
+    "passes": false
+  },
+  {
+    "category": "battery",
+    "description": "Sensors not polled when not needed",
+    "steps": [
+      "Navigate to screen not using sensors (e.g., settings)",
+      "Monitor sensor activity (via developer tools)",
+      "Verify sensors not being actively polled",
+      "Navigate to camera",
+      "Verify sensors now active"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Sensor data display is consistent across entries",
+    "steps": [
+      "View multiple entries with sensor data",
+      "Verify consistent formatting",
+      "Verify consistent labeling",
+      "Verify same sensors shown in same order"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Level indicator is visually clear",
+    "steps": [
+      "Open camera",
+      "View level indicator",
+      "Verify indicator is visible against various backgrounds",
+      "Verify indicator shows direction of tilt",
+      "Verify color changes at level (green when level)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Sensor failure doesn't crash app",
+    "steps": [
+      "Simulate sensor read failure",
+      "Attempt to capture entry",
+      "Verify entry captures successfully",
+      "Verify metadata shows sensor unavailable",
+      "Verify no app crash"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "Sensor data accessible via screen reader",
+    "steps": [
+      "Enable screen reader",
+      "View entry metadata section",
+      "Navigate through sensor data",
+      "Verify each sensor value announced with label",
+      "Verify units announced"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ios",
+    "description": "Core Motion framework provides sensor data on iOS",
+    "steps": [
+      "Open camera on iOS device",
+      "Verify accelerometer data available via Core Motion",
+      "Verify gyroscope data available",
+      "Verify magnetometer data available for compass",
+      "Verify motion data updates at appropriate frequency"
+    ],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "SensorManager provides sensor data on Android",
+    "steps": [
+      "Open camera on Android device",
+      "Verify accelerometer data available via SensorManager",
+      "Verify gyroscope data available",
+      "Verify magnetometer data available for compass",
+      "Verify sensor event listeners properly registered and unregistered"
+    ],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "Android sensor batching handled correctly",
+    "steps": [
+      "On Android device with sensor batching support",
+      "Capture entry while sensors are batched",
+      "Verify sensor data reflects capture moment, not batch delay",
+      "Verify no stale sensor readings used"
+    ],
+    "passes": false
+  }
+]

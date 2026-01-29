@@ -1,0 +1,404 @@
+[
+  {
+    "category": "functional",
+    "description": "User can generate PDF from complete report",
+    "steps": [
+      "Open a report with multiple entries",
+      "Ensure report has photos, notes, and AI summary",
+      "Tap 'Generate PDF' button",
+      "Verify processing indicator appears",
+      "Wait for PDF generation",
+      "Verify success message",
+      "Verify PDF download/preview option appears"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Generated PDF includes report header",
+    "steps": [
+      "Generate PDF for a report",
+      "Open the PDF",
+      "Verify report title at top",
+      "Verify project name included",
+      "Verify date range of entries",
+      "Verify author name",
+      "Verify organization logo (if configured)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Generated PDF includes AI summary",
+    "steps": [
+      "Generate PDF for report with AI summary",
+      "Open the PDF",
+      "Verify AI summary section present",
+      "Verify summary is prominently positioned",
+      "Verify summary formatting is professional"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Generated PDF includes all photo entries",
+    "steps": [
+      "Generate PDF for report with multiple photos",
+      "Open the PDF",
+      "Verify all photos included",
+      "Verify photos are appropriately sized",
+      "Verify photo captions/descriptions included",
+      "Verify timestamps visible",
+      "Verify GPS locations shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Generated PDF includes video entries as QR codes",
+    "steps": [
+      "Generate PDF for report with video entries",
+      "Open the PDF",
+      "Verify video thumbnail shown",
+      "Verify QR code next to video thumbnail",
+      "Scan QR code with phone",
+      "Verify QR links to video playback URL",
+      "Verify video streams correctly from link"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Generated PDF includes audio transcriptions",
+    "steps": [
+      "Generate PDF for report with transcribed audio",
+      "Open the PDF",
+      "Verify audio entry section",
+      "Verify transcription text included",
+      "Verify QR code or URL to audio file"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Generated PDF includes text notes",
+    "steps": [
+      "Generate PDF for report with text notes",
+      "Open the PDF",
+      "Verify all text notes included",
+      "Verify notes maintain formatting",
+      "Verify timestamps on notes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Generated PDF includes scan entries",
+    "steps": [
+      "Generate PDF for report with barcode/QR scans",
+      "Open the PDF",
+      "Verify scan entries listed",
+      "Verify decoded barcode values shown",
+      "Verify scan images if captured"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Generated PDF includes location map",
+    "steps": [
+      "Generate PDF for report with geotagged entries",
+      "Open the PDF",
+      "Verify map image included",
+      "Verify entry locations marked on map",
+      "Verify map legend or numbering",
+      "Verify map is readable"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "PDF entries ordered correctly",
+    "steps": [
+      "Generate PDF for report with ordered entries",
+      "Open the PDF",
+      "Verify entries appear in chronological order",
+      "Verify order matches app display",
+      "If user reordered entries, verify custom order respected"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can preview PDF before downloading",
+    "steps": [
+      "Generate PDF",
+      "Tap 'Preview' option",
+      "Verify PDF viewer opens",
+      "Verify can scroll through PDF",
+      "Verify can zoom in/out",
+      "Verify option to download after preview"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can download PDF to device",
+    "steps": [
+      "Generate PDF",
+      "Tap 'Download' option",
+      "Verify download starts",
+      "Verify download progress if large file",
+      "Verify file saved to Downloads folder",
+      "Verify file opens in device PDF viewer"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can share PDF directly",
+    "steps": [
+      "Generate PDF",
+      "Tap 'Share' button",
+      "Verify native share sheet opens",
+      "Select email option",
+      "Verify PDF attached to email",
+      "Select message option",
+      "Verify PDF can be sent"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "PDF uses organization branding",
+    "steps": [
+      "Configure organization logo in admin settings",
+      "Generate PDF from mobile app",
+      "Open the PDF",
+      "Verify organization logo in header",
+      "Verify organization name present",
+      "Verify brand colors if configured"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "PDF includes footer with page numbers",
+    "steps": [
+      "Generate PDF with multiple pages",
+      "Open the PDF",
+      "Verify footer on each page",
+      "Verify page numbers (Page X of Y)",
+      "Verify generated date in footer"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "PDF generation handles large reports",
+    "steps": [
+      "Create report with 50+ entries",
+      "Request PDF generation",
+      "Verify generation completes (may take longer)",
+      "Open the PDF",
+      "Verify all entries included",
+      "Verify PDF is not corrupted"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can regenerate PDF after adding entries",
+    "steps": [
+      "Generate PDF for report",
+      "Add more entries to report",
+      "Tap 'Regenerate PDF'",
+      "Verify confirmation about replacing existing",
+      "Confirm regeneration",
+      "Verify new PDF includes new entries"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "PDF includes metadata in document properties",
+    "steps": [
+      "Generate PDF",
+      "Open in PDF reader",
+      "Check document properties",
+      "Verify title matches report title",
+      "Verify author is set",
+      "Verify creation date",
+      "Verify generator/producer info"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "PDF generation requires online connection",
+    "steps": [
+      "Enable airplane mode",
+      "Open a report",
+      "Tap 'Generate PDF'",
+      "Verify message about requiring network",
+      "Verify option to queue for later generation",
+      "Go online",
+      "Verify PDF generation starts automatically"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "Previously generated PDF accessible offline",
+    "steps": [
+      "Generate PDF while online",
+      "Download PDF to device",
+      "Enable airplane mode",
+      "Navigate to report",
+      "Tap 'View PDF'",
+      "Verify cached PDF opens",
+      "Verify full PDF viewable offline"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "PDF generation shows progress for long operations",
+    "steps": [
+      "Request PDF generation for large report",
+      "Verify progress indicator appears",
+      "Verify progress updates (e.g., 'Processing images...')",
+      "Verify estimated time if available",
+      "Verify completion indication"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "PDF generation can be cancelled",
+    "steps": [
+      "Start PDF generation for large report",
+      "Tap 'Cancel' button during generation",
+      "Verify generation stops",
+      "Verify confirmation that no PDF was created",
+      "Verify can restart generation"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "PDF generation failure shows clear error",
+    "steps": [
+      "Simulate PDF generation failure",
+      "Verify error message displayed",
+      "Verify error is user-friendly",
+      "Verify 'Retry' option available",
+      "Verify report data is intact"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Missing media handled gracefully in PDF",
+    "steps": [
+      "Generate PDF when media still uploading",
+      "Verify warning about pending uploads",
+      "Proceed with generation",
+      "Verify placeholder for unavailable media",
+      "Verify note about incomplete content"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Network timeout during generation",
+    "steps": [
+      "Start PDF generation",
+      "Simulate network timeout",
+      "Verify timeout error message",
+      "Verify retry option",
+      "Retry after connection restored",
+      "Verify generation completes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "PDF images have acceptable quality",
+    "steps": [
+      "Generate PDF with high-res photos",
+      "Open PDF and zoom into images",
+      "Verify image quality is acceptable",
+      "Verify images are sharp enough to see details",
+      "Verify file size is reasonable"
+    ],
+    "dependencies": ["05-prd-camera-media.json", "13-prd-settings.json"],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "PDF text is selectable and searchable",
+    "steps": [
+      "Generate PDF with text content",
+      "Open in PDF reader",
+      "Try to select text",
+      "Verify text is selectable",
+      "Use PDF search function",
+      "Verify text content is searchable"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "PDF renders correctly in various viewers",
+    "steps": [
+      "Generate PDF",
+      "Open in iOS Preview",
+      "Verify renders correctly",
+      "Open in Android PDF viewer",
+      "Verify renders correctly",
+      "Open in Chrome browser",
+      "Verify renders correctly",
+      "Open in Adobe Acrobat",
+      "Verify renders correctly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "PDF prints correctly",
+    "steps": [
+      "Generate PDF",
+      "Open PDF and print",
+      "Verify layout fits page",
+      "Verify colors print correctly",
+      "Verify text is readable when printed",
+      "Verify images visible when printed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "PDF generation completes in reasonable time",
+    "steps": [
+      "Generate PDF for typical report (10-15 entries)",
+      "Measure generation time",
+      "Verify completes within 30 seconds",
+      "Generate PDF for large report (50+ entries)",
+      "Verify completes within 2 minutes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "PDF is accessible (tagged PDF)",
+    "steps": [
+      "Generate PDF",
+      "Check PDF accessibility properties",
+      "Verify PDF is tagged for accessibility",
+      "Verify images have alt text from descriptions",
+      "Verify reading order is logical"
+    ],
+    "passes": false
+  }
+]

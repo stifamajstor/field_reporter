@@ -1,0 +1,11 @@
+# Logs and temporary files
+*.log
+*.tmp
+.DS_Store
+
+# Output files
+output/
+logs/
+
+# Local configuration overrides
+*.local.json

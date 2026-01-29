@@ -1,0 +1,490 @@
+[
+  {
+    "category": "functional",
+    "description": "User can view list of all reports",
+    "steps": [
+      "Login to the app",
+      "Navigate to Reports screen",
+      "Verify list of reports is displayed",
+      "Verify each report shows title, project, date, status",
+      "Verify entry count is shown for each report",
+      "Verify reports sorted by most recent first"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can create a new report",
+    "steps": [
+      "Navigate to Reports screen",
+      "Tap 'New Report' button",
+      "Verify project selection screen appears",
+      "Select a project",
+      "Verify Report Editor screen opens",
+      "Verify report has auto-generated title with date",
+      "Verify report status is 'Draft'"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can edit report title and details",
+    "steps": [
+      "Navigate to Report Editor",
+      "Tap on report title",
+      "Verify title becomes editable",
+      "Enter new title",
+      "Tap outside or press done",
+      "Verify title updates",
+      "Tap on notes/description field",
+      "Enter report notes",
+      "Verify changes are auto-saved"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can add photo entry to report",
+    "steps": [
+      "Open Report Editor for a report",
+      "Tap 'Add Entry' button",
+      "Select 'Photo' from options",
+      "Verify camera opens",
+      "Capture a photo",
+      "Verify photo preview appears",
+      "Tap 'Use Photo' or confirm",
+      "Verify photo entry added to report",
+      "Verify entry shows thumbnail and timestamp"
+    ],
+    "dependencies": ["05-prd-camera-media.json"],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can add video entry to report",
+    "steps": [
+      "Open Report Editor for a report",
+      "Tap 'Add Entry' button",
+      "Select 'Video' from options",
+      "Verify camera opens in video mode",
+      "Tap record button to start",
+      "Record for a few seconds",
+      "Tap stop button",
+      "Verify video preview plays",
+      "Tap 'Use Video' or confirm",
+      "Verify video entry added to report",
+      "Verify entry shows thumbnail and duration"
+    ],
+    "dependencies": ["05-prd-camera-media.json"],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can add voice memo entry to report",
+    "steps": [
+      "Open Report Editor for a report",
+      "Tap 'Add Entry' button",
+      "Select 'Voice Memo' from options",
+      "Verify audio recording UI appears",
+      "Tap record button",
+      "Verify recording indicator and timer",
+      "Speak for a few seconds",
+      "Tap stop button",
+      "Verify playback controls appear",
+      "Play back to verify recording",
+      "Tap 'Save' or confirm",
+      "Verify audio entry added to report"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can add text note entry to report",
+    "steps": [
+      "Open Report Editor for a report",
+      "Tap 'Add Entry' button",
+      "Select 'Note' from options",
+      "Verify text input screen appears",
+      "Enter note text",
+      "Tap 'Save' button",
+      "Verify note entry added to report",
+      "Verify note preview shows truncated text"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can scan QR/barcode and add to report",
+    "steps": [
+      "Open Report Editor for a report",
+      "Tap 'Add Entry' button",
+      "Select 'Scan' from options",
+      "Verify camera opens with scan overlay",
+      "Point at QR code or barcode",
+      "Verify automatic detection and capture",
+      "Verify scanned data displayed",
+      "Tap 'Save' to add to report",
+      "Verify scan entry added with decoded data"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can view entry details",
+    "steps": [
+      "Open Report with entries",
+      "Tap on an entry in the list",
+      "Verify Entry Detail screen opens",
+      "Verify full media is displayed (photo/video/audio)",
+      "Verify metadata section (GPS, time, sensors)",
+      "Verify AI-generated description if available",
+      "Verify edit and delete options available"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can edit entry annotation/notes",
+    "steps": [
+      "Navigate to Entry Detail screen",
+      "Tap on annotation/notes field",
+      "Verify text input becomes active",
+      "Add or modify annotation text",
+      "Tap save or tap outside",
+      "Verify changes are saved",
+      "Return to report",
+      "Verify annotation visible in entry preview"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can delete an entry from report",
+    "steps": [
+      "Open Report with entries",
+      "Swipe left on an entry (or tap delete button)",
+      "Verify delete confirmation appears",
+      "Confirm deletion",
+      "Verify entry is removed from list",
+      "Verify entry count updates"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can reorder entries in report",
+    "steps": [
+      "Open Report with multiple entries",
+      "Long-press on an entry",
+      "Verify entry becomes draggable",
+      "Drag entry to new position",
+      "Release entry",
+      "Verify entry is in new position",
+      "Verify order is persisted"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can request AI transcription for audio entry",
+    "steps": [
+      "Open Entry Detail for an audio entry",
+      "Verify 'Transcribe' button is visible",
+      "Tap 'Transcribe' button",
+      "Verify processing indicator appears",
+      "Wait for transcription to complete",
+      "Verify transcribed text appears",
+      "Verify text is editable for corrections"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can request AI description for photo entry",
+    "steps": [
+      "Open Entry Detail for a photo entry",
+      "Verify 'Generate Description' button is visible",
+      "Tap the button",
+      "Verify processing indicator appears",
+      "Wait for AI processing",
+      "Verify AI-generated description appears",
+      "Verify description is editable"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can generate AI summary for entire report",
+    "steps": [
+      "Open Report with multiple entries",
+      "Tap 'Generate Summary' button",
+      "Verify processing indicator appears",
+      "Wait for AI processing",
+      "Verify AI-generated summary appears at top of report",
+      "Verify summary covers all entries",
+      "Verify summary is editable"
+    ],
+    "dependencies": ["10-prd-ai-features.json"],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can generate PDF from report",
+    "steps": [
+      "Open completed Report with entries",
+      "Tap 'Generate PDF' button",
+      "Verify processing indicator appears",
+      "Wait for PDF generation",
+      "Verify success message",
+      "Verify PDF preview or download option appears",
+      "Verify PDF contains all entries",
+      "Verify QR codes for videos in PDF"
+    ],
+    "dependencies": ["11-prd-pdf-generation.json"],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can share report via native share sheet",
+    "steps": [
+      "Open Report with generated PDF",
+      "Tap 'Share' button",
+      "Verify native share sheet appears",
+      "Verify PDF is the shared content",
+      "Select a share destination (email, messages, etc.)",
+      "Verify share completes successfully"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can mark report as complete",
+    "steps": [
+      "Open Report in draft status",
+      "Tap 'Mark Complete' button",
+      "Verify confirmation dialog",
+      "Confirm marking complete",
+      "Verify status changes to 'Complete'",
+      "Verify report becomes read-only",
+      "Verify visual indicator of complete status"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can delete a report",
+    "steps": [
+      "Navigate to Report Detail",
+      "Tap more options menu",
+      "Select 'Delete Report'",
+      "Verify confirmation with warning about entries",
+      "Confirm deletion",
+      "Verify navigation to Reports list",
+      "Verify report no longer appears"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can filter reports by status",
+    "steps": [
+      "Navigate to Reports screen",
+      "Tap filter button",
+      "Verify filter options: All, Draft, Processing, Complete",
+      "Select 'Draft'",
+      "Verify only draft reports shown",
+      "Select 'Complete'",
+      "Verify only complete reports shown",
+      "Clear filter",
+      "Verify all reports shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can filter reports by project",
+    "steps": [
+      "Navigate to Reports screen",
+      "Tap filter button",
+      "Select project filter",
+      "Verify list of projects",
+      "Select a specific project",
+      "Verify only reports from that project shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can filter reports by date range",
+    "steps": [
+      "Navigate to Reports screen",
+      "Tap filter button",
+      "Select date range filter",
+      "Select start date",
+      "Select end date",
+      "Apply filter",
+      "Verify only reports within date range shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can search reports by keyword",
+    "steps": [
+      "Navigate to Reports screen",
+      "Tap search icon",
+      "Enter search term",
+      "Verify results filter as typing",
+      "Verify search matches report titles",
+      "Verify search matches entry content",
+      "Clear search",
+      "Verify all reports shown again"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "User can create report and add entries while offline",
+    "steps": [
+      "Enable airplane mode",
+      "Navigate to create new report",
+      "Select project",
+      "Add photo entry",
+      "Add text note entry",
+      "Verify entries saved locally",
+      "Verify 'Pending sync' indicator",
+      "Disable airplane mode",
+      "Verify automatic sync starts",
+      "Verify entries upload successfully"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "User can view cached reports when offline",
+    "steps": [
+      "View several reports while online",
+      "Enable airplane mode",
+      "Navigate to Reports screen",
+      "Verify cached reports are displayed",
+      "Open a cached report",
+      "Verify entries and media are viewable",
+      "Verify offline indicator shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "AI features show unavailable state when offline",
+    "steps": [
+      "Enable airplane mode",
+      "Open a report",
+      "Attempt to generate AI summary",
+      "Verify message that AI features require connection",
+      "Verify option to queue for later processing"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Report timeline shows chronological entry flow",
+    "steps": [
+      "Open Report with multiple entries over time",
+      "Verify entries displayed in timeline format",
+      "Verify timestamps visible on timeline",
+      "Verify visual connection between entries",
+      "Verify different entry types have distinct icons"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Entry thumbnails load progressively",
+    "steps": [
+      "Open Report with many photo/video entries",
+      "Verify placeholder thumbnails shown immediately",
+      "Verify thumbnails load progressively",
+      "Verify smooth transition from placeholder to thumbnail",
+      "Scroll quickly through list",
+      "Verify no UI jank during scroll"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Report status badge reflects current state",
+    "steps": [
+      "View report in Draft status",
+      "Verify 'Draft' badge displayed",
+      "Trigger PDF generation",
+      "Verify 'Processing' badge during generation",
+      "Wait for completion",
+      "Verify 'Complete' badge displayed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Media capture failure shows retry option",
+    "steps": [
+      "Open Report and attempt to add photo",
+      "Simulate camera failure or permission denied",
+      "Verify error message displayed",
+      "Verify 'Retry' or 'Check Permissions' option",
+      "Grant permissions and retry",
+      "Verify capture succeeds"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "AI processing failure shows appropriate error",
+    "steps": [
+      "Open Entry and request AI transcription",
+      "Simulate AI API failure",
+      "Verify error message displayed",
+      "Verify 'Retry' option available",
+      "Verify entry is still functional without AI"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "PDF generation failure allows retry",
+    "steps": [
+      "Open Report and generate PDF",
+      "Simulate generation failure",
+      "Verify error message with reason",
+      "Verify 'Retry' button available",
+      "Retry generation",
+      "Verify eventual success or clear failure message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Large reports with many entries perform well",
+    "steps": [
+      "Open Report with 50+ entries",
+      "Verify list loads within 3 seconds",
+      "Scroll through all entries",
+      "Verify smooth scrolling without jank",
+      "Verify memory usage stays reasonable"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "Report Editor is accessible with screen reader",
+    "steps": [
+      "Enable screen reader",
+      "Open Report Editor",
+      "Verify report title is announced",
+      "Navigate to Add Entry button",
+      "Verify entry type options are announced",
+      "Navigate through existing entries",
+      "Verify entry type, timestamp, description announced"
+    ],
+    "passes": false
+  }
+]

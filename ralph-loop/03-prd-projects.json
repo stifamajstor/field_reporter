@@ -1,0 +1,375 @@
+[
+  {
+    "category": "functional",
+    "description": "User can view list of all projects",
+    "steps": [
+      "Login to the app",
+      "Navigate to Projects screen",
+      "Verify list of projects is displayed",
+      "Verify each project shows name, location, and report count",
+      "Verify each project shows status indicator",
+      "Verify projects are sorted by most recent activity"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can create a new project",
+    "steps": [
+      "Navigate to Projects screen",
+      "Tap 'Create Project' button or FAB",
+      "Verify project creation form appears",
+      "Enter project name",
+      "Enter project description",
+      "Tap location field",
+      "Verify location picker appears",
+      "Select location on map or enter address",
+      "Tap 'Create' button",
+      "Verify project is created",
+      "Verify navigation to new project detail"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can set project location using current GPS",
+    "steps": [
+      "Navigate to create project form",
+      "Tap location field",
+      "Tap 'Use Current Location' button",
+      "Verify location permission prompt if not granted",
+      "Grant permission",
+      "Verify GPS coordinates are captured",
+      "Verify address is reverse-geocoded and displayed",
+      "Verify map preview shows correct location"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can set project location by searching address",
+    "steps": [
+      "Navigate to create project form",
+      "Tap location field",
+      "Tap search/address input",
+      "Type address or place name",
+      "Verify autocomplete suggestions appear",
+      "Select a suggestion",
+      "Verify map updates to show selected location",
+      "Verify coordinates are populated"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can set project location by tapping map",
+    "steps": [
+      "Navigate to create project form",
+      "Tap location field",
+      "Verify map is displayed",
+      "Tap on a location on the map",
+      "Verify marker appears at tapped location",
+      "Verify address is reverse-geocoded",
+      "Verify coordinates update"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can view project details",
+    "steps": [
+      "Navigate to Projects screen",
+      "Tap on a project in the list",
+      "Verify Project Detail screen opens",
+      "Verify project name is displayed in header",
+      "Verify project description is shown",
+      "Verify location with map preview is shown",
+      "Verify list of reports for this project",
+      "Verify team members assigned to project"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can edit project details",
+    "steps": [
+      "Navigate to Project Detail screen",
+      "Tap edit button (pencil icon)",
+      "Verify edit form appears with current values",
+      "Modify project name",
+      "Modify project description",
+      "Tap 'Save' button",
+      "Verify changes are saved",
+      "Verify updated values displayed on detail screen"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can delete a project",
+    "steps": [
+      "Navigate to Project Detail screen",
+      "Tap more options menu (three dots)",
+      "Select 'Delete Project'",
+      "Verify confirmation dialog appears",
+      "Verify warning about associated reports",
+      "Confirm deletion",
+      "Verify project is deleted",
+      "Verify navigation back to Projects list",
+      "Verify deleted project no longer appears"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can search and filter projects",
+    "steps": [
+      "Navigate to Projects screen with multiple projects",
+      "Tap search icon",
+      "Verify search input appears",
+      "Type project name",
+      "Verify list filters to matching projects",
+      "Clear search",
+      "Tap filter icon",
+      "Verify filter options appear (status, date range)",
+      "Apply filter",
+      "Verify list shows filtered results"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can view projects on a map",
+    "steps": [
+      "Navigate to Projects screen",
+      "Tap 'Map View' toggle button",
+      "Verify map view is displayed",
+      "Verify markers for all projects with locations",
+      "Tap on a marker",
+      "Verify project info popup appears",
+      "Tap popup",
+      "Verify navigation to Project Detail"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can start a new report from project detail",
+    "steps": [
+      "Navigate to Project Detail screen",
+      "Tap 'New Report' button",
+      "Verify Report Editor screen opens",
+      "Verify project is pre-selected",
+      "Verify report is in draft status",
+      "Add an entry to confirm report is linked"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can view all reports within a project",
+    "steps": [
+      "Navigate to Project Detail screen",
+      "Scroll to Reports section",
+      "Verify all reports for this project are listed",
+      "Verify each report shows title, date, status",
+      "Verify report count matches displayed list",
+      "Tap on a report",
+      "Verify navigation to Report Detail"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Admin can assign team members to project",
+    "steps": [
+      "Login as admin or manager",
+      "Navigate to Project Detail screen",
+      "Tap 'Manage Team' or team section",
+      "Verify team management screen appears",
+      "Verify list of current team members",
+      "Tap 'Add Member'",
+      "Verify list of available users",
+      "Select a user",
+      "Verify user is added to project team",
+      "Verify user now appears in team list"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Admin can remove team members from project",
+    "steps": [
+      "Login as admin or manager",
+      "Navigate to Project Detail with team members",
+      "Tap 'Manage Team'",
+      "Swipe left on a team member or tap remove button",
+      "Verify confirmation prompt",
+      "Confirm removal",
+      "Verify user is removed from team list"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Field worker can only see assigned projects",
+    "steps": [
+      "Login as field worker (not admin)",
+      "Navigate to Projects screen",
+      "Verify only projects user is assigned to are visible",
+      "Verify projects user is not assigned to are not shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "User can view cached projects when offline",
+    "steps": [
+      "Navigate to Projects screen while online",
+      "View several project details to cache them",
+      "Enable airplane mode",
+      "Navigate to Projects screen",
+      "Verify cached projects are displayed",
+      "Tap on a cached project",
+      "Verify Project Detail shows cached data",
+      "Verify offline indicator is visible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "User can create project while offline",
+    "steps": [
+      "Enable airplane mode",
+      "Navigate to Projects screen",
+      "Tap 'Create Project'",
+      "Fill in project details",
+      "Tap 'Create'",
+      "Verify project is saved locally",
+      "Verify 'Pending sync' indicator on project",
+      "Disable airplane mode",
+      "Verify project syncs to server",
+      "Verify 'Pending sync' indicator is removed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "validation",
+    "description": "Project creation validates required fields",
+    "steps": [
+      "Navigate to create project form",
+      "Leave project name empty",
+      "Tap 'Create' button",
+      "Verify validation error for project name",
+      "Enter project name",
+      "Tap 'Create' button",
+      "Verify project is created successfully"
+    ],
+    "passes": false
+  },
+  {
+    "category": "validation",
+    "description": "Project name has maximum length limit",
+    "steps": [
+      "Navigate to create project form",
+      "Enter project name exceeding 100 characters",
+      "Verify character counter shows limit",
+      "Verify input stops accepting characters at limit",
+      "Or verify validation error for exceeding limit"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Project list supports pull-to-refresh",
+    "steps": [
+      "Navigate to Projects screen",
+      "Pull down on the list",
+      "Verify refresh indicator appears",
+      "Verify list reloads from server",
+      "Verify refresh indicator disappears",
+      "Verify updated data is displayed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Project list supports infinite scroll pagination",
+    "steps": [
+      "Have more than 20 projects in the system",
+      "Navigate to Projects screen",
+      "Verify initial batch of projects loads",
+      "Scroll to bottom of list",
+      "Verify loading indicator appears",
+      "Verify next batch of projects loads",
+      "Verify scroll continues seamlessly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Empty state shown when no projects exist",
+    "steps": [
+      "Login with account having no projects",
+      "Navigate to Projects screen",
+      "Verify empty state illustration displayed",
+      "Verify message explaining no projects exist",
+      "Verify 'Create First Project' button is prominent"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Project cards show visual status indicators",
+    "steps": [
+      "Navigate to Projects screen with various project states",
+      "Verify active projects show green indicator",
+      "Verify completed projects show different visual treatment",
+      "Verify projects with pending uploads show sync indicator"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Project creation handles network error",
+    "steps": [
+      "Navigate to create project form",
+      "Fill in all required fields",
+      "Simulate network disconnection",
+      "Tap 'Create' button",
+      "Verify error message about network",
+      "Verify option to save locally or retry",
+      "Choose save locally",
+      "Verify project saved with pending sync status"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Duplicate project name shows appropriate error",
+    "steps": [
+      "Have existing project named 'Test Project'",
+      "Navigate to create project form",
+      "Enter 'Test Project' as name",
+      "Tap 'Create'",
+      "Verify error message about duplicate name",
+      "Modify name slightly",
+      "Tap 'Create'",
+      "Verify project creates successfully"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "Projects screen is accessible with screen reader",
+    "steps": [
+      "Enable screen reader",
+      "Navigate to Projects screen",
+      "Verify screen title is announced",
+      "Navigate through project list",
+      "Verify each project name, location, status is read",
+      "Verify action buttons are properly labeled"
+    ],
+    "passes": false
+  }
+]

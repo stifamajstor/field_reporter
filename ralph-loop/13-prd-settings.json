@@ -1,0 +1,443 @@
+[
+  {
+    "category": "functional",
+    "description": "User can access settings from navigation",
+    "steps": [
+      "Navigate to any main screen",
+      "Tap Settings in bottom nav or drawer",
+      "Verify Settings screen opens",
+      "Verify settings categories are visible",
+      "Verify back navigation works"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can view and edit profile information",
+    "steps": [
+      "Navigate to Settings > Profile",
+      "Verify current name displayed",
+      "Verify email displayed (read-only)",
+      "Tap on name field",
+      "Edit name",
+      "Save changes",
+      "Verify name updates throughout app"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can update profile photo",
+    "steps": [
+      "Navigate to Settings > Profile",
+      "Tap on profile photo or camera icon",
+      "Verify options: Take Photo, Choose from Library",
+      "Select photo from library",
+      "Verify crop/adjust screen",
+      "Confirm selection",
+      "Verify profile photo updates",
+      "Verify photo syncs to server"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can change password",
+    "steps": [
+      "Navigate to Settings > Security",
+      "Tap 'Change Password'",
+      "Enter current password",
+      "Enter new password",
+      "Confirm new password",
+      "Tap 'Update Password'",
+      "Verify success message",
+      "Verify can login with new password"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can enable/disable biometric login",
+    "steps": [
+      "Navigate to Settings > Security",
+      "Find 'Biometric Login' toggle",
+      "Toggle from off to on",
+      "Verify biometric prompt to confirm",
+      "Complete biometric enrollment",
+      "Verify toggle shows enabled",
+      "Toggle back off",
+      "Verify biometric login disabled"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can set offline PIN",
+    "steps": [
+      "Navigate to Settings > Security",
+      "Tap 'Set Offline PIN'",
+      "Enter 6-digit PIN",
+      "Confirm PIN",
+      "Verify success message",
+      "Verify PIN is required when offline and biometrics unavailable"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can configure notification preferences",
+    "steps": [
+      "Navigate to Settings > Notifications",
+      "Verify notification categories listed",
+      "Toggle 'Sync Complete' notifications off",
+      "Toggle 'Team Mentions' notifications on",
+      "Verify settings persist after app restart",
+      "Verify actual notification behavior matches settings"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can set photo quality preference",
+    "steps": [
+      "Navigate to Settings > Quality",
+      "Find 'Photo Quality' option",
+      "Verify options: High, Medium, Low",
+      "Select 'Medium'",
+      "Verify selection saved",
+      "Capture a photo",
+      "Verify photo is saved at medium quality/resolution"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can set video quality preference",
+    "steps": [
+      "Navigate to Settings > Quality",
+      "Find 'Video Quality' option",
+      "Verify options: 1080p, 720p, 480p",
+      "Select '720p'",
+      "Verify selection saved",
+      "Record a video",
+      "Verify video recorded at 720p"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can enable/disable WiFi-only sync",
+    "steps": [
+      "Navigate to Settings > Sync",
+      "Find 'Sync only on WiFi' toggle",
+      "Toggle on",
+      "Verify setting saved",
+      "Switch to cellular data",
+      "Verify sync does not start automatically",
+      "Toggle off",
+      "Verify sync works on cellular"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can configure auto-sync interval",
+    "steps": [
+      "Navigate to Settings > Sync",
+      "Find 'Auto-sync interval' option",
+      "Verify options: 5 min, 15 min, 30 min, Manual only",
+      "Select '15 minutes'",
+      "Verify setting saved",
+      "Wait 15 minutes with pending uploads",
+      "Verify automatic sync triggers"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can view storage usage",
+    "steps": [
+      "Navigate to Settings > Storage",
+      "Verify total storage used displayed",
+      "Verify breakdown by category (photos, videos, cache)",
+      "Verify visual representation (pie chart or bar)",
+      "Verify device storage remaining shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can clear cache",
+    "steps": [
+      "Navigate to Settings > Storage",
+      "Note current cache size",
+      "Tap 'Clear Cache'",
+      "Verify confirmation dialog",
+      "Confirm clear action",
+      "Verify cache cleared message",
+      "Verify cache size reduced",
+      "Verify synced data still accessible (re-downloadable)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can configure AI preferences",
+    "steps": [
+      "Navigate to Settings > AI",
+      "Find 'Auto-generate descriptions' toggle",
+      "Toggle setting",
+      "Verify setting persists",
+      "Find 'Language' option",
+      "Verify current language shown",
+      "Verify AI respects language preference"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can toggle camera overlays",
+    "steps": [
+      "Navigate to Settings > Camera",
+      "Find 'Show GPS overlay' toggle",
+      "Toggle off",
+      "Open camera",
+      "Verify GPS overlay hidden",
+      "Return to settings",
+      "Find 'Show timestamp overlay'",
+      "Toggle off",
+      "Verify timestamp overlay hidden in camera"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can toggle level indicator",
+    "steps": [
+      "Navigate to Settings > Camera",
+      "Find 'Show level indicator' toggle",
+      "Toggle on",
+      "Open camera",
+      "Verify level indicator visible",
+      "Toggle off",
+      "Verify level indicator hidden"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can switch organizations",
+    "steps": [
+      "Have user belonging to multiple tenants",
+      "Navigate to Settings",
+      "Find current organization displayed",
+      "Tap 'Switch Organization'",
+      "Verify tenant selection screen",
+      "Select different tenant",
+      "Verify app reloads with new tenant context",
+      "Verify all data reflects new organization"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can view app information",
+    "steps": [
+      "Navigate to Settings > About",
+      "Verify app name displayed",
+      "Verify version number displayed",
+      "Verify build number displayed",
+      "Tap 'Terms of Service'",
+      "Verify terms open (in-app or browser)",
+      "Tap 'Privacy Policy'",
+      "Verify privacy policy opens"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can contact support",
+    "steps": [
+      "Navigate to Settings > Support",
+      "Tap 'Contact Support'",
+      "Verify email composer opens or support form",
+      "Verify app version auto-included",
+      "Verify device info auto-included",
+      "Verify user can add description",
+      "Send support request",
+      "Verify confirmation message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can view open source licenses",
+    "steps": [
+      "Navigate to Settings > About",
+      "Tap 'Open Source Licenses'",
+      "Verify list of third-party libraries",
+      "Tap on a library",
+      "Verify license text displayed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can export personal data",
+    "steps": [
+      "Navigate to Settings > Privacy",
+      "Tap 'Export My Data'",
+      "Verify explanation of what will be exported",
+      "Confirm export request",
+      "Verify processing message",
+      "Verify notification when export ready",
+      "Verify download link for exported data"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can delete account",
+    "steps": [
+      "Navigate to Settings > Account",
+      "Tap 'Delete Account'",
+      "Verify serious warning about data loss",
+      "Verify requirement to enter password",
+      "Enter password",
+      "Verify second confirmation",
+      "Confirm deletion",
+      "Verify account deleted and logged out"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Admin can access tenant settings",
+    "steps": [
+      "Login as tenant admin",
+      "Navigate to Settings",
+      "Verify 'Organization Settings' option visible",
+      "Tap 'Organization Settings'",
+      "Verify company name editable",
+      "Verify company logo uploadable",
+      "Verify PDF branding options available"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "Settings accessible when offline",
+    "steps": [
+      "Enable airplane mode",
+      "Navigate to Settings",
+      "Verify settings screen loads",
+      "Verify local settings (camera, notifications) accessible",
+      "Verify cloud settings show cached values",
+      "Verify changes to local settings work offline"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "Settings changes sync when online",
+    "steps": [
+      "Make settings change while offline",
+      "Go online",
+      "Verify settings sync to server",
+      "Login on another device",
+      "Verify settings reflect the change"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Settings organized into logical categories",
+    "steps": [
+      "Navigate to Settings",
+      "Verify categories visible: Account, Notifications, Quality, Sync, Storage, etc.",
+      "Verify each category groups related settings",
+      "Verify consistent styling throughout"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Toggle switches show clear on/off state",
+    "steps": [
+      "Navigate to Settings with toggle options",
+      "Verify enabled toggles show clear 'on' state",
+      "Verify disabled toggles show clear 'off' state",
+      "Verify color differentiation between states",
+      "Verify toggle label describes the setting"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Settings search finds options quickly",
+    "steps": [
+      "Navigate to Settings",
+      "Tap search icon or search field",
+      "Type 'notification'",
+      "Verify notification-related settings shown",
+      "Type 'photo'",
+      "Verify photo quality and camera settings shown",
+      "Tap on search result",
+      "Verify navigation to that setting"
+    ],
+    "passes": false
+  },
+  {
+    "category": "validation",
+    "description": "Password change validates requirements",
+    "steps": [
+      "Navigate to change password",
+      "Enter weak password",
+      "Verify password requirements error",
+      "Enter non-matching confirmation",
+      "Verify passwords don't match error",
+      "Enter valid matching passwords",
+      "Verify password change succeeds"
+    ],
+    "passes": false
+  },
+  {
+    "category": "validation",
+    "description": "PIN must be 6 digits",
+    "steps": [
+      "Navigate to set offline PIN",
+      "Enter 4-digit PIN",
+      "Verify error about minimum length",
+      "Enter 6-digit PIN with letters",
+      "Verify error about numeric only",
+      "Enter valid 6-digit PIN",
+      "Verify PIN accepted"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Settings sync failure shows appropriate message",
+    "steps": [
+      "Make a settings change",
+      "Simulate sync failure",
+      "Verify error message about sync issue",
+      "Verify setting reverts or shows unsaved indicator",
+      "Verify retry option available"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "Settings screen accessible with screen reader",
+    "steps": [
+      "Enable screen reader",
+      "Navigate to Settings",
+      "Verify section headers announced",
+      "Navigate through settings",
+      "Verify each setting label and current value announced",
+      "Verify toggle state announced (on/off)"
+    ],
+    "passes": false
+  }
+]

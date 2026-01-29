@@ -1,0 +1,457 @@
+[
+  {
+    "category": "functional",
+    "description": "App detects network connectivity changes",
+    "steps": [
+      "Launch app with network connected",
+      "Verify online indicator in status area",
+      "Enable airplane mode",
+      "Verify app detects loss of connectivity within 5 seconds",
+      "Verify offline indicator appears",
+      "Disable airplane mode",
+      "Verify app detects restored connectivity",
+      "Verify online indicator returns"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Data is cached locally for offline access",
+    "steps": [
+      "Navigate through app while online: Dashboard, Projects, Reports",
+      "Enable airplane mode",
+      "Navigate to Dashboard",
+      "Verify cached statistics displayed",
+      "Navigate to Projects",
+      "Verify cached projects displayed",
+      "Open a project",
+      "Verify cached project details available"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "New entries are queued for upload when offline",
+    "steps": [
+      "Enable airplane mode",
+      "Open a report",
+      "Add a photo entry",
+      "Verify photo saved locally",
+      "Verify 'Pending upload' indicator on entry",
+      "Add a text note entry",
+      "Verify 'Pending upload' indicator on note",
+      "Navigate to Sync Status screen",
+      "Verify both items in upload queue"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Upload queue processes automatically when online",
+    "steps": [
+      "Create entries while offline (generate upload queue)",
+      "Verify queue has multiple items",
+      "Disable airplane mode (go online)",
+      "Verify automatic sync starts within 30 seconds",
+      "Verify progress indicator for uploads",
+      "Verify items marked as synced upon completion",
+      "Verify queue empties as uploads complete"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can view detailed sync status",
+    "steps": [
+      "Navigate to Sync Status screen",
+      "Verify overview shows: pending items, in progress, completed today",
+      "Verify list of pending items with details",
+      "Verify each item shows type, size, retry count",
+      "Verify completed items section",
+      "Verify failed items section if any"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can manually trigger sync",
+    "steps": [
+      "Have items in upload queue",
+      "Navigate to Sync Status",
+      "Tap 'Sync Now' button",
+      "Verify sync starts immediately",
+      "Verify progress feedback",
+      "Verify completion message when done"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can pause and resume sync",
+    "steps": [
+      "Start sync with large upload queue",
+      "Tap 'Pause Sync' button",
+      "Verify sync pauses",
+      "Verify paused indicator displayed",
+      "Verify queue items remain pending",
+      "Tap 'Resume Sync' button",
+      "Verify sync resumes from where it stopped"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Large media files upload in chunks",
+    "steps": [
+      "Record a large video (1+ minutes)",
+      "Go online to start upload",
+      "Navigate to Sync Status",
+      "Verify upload progress shows percentage",
+      "Interrupt connection mid-upload",
+      "Restore connection",
+      "Verify upload resumes from last chunk",
+      "Verify complete upload succeeds"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Failed uploads are retried automatically",
+    "steps": [
+      "Queue an upload",
+      "Simulate upload failure (brief network issue)",
+      "Verify automatic retry after delay",
+      "Verify retry count increments",
+      "Verify exponential backoff between retries",
+      "Simulate success on retry",
+      "Verify item marked as synced"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can manually retry failed uploads",
+    "steps": [
+      "Have item fail upload multiple times",
+      "Navigate to Sync Status",
+      "Find item in failed section",
+      "Verify error message explaining failure",
+      "Tap 'Retry' button on item",
+      "Verify immediate retry attempt",
+      "If still failing, verify clear error message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can delete failed upload from queue",
+    "steps": [
+      "Have permanently failed upload in queue",
+      "Navigate to Sync Status",
+      "Swipe left on failed item or tap delete",
+      "Verify confirmation dialog",
+      "Verify warning that local data will be lost",
+      "Confirm deletion",
+      "Verify item removed from queue",
+      "Verify local media deleted"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Sync respects WiFi-only setting",
+    "steps": [
+      "Navigate to Settings",
+      "Enable 'Sync only on WiFi' option",
+      "Queue uploads while on WiFi",
+      "Verify uploads proceed normally",
+      "Switch to cellular data",
+      "Queue new upload",
+      "Verify upload does not start",
+      "Verify message about WiFi-only",
+      "Switch back to WiFi",
+      "Verify upload starts automatically"
+    ],
+    "dependencies": ["13-prd-settings.json"],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Background sync continues when app is backgrounded",
+    "steps": [
+      "Start sync with large upload",
+      "Verify upload in progress",
+      "Press home button to background app",
+      "Wait 30 seconds",
+      "Return to app",
+      "Verify upload continued in background",
+      "Verify progress advanced"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Sync pulls new data from server",
+    "steps": [
+      "Create a report on web dashboard",
+      "Open mobile app",
+      "Pull to refresh on Reports screen",
+      "Verify new report appears",
+      "Verify report details match what was created on web"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Conflict resolution handles simultaneous edits",
+    "steps": [
+      "Edit report title on mobile while offline",
+      "Edit same report title on web",
+      "Bring mobile online",
+      "Verify conflict detected during sync",
+      "Verify conflict resolution UI appears",
+      "Verify both versions shown",
+      "Select which version to keep",
+      "Verify resolution applied everywhere"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Last sync timestamp is displayed",
+    "steps": [
+      "Complete a sync",
+      "Navigate to Sync Status or Dashboard",
+      "Verify 'Last synced' timestamp displayed",
+      "Verify timestamp is human-readable (e.g., '5 minutes ago')",
+      "Wait and verify timestamp updates (e.g., '10 minutes ago')"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Storage usage is visible and manageable",
+    "steps": [
+      "Navigate to Settings > Storage",
+      "Verify total offline storage used displayed",
+      "Verify breakdown by media type",
+      "Verify 'Clear Cache' option available",
+      "Tap 'Clear Cache'",
+      "Verify confirmation with explanation",
+      "Confirm clear",
+      "Verify cached data cleared",
+      "Verify synced items still accessible (re-downloadable)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Selective offline mode for projects",
+    "steps": [
+      "Navigate to Project Detail",
+      "Find 'Available Offline' toggle",
+      "Enable offline availability",
+      "Verify download of all project data starts",
+      "Verify completion indicator",
+      "Enable airplane mode",
+      "Verify project fully accessible offline",
+      "Disable 'Available Offline'",
+      "Verify prompt about clearing cached data"
+    ],
+    "passes": false
+  },
+  {
+    "category": "storage",
+    "description": "Local database stores all entity data",
+    "steps": [
+      "Create project, report, entries while online",
+      "Enable airplane mode",
+      "Verify all data accessible",
+      "Verify relationships intact (report belongs to project)",
+      "Verify query operations work offline"
+    ],
+    "passes": false
+  },
+  {
+    "category": "storage",
+    "description": "Media files cached to local file system",
+    "steps": [
+      "View report with photos and videos online",
+      "Verify media downloads and caches",
+      "Enable airplane mode",
+      "View same report",
+      "Verify photos display from cache",
+      "Verify videos play from cache"
+    ],
+    "passes": false
+  },
+  {
+    "category": "storage",
+    "description": "Cache automatically prunes old data when storage low",
+    "steps": [
+      "Fill significant cache with media",
+      "Monitor device storage",
+      "When storage becomes low",
+      "Verify app automatically prunes oldest cached data",
+      "Verify user is notified about pruning",
+      "Verify essential data (pending uploads) is never pruned"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Offline indicator is always visible when offline",
+    "steps": [
+      "Enable airplane mode",
+      "Navigate through all main screens",
+      "Verify offline indicator visible on Dashboard",
+      "Verify offline indicator visible on Projects",
+      "Verify offline indicator visible on Reports",
+      "Verify indicator is unobtrusive but noticeable"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Pending sync badge shows count",
+    "steps": [
+      "Queue 5 items for upload",
+      "Verify sync icon shows badge with '5'",
+      "Complete 2 uploads",
+      "Verify badge updates to '3'",
+      "Complete all uploads",
+      "Verify badge disappears"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Upload progress shown on individual items",
+    "steps": [
+      "Start uploading a large video",
+      "Navigate to report containing the video",
+      "Verify progress indicator on video entry",
+      "Verify percentage or progress bar",
+      "Wait for completion",
+      "Verify indicator changes to synced checkmark"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Sync status screen shows comprehensive information",
+    "steps": [
+      "Navigate to Sync Status screen",
+      "Verify header shows overall status",
+      "Verify sections for: In Progress, Pending, Failed, Completed",
+      "Verify each item shows relevant details",
+      "Verify pull-to-refresh works",
+      "Verify action buttons are accessible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Network timeout shows appropriate message",
+    "steps": [
+      "Simulate slow network (high latency)",
+      "Attempt to sync",
+      "Wait for timeout",
+      "Verify timeout error message",
+      "Verify option to retry",
+      "Verify items remain in queue"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Server error during sync shows clear message",
+    "steps": [
+      "Queue items for upload",
+      "Simulate server 500 error",
+      "Attempt sync",
+      "Verify error message about server issue",
+      "Verify suggestion to try again later",
+      "Verify items remain queued"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Authentication error during sync prompts re-login",
+    "steps": [
+      "Have active upload queue",
+      "Simulate token expiration",
+      "Sync attempts to upload",
+      "Verify authentication error detected",
+      "Verify prompt to re-authenticate",
+      "Complete re-authentication",
+      "Verify sync resumes automatically"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Corrupted local data is handled gracefully",
+    "steps": [
+      "Simulate corrupted database entry",
+      "Launch app",
+      "Verify app doesn't crash",
+      "Verify error logged",
+      "Verify option to clear corrupted data",
+      "Verify recovery from server data where possible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "App launches quickly with large offline database",
+    "steps": [
+      "Have 100+ projects, 500+ reports in local database",
+      "Force close app",
+      "Launch app",
+      "Measure time to interactive Dashboard",
+      "Verify launch under 3 seconds",
+      "Verify UI is responsive immediately"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Sync doesn't block UI interactions",
+    "steps": [
+      "Start large sync operation",
+      "Navigate through app during sync",
+      "Create new entries during sync",
+      "Verify all interactions remain responsive",
+      "Verify no UI freezes or jank"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Multiple simultaneous uploads managed efficiently",
+    "steps": [
+      "Queue 10+ photo uploads",
+      "Go online",
+      "Verify parallel uploads (2-3 concurrent)",
+      "Verify memory usage stays reasonable",
+      "Verify battery impact is moderate",
+      "Verify all uploads complete successfully"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "Sync status accessible to screen readers",
+    "steps": [
+      "Enable screen reader",
+      "Navigate to Sync Status",
+      "Verify overall status announced",
+      "Navigate through pending items",
+      "Verify item details announced",
+      "Verify action buttons properly labeled"
+    ],
+    "passes": false
+  }
+]

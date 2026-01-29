@@ -1,0 +1,284 @@
+[
+  {
+    "category": "functional",
+    "description": "Dashboard displays overview statistics",
+    "steps": [
+      "Login to the app",
+      "Verify Dashboard is the default landing screen",
+      "Verify 'Reports This Week' count is displayed",
+      "Verify 'Pending Uploads' count is displayed",
+      "Verify 'Total Projects' count is displayed",
+      "Verify 'Recent Activity' count is displayed",
+      "Tap on any stat card",
+      "Verify navigation to relevant detail screen"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Dashboard shows recent reports list",
+    "steps": [
+      "Login to the app",
+      "Navigate to Dashboard",
+      "Verify 'Recent Reports' section is visible",
+      "Verify up to 5 recent reports are displayed",
+      "Verify each report shows title, project name, and date",
+      "Verify each report shows status indicator",
+      "Tap on a report",
+      "Verify navigation to Report Detail screen"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Dashboard shows pending uploads queue",
+    "steps": [
+      "Create entries while offline to generate upload queue",
+      "Go online and navigate to Dashboard",
+      "Verify 'Pending Uploads' section is visible",
+      "Verify count matches actual pending items",
+      "Verify progress indicator for active uploads",
+      "Tap on pending uploads section",
+      "Verify navigation to Sync Status screen"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Quick Capture FAB opens capture options",
+    "steps": [
+      "Navigate to Dashboard",
+      "Verify Floating Action Button is visible in bottom right",
+      "Tap the FAB",
+      "Verify capture options menu expands",
+      "Verify options include: Photo, Video, Audio, Note",
+      "Tap outside the menu",
+      "Verify menu collapses"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Quick Capture initiates photo capture without project selection",
+    "steps": [
+      "Navigate to Dashboard",
+      "Tap Quick Capture FAB",
+      "Select 'Photo' option",
+      "Verify camera opens",
+      "Capture a photo",
+      "Verify prompt to select project appears",
+      "Select a project",
+      "Verify prompt to select or create report appears",
+      "Select existing report or create new",
+      "Verify photo is added to report"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Pull-to-refresh updates dashboard data",
+    "steps": [
+      "Navigate to Dashboard",
+      "Note current statistics values",
+      "Pull down on the screen",
+      "Verify refresh indicator appears",
+      "Verify data refreshes from server",
+      "Verify statistics update if changed",
+      "Verify recent reports list updates"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Dashboard displays user and tenant context",
+    "steps": [
+      "Login to the app",
+      "Navigate to Dashboard",
+      "Verify user name or avatar is displayed in header",
+      "Verify current tenant/organization name is visible",
+      "Verify greeting message includes user's first name"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Dashboard navigation drawer provides access to all sections",
+    "steps": [
+      "Navigate to Dashboard",
+      "Tap hamburger menu or swipe from left edge",
+      "Verify navigation drawer opens",
+      "Verify menu items: Dashboard, Projects, Reports, Media, Settings",
+      "Verify user profile section at top",
+      "Verify tenant name is displayed",
+      "Tap on 'Projects'",
+      "Verify navigation to Projects screen",
+      "Verify drawer closes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Bottom navigation provides quick access to main sections",
+    "steps": [
+      "Navigate to Dashboard",
+      "Verify bottom navigation bar is visible",
+      "Verify tabs: Home, Projects, Capture, Reports, Settings",
+      "Tap Projects tab",
+      "Verify navigation to Projects screen",
+      "Verify Projects tab is highlighted",
+      "Tap Home tab",
+      "Verify return to Dashboard"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Dashboard shows sync status indicator",
+    "steps": [
+      "Login to the app",
+      "Navigate to Dashboard",
+      "Verify sync status indicator in header",
+      "When fully synced, verify green checkmark or 'Synced' text",
+      "When items pending, verify pending count badge",
+      "When syncing, verify sync animation",
+      "Tap sync indicator",
+      "Verify navigation to Sync Status screen"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Dashboard displays notifications badge",
+    "steps": [
+      "Have pending notifications on server",
+      "Login to the app",
+      "Navigate to Dashboard",
+      "Verify notification bell icon in header",
+      "Verify badge shows unread count",
+      "Tap notification icon",
+      "Verify notifications list opens",
+      "Verify marking notification as read updates badge"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "Dashboard displays cached data when offline",
+    "steps": [
+      "Login and navigate to Dashboard while online",
+      "Note displayed statistics and reports",
+      "Enable airplane mode",
+      "Force close and reopen app",
+      "Navigate to Dashboard",
+      "Verify cached statistics are displayed",
+      "Verify cached recent reports are displayed",
+      "Verify offline indicator is shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "Dashboard indicates stale data with timestamp",
+    "steps": [
+      "Navigate to Dashboard while online",
+      "Enable airplane mode",
+      "Wait several minutes",
+      "Refresh Dashboard",
+      "Verify 'Last updated X minutes ago' message appears",
+      "Verify visual indicator that data may be stale"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Dashboard layout adapts to screen orientation",
+    "steps": [
+      "Navigate to Dashboard in portrait mode",
+      "Verify single-column layout for stats",
+      "Rotate device to landscape",
+      "Verify layout adapts to multi-column",
+      "Verify all content remains accessible",
+      "Rotate back to portrait",
+      "Verify layout returns to original"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Dashboard statistics animate on load",
+    "steps": [
+      "Login to the app",
+      "Observe Dashboard loading",
+      "Verify stat cards animate in with fade/slide",
+      "Verify numbers count up animation",
+      "Verify animations are smooth (60fps)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Empty state displayed when no data exists",
+    "steps": [
+      "Login with new account (no projects/reports)",
+      "Navigate to Dashboard",
+      "Verify empty state illustration is displayed",
+      "Verify helpful message explaining how to get started",
+      "Verify 'Create First Project' button is prominent",
+      "Tap the button",
+      "Verify navigation to project creation"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "FAB hides when scrolling down, shows when scrolling up",
+    "steps": [
+      "Navigate to Dashboard with enough content to scroll",
+      "Verify FAB is visible",
+      "Scroll down",
+      "Verify FAB hides with animation",
+      "Scroll up slightly",
+      "Verify FAB reappears with animation"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Dashboard loads within acceptable time",
+    "steps": [
+      "Login to the app",
+      "Measure time from login complete to Dashboard fully rendered",
+      "Verify Dashboard loads within 2 seconds on good connection",
+      "Verify skeleton loaders appear immediately",
+      "Verify content replaces skeletons smoothly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Dashboard handles API error gracefully",
+    "steps": [
+      "Navigate to Dashboard",
+      "Simulate API error (server returns 500)",
+      "Verify error message is displayed",
+      "Verify cached data is shown if available",
+      "Verify 'Retry' button is displayed",
+      "Tap 'Retry'",
+      "Verify fresh attempt to load data"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "Dashboard is navigable with screen reader",
+    "steps": [
+      "Enable screen reader",
+      "Navigate to Dashboard",
+      "Verify stat cards are read with labels and values",
+      "Verify recent reports list is navigable",
+      "Verify FAB is announced as 'Quick capture, button'",
+      "Verify navigation elements are properly labeled"
+    ],
+    "passes": false
+  }
+]

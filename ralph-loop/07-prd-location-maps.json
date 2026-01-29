@@ -1,0 +1,488 @@
+[
+  {
+    "category": "functional",
+    "description": "App requests location permission appropriately",
+    "steps": [
+      "Fresh install of app",
+      "Navigate to feature requiring location (camera, create project)",
+      "Verify location permission prompt appears",
+      "Verify explanation of why location is needed",
+      "Grant 'While Using' permission",
+      "Verify location features now work",
+      "Verify no repeated permission prompts"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "GPS coordinates are captured accurately",
+    "steps": [
+      "Grant location permission",
+      "Go outdoors with clear sky",
+      "Open camera and capture photo",
+      "View entry metadata",
+      "Verify GPS coordinates displayed",
+      "Compare with actual location on external map",
+      "Verify accuracy within 10 meters"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Location is reverse-geocoded to address",
+    "steps": [
+      "Capture photo with GPS coordinates",
+      "View entry detail",
+      "Verify street address is displayed",
+      "Verify city, state, country shown",
+      "Verify address matches actual location"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Map displays entry locations correctly",
+    "steps": [
+      "Open report with geotagged entries",
+      "Tap 'View on Map' button",
+      "Verify map loads",
+      "Verify markers for each entry location",
+      "Verify markers positioned correctly",
+      "Tap on a marker",
+      "Verify entry preview popup appears"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Map shows route for multi-location report",
+    "steps": [
+      "Open report with entries from multiple locations",
+      "View map for report",
+      "Verify entries connected by route line",
+      "Verify route follows chronological order",
+      "Verify route shows direction indicators"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Projects map view shows all project locations",
+    "steps": [
+      "Have multiple projects with locations",
+      "Navigate to Projects screen",
+      "Switch to Map View",
+      "Verify map displays all project markers",
+      "Verify markers clustered when zoomed out",
+      "Zoom in on cluster",
+      "Verify individual markers appear"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can set location by searching address",
+    "steps": [
+      "Navigate to project creation location picker",
+      "Tap search field",
+      "Type partial address",
+      "Verify autocomplete suggestions appear",
+      "Tap on suggestion",
+      "Verify map centers on selected location",
+      "Verify coordinates populated"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can set location by tapping map",
+    "steps": [
+      "Open location picker",
+      "Pan map to desired location",
+      "Tap on the map",
+      "Verify marker appears at tap point",
+      "Verify coordinates update",
+      "Verify address reverse-geocodes",
+      "Tap different location",
+      "Verify marker moves to new location"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can set location to current position",
+    "steps": [
+      "Open location picker",
+      "Tap 'Use Current Location' button",
+      "Verify GPS acquisition indicator",
+      "Verify map animates to current location",
+      "Verify marker placed at current position",
+      "Verify accuracy circle shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "GPS tracking during site visit",
+    "steps": [
+      "Open report in edit mode",
+      "Tap 'Start Tracking' option",
+      "Verify tracking indicator appears",
+      "Walk around location",
+      "Verify track line appears on mini-map",
+      "Capture entries during walk",
+      "Stop tracking",
+      "Verify complete route saved with report"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Background GPS tracking continues when app backgrounded",
+    "steps": [
+      "Start GPS tracking for report",
+      "Background the app",
+      "Walk to new location",
+      "Return to app",
+      "Verify track includes movement while backgrounded",
+      "Verify no gaps in track data"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Compass direction captured with entries",
+    "steps": [
+      "Hold phone facing north",
+      "Capture photo",
+      "View entry metadata",
+      "Verify direction shows approximately 0° or 'N'",
+      "Turn to face east",
+      "Capture another photo",
+      "Verify direction shows approximately 90° or 'E'"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Map supports standard gestures",
+    "steps": [
+      "Open any map view",
+      "Pinch to zoom in",
+      "Verify smooth zoom animation",
+      "Pinch to zoom out",
+      "Verify smooth zoom out",
+      "Two-finger rotate",
+      "Verify map rotates (if supported)",
+      "Two-finger tilt",
+      "Verify 3D perspective changes (if supported)",
+      "Single finger drag",
+      "Verify map pans smoothly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Map displays different base layers",
+    "steps": [
+      "Open map view",
+      "Tap layer selection control",
+      "Verify options: Standard, Satellite, Hybrid",
+      "Select Satellite",
+      "Verify satellite imagery displays",
+      "Select Hybrid",
+      "Verify satellite with labels displays",
+      "Select Standard",
+      "Verify return to standard map"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "Cached map tiles available offline",
+    "steps": [
+      "View map of specific area while online",
+      "Pan and zoom to cache various zoom levels",
+      "Enable airplane mode",
+      "View same map area",
+      "Verify cached tiles display",
+      "Pan to uncached area",
+      "Verify placeholder or offline message"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "GPS works offline for entry capture",
+    "steps": [
+      "Enable airplane mode",
+      "Capture photo outdoors",
+      "Verify GPS coordinates captured",
+      "Verify no network dependency for GPS",
+      "View entry metadata",
+      "Verify coordinates present",
+      "Note: reverse geocoding may not work offline"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "Address search unavailable offline with clear message",
+    "steps": [
+      "Enable airplane mode",
+      "Open location picker",
+      "Tap on search field",
+      "Attempt to search for address",
+      "Verify message that search requires network",
+      "Verify tap-to-set-location still works"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Location accuracy indicator shown during capture",
+    "steps": [
+      "Open camera",
+      "Observe GPS accuracy indicator",
+      "In poor GPS conditions, verify low accuracy shown",
+      "In good GPS conditions, verify high accuracy shown",
+      "Verify accuracy affects UI (color indicator)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Map markers have distinct icons for entry types",
+    "steps": [
+      "Open report map with various entry types",
+      "Verify photo entries have camera icon marker",
+      "Verify video entries have video icon marker",
+      "Verify audio entries have microphone icon marker",
+      "Verify note entries have text icon marker"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Marker clusters show count and expand on tap",
+    "steps": [
+      "Open map with many nearby entries",
+      "Verify entries clustered with count badge",
+      "Tap on cluster",
+      "Verify map zooms in or cluster expands",
+      "Verify individual markers now visible",
+      "Zoom out",
+      "Verify markers re-cluster"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Entry popup on marker shows preview",
+    "steps": [
+      "Open report map",
+      "Tap on entry marker",
+      "Verify popup card appears",
+      "Verify thumbnail image shown (for photo/video)",
+      "Verify timestamp shown",
+      "Verify truncated description shown",
+      "Tap popup",
+      "Verify navigation to entry detail"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Current location button centers map on user",
+    "steps": [
+      "Open map view",
+      "Pan away from current location",
+      "Tap 'My Location' button",
+      "Verify map animates to current location",
+      "Verify current location indicator visible",
+      "Verify accuracy circle around indicator"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Location permission denied handled gracefully",
+    "steps": [
+      "Deny location permission",
+      "Navigate to camera",
+      "Verify message about location unavailable",
+      "Verify capture still works",
+      "Navigate to location picker",
+      "Verify current location button disabled",
+      "Verify manual location selection works"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "GPS unavailable indoors handled",
+    "steps": [
+      "Go indoors where GPS is weak",
+      "Attempt to capture photo",
+      "Verify location shows as unavailable or low accuracy",
+      "Verify option to retry GPS acquisition",
+      "Verify option to proceed without location",
+      "Verify option to set location manually on map"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Map load failure shows error state",
+    "steps": [
+      "Simulate map tile server error",
+      "Navigate to map view",
+      "Verify error message displayed",
+      "Verify retry button available",
+      "Restore connection",
+      "Tap retry",
+      "Verify map loads"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Geocoding failure doesn't block workflow",
+    "steps": [
+      "Capture photo with valid GPS",
+      "Simulate geocoding API failure",
+      "Verify photo still saved",
+      "Verify coordinates stored",
+      "Verify address shows 'Address unavailable'",
+      "Verify later refresh can retry geocoding"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Map renders smoothly with many markers",
+    "steps": [
+      "Open map with 100+ entry markers",
+      "Verify map loads within 3 seconds",
+      "Pan and zoom around map",
+      "Verify smooth performance (no jank)",
+      "Verify clustering improves performance"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "GPS acquisition time is reasonable",
+    "steps": [
+      "Force GPS to cold start state",
+      "Open camera outdoors",
+      "Measure time to first GPS fix",
+      "Verify fix acquired within 30 seconds",
+      "Subsequent captures should be faster (warm GPS)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "battery",
+    "description": "GPS tracking has reasonable battery impact",
+    "steps": [
+      "Note battery level",
+      "Start GPS tracking for a report",
+      "Track for 1 hour",
+      "Note battery level after",
+      "Verify battery drain is reasonable (<10%)",
+      "Compare with screen-on time impact"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "Map is accessible with screen reader",
+    "steps": [
+      "Enable screen reader",
+      "Navigate to map view",
+      "Verify map region announced",
+      "Verify marker count announced",
+      "Navigate to markers",
+      "Verify each marker's entry info announced",
+      "Verify zoom controls accessible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ios",
+    "description": "iOS location permission follows Apple guidelines",
+    "steps": [
+      "Fresh install on iOS device",
+      "Navigate to feature requiring location",
+      "Verify iOS location permission dialog",
+      "Verify 'Allow Once', 'Allow While Using', 'Don't Allow' options",
+      "Select 'Allow While Using'",
+      "Verify location features work",
+      "For background tracking, verify separate 'Always Allow' prompt"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ios",
+    "description": "iOS precise location toggle respected",
+    "steps": [
+      "On iOS 14+ device",
+      "Grant location permission with Precise Location off",
+      "Verify app receives approximate location only",
+      "Verify UI indicates reduced accuracy",
+      "Enable Precise Location in settings",
+      "Verify full GPS accuracy restored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ios",
+    "description": "iOS MapKit integration works correctly",
+    "steps": [
+      "Open map view on iOS",
+      "Verify Apple Maps rendering",
+      "Verify satellite imagery available",
+      "Verify turn-by-turn look supported if used",
+      "Verify proper attribution displayed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "Android location permission follows platform guidelines",
+    "steps": [
+      "Fresh install on Android device",
+      "Navigate to feature requiring location",
+      "On Android 10+, verify foreground location permission",
+      "Grant permission",
+      "For background tracking, verify separate background permission request",
+      "Verify app respects permission level granted"
+    ],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "Android Fused Location Provider used efficiently",
+    "steps": [
+      "Monitor location requests on Android",
+      "Verify FusedLocationProviderClient used",
+      "Verify appropriate priority (HIGH_ACCURACY for capture)",
+      "Verify battery-efficient mode when not actively capturing",
+      "Verify location updates stop when not needed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "Android Google Maps integration works correctly",
+    "steps": [
+      "Open map view on Android",
+      "Verify Google Maps rendering",
+      "Verify map styles load correctly",
+      "Verify satellite and terrain options",
+      "Verify proper Google attribution displayed"
+    ],
+    "passes": false
+  }
+]

@@ -1,0 +1,419 @@
+[
+  {
+    "category": "functional",
+    "description": "User can view photo entry in full screen",
+    "steps": [
+      "Navigate to report with photo entries",
+      "Tap on a photo entry",
+      "Verify Entry Detail screen opens",
+      "Verify photo displayed prominently",
+      "Tap on photo to enter full screen",
+      "Verify photo fills screen",
+      "Verify pinch-to-zoom works",
+      "Tap or swipe to exit full screen"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can zoom and pan photos",
+    "steps": [
+      "Open photo in full screen view",
+      "Pinch outward to zoom in",
+      "Verify smooth zoom animation",
+      "Pan around zoomed image",
+      "Verify pan is smooth",
+      "Double-tap to reset zoom",
+      "Verify returns to fit-to-screen"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can swipe between entries",
+    "steps": [
+      "Open Entry Detail for first entry in report",
+      "Swipe left",
+      "Verify navigation to next entry",
+      "Swipe left again",
+      "Verify navigation to third entry",
+      "Swipe right",
+      "Verify return to second entry",
+      "Continue to first entry",
+      "Swipe right at first entry",
+      "Verify no action or bounce effect"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can play video entry",
+    "steps": [
+      "Navigate to Entry Detail for video entry",
+      "Verify video thumbnail displayed",
+      "Tap play button",
+      "Verify video starts playing",
+      "Verify playback controls visible",
+      "Tap to pause",
+      "Verify video pauses"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Video playback controls work correctly",
+    "steps": [
+      "Play a video entry",
+      "Tap to show controls",
+      "Verify play/pause button",
+      "Verify progress bar",
+      "Drag progress bar to seek",
+      "Verify playback jumps to new position",
+      "Verify time display updates",
+      "Verify full screen button",
+      "Tap full screen",
+      "Verify video enters full screen mode"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can play audio entry",
+    "steps": [
+      "Navigate to Entry Detail for audio entry",
+      "Verify audio waveform or player displayed",
+      "Tap play button",
+      "Verify audio starts playing",
+      "Verify progress indicator",
+      "Tap pause",
+      "Verify audio pauses",
+      "Tap play again",
+      "Verify resume from pause point"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Audio playback shows transcription alongside",
+    "steps": [
+      "Open audio entry with transcription",
+      "Verify transcription text visible",
+      "Play audio",
+      "Verify current position highlighted in transcription (if synced)",
+      "Tap on transcription segment",
+      "Verify audio jumps to that timestamp"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can view text note entry",
+    "steps": [
+      "Navigate to Entry Detail for text note",
+      "Verify full note text displayed",
+      "Verify text is scrollable if long",
+      "Verify timestamp visible",
+      "Verify location data if captured"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can view scan entry",
+    "steps": [
+      "Navigate to Entry Detail for barcode scan",
+      "Verify scan type indicated (QR, barcode)",
+      "Verify decoded content displayed",
+      "Verify scan image shown if captured",
+      "If URL scanned, verify tappable link"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Entry metadata is displayed clearly",
+    "steps": [
+      "Open Entry Detail for any entry",
+      "Locate metadata section",
+      "Verify timestamp displayed",
+      "Verify GPS coordinates displayed",
+      "Verify address (reverse geocoded) displayed",
+      "Verify device orientation data",
+      "Verify compass direction if captured"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can view entry location on map",
+    "steps": [
+      "Open Entry Detail with GPS data",
+      "Tap on location/address section",
+      "Verify map view opens",
+      "Verify marker at entry location",
+      "Verify entry info in marker popup"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can edit entry annotation",
+    "steps": [
+      "Open Entry Detail",
+      "Find annotation/notes field",
+      "Tap to edit",
+      "Verify text input active",
+      "Add or modify annotation text",
+      "Save changes",
+      "Verify changes persist",
+      "Navigate away and back",
+      "Verify changes saved"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can edit AI-generated description",
+    "steps": [
+      "Open Entry Detail with AI description",
+      "Tap on description text",
+      "Verify edit mode enabled",
+      "Modify the description",
+      "Save changes",
+      "Verify edited description saved",
+      "Verify AI indicator updated or removed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can delete entry from detail view",
+    "steps": [
+      "Open Entry Detail",
+      "Tap delete button or menu option",
+      "Verify confirmation dialog",
+      "Confirm deletion",
+      "Verify navigation back to report",
+      "Verify entry removed from report list"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can share individual entry",
+    "steps": [
+      "Open Entry Detail for photo entry",
+      "Tap share button",
+      "Verify share sheet opens",
+      "Verify photo is shareable content",
+      "Select share destination",
+      "Verify share completes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can request AI processing from detail view",
+    "steps": [
+      "Open Entry Detail for photo without AI description",
+      "Tap 'Generate AI Description' button",
+      "Verify processing indicator",
+      "Wait for completion",
+      "Verify AI description appears"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Photo entry shows EXIF data",
+    "steps": [
+      "Open Entry Detail for photo",
+      "Expand metadata section",
+      "Verify camera info displayed",
+      "Verify exposure settings if available",
+      "Verify focal length if available",
+      "Verify ISO if available"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Video entry shows duration and format info",
+    "steps": [
+      "Open Entry Detail for video",
+      "Verify video duration displayed",
+      "Verify resolution/quality info",
+      "Verify file size displayed",
+      "Verify codec info if available"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "Cached entries viewable offline",
+    "steps": [
+      "View several entries while online (to cache)",
+      "Enable airplane mode",
+      "Navigate to viewed entries",
+      "Verify photos display from cache",
+      "Verify videos play from cache",
+      "Verify audio plays from cache",
+      "Verify metadata displays"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "Uncached high-res media shows placeholder",
+    "steps": [
+      "Enable airplane mode",
+      "Navigate to entry not previously cached",
+      "Verify thumbnail visible",
+      "Tap to view full resolution",
+      "Verify message about unavailable offline",
+      "Verify option to retry when online"
+    ],
+    "passes": false
+  },
+  {
+    "category": "offline",
+    "description": "Entry edits saved offline and synced later",
+    "steps": [
+      "Enable airplane mode",
+      "Open Entry Detail",
+      "Edit annotation text",
+      "Save changes",
+      "Verify changes saved locally",
+      "Go online",
+      "Verify changes sync to server"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Entry Detail adapts to content type",
+    "steps": [
+      "Open Entry Detail for photo",
+      "Verify photo-centric layout",
+      "Open Entry Detail for video",
+      "Verify video player layout",
+      "Open Entry Detail for audio",
+      "Verify audio player layout",
+      "Open Entry Detail for text note",
+      "Verify text-focused layout"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Metadata section expandable/collapsible",
+    "steps": [
+      "Open Entry Detail",
+      "Find metadata section",
+      "Tap to expand if collapsed",
+      "Verify full metadata visible",
+      "Tap to collapse",
+      "Verify section collapses"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Loading states shown for media",
+    "steps": [
+      "Open Entry Detail for entry with large media",
+      "Verify loading indicator for media",
+      "Verify skeleton or placeholder during load",
+      "Verify smooth transition when media loads"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Entry navigation indicator shows position",
+    "steps": [
+      "Open Entry Detail within report",
+      "Verify indicator shows 'Entry 3 of 10' or similar",
+      "Swipe to next entry",
+      "Verify indicator updates"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Corrupted media shows error gracefully",
+    "steps": [
+      "Simulate corrupted media file",
+      "Open Entry Detail",
+      "Verify error message instead of broken media",
+      "Verify metadata still accessible",
+      "Verify option to re-sync or delete"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Network error during media load shows retry",
+    "steps": [
+      "Open Entry Detail",
+      "Simulate network error during media load",
+      "Verify error message",
+      "Verify 'Retry' button",
+      "Tap retry",
+      "Verify media loads on retry"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Entry Detail loads quickly",
+    "steps": [
+      "Tap on entry from report list",
+      "Measure time to Entry Detail displayed",
+      "Verify under 1 second for thumbnail",
+      "Verify full resolution loads within 3 seconds",
+      "Verify smooth animation during load"
+    ],
+    "passes": false
+  },
+  {
+    "category": "performance",
+    "description": "Swiping between entries is smooth",
+    "steps": [
+      "Open Entry Detail",
+      "Swipe quickly through multiple entries",
+      "Verify smooth transitions",
+      "Verify no visible lag or jank",
+      "Verify previous entries don't reload unnecessarily"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "Entry Detail accessible with screen reader",
+    "steps": [
+      "Enable screen reader",
+      "Open Entry Detail",
+      "Verify entry type announced",
+      "Verify description/content read",
+      "Verify metadata accessible",
+      "Verify play/pause buttons labeled",
+      "Verify swipe gestures work with screen reader"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "Media playback controllable via accessibility",
+    "steps": [
+      "Enable screen reader",
+      "Open video entry",
+      "Navigate to play button",
+      "Activate play via accessibility action",
+      "Navigate to pause",
+      "Activate pause",
+      "Verify proper state announcements"
+    ],
+    "passes": false
+  }
+]

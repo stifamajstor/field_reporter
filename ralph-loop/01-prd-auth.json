@@ -1,0 +1,405 @@
+[
+  {
+    "category": "functional",
+    "description": "User can login with email and password",
+    "steps": [
+      "Launch the app for the first time",
+      "Verify login screen is displayed",
+      "Enter valid email address in email field",
+      "Enter valid password in password field",
+      "Tap the 'Login' button",
+      "Verify loading indicator appears",
+      "Verify successful login redirects to Dashboard",
+      "Verify user token is stored securely in local storage"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can login with biometric authentication",
+    "steps": [
+      "Ensure user has previously logged in and enabled biometrics",
+      "Launch the app",
+      "Verify biometric prompt appears automatically",
+      "Authenticate with fingerprint or face",
+      "Verify successful login redirects to Dashboard",
+      "Verify session is restored correctly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can enable biometric authentication after login",
+    "steps": [
+      "Login with email and password",
+      "Navigate to Settings",
+      "Find 'Enable Biometric Login' option",
+      "Toggle biometric login on",
+      "Verify system biometric prompt appears",
+      "Complete biometric enrollment",
+      "Verify success message is displayed",
+      "Verify setting is persisted"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can register a new account",
+    "steps": [
+      "Launch the app",
+      "Tap 'Create Account' link on login screen",
+      "Verify registration form is displayed",
+      "Enter full name",
+      "Enter valid email address",
+      "Enter password meeting requirements",
+      "Enter password confirmation",
+      "Accept terms and conditions",
+      "Tap 'Register' button",
+      "Verify account creation success message",
+      "Verify redirect to tenant selection or dashboard"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can request password reset",
+    "steps": [
+      "Launch the app",
+      "Tap 'Forgot Password' link",
+      "Verify password reset form appears",
+      "Enter registered email address",
+      "Tap 'Send Reset Link' button",
+      "Verify success message is displayed",
+      "Verify instruction to check email is shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can logout from the app",
+    "steps": [
+      "Login to the app",
+      "Navigate to Settings or Profile",
+      "Tap 'Logout' button",
+      "Verify confirmation dialog appears",
+      "Confirm logout",
+      "Verify user is redirected to login screen",
+      "Verify local tokens are cleared",
+      "Verify cached sensitive data is cleared"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can select tenant when belonging to multiple organizations",
+    "steps": [
+      "Login with credentials linked to multiple tenants",
+      "Verify tenant selection screen appears",
+      "Verify list of available tenants is displayed",
+      "Tap on desired tenant",
+      "Verify dashboard loads with selected tenant context",
+      "Verify tenant name appears in app header/drawer"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "User can switch between tenants",
+    "steps": [
+      "Login and select initial tenant",
+      "Navigate to Settings or Profile",
+      "Tap 'Switch Organization' option",
+      "Verify tenant selection screen appears",
+      "Select different tenant",
+      "Verify app reloads with new tenant context",
+      "Verify all data reflects new tenant"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Offline PIN fallback allows access when biometrics unavailable",
+    "steps": [
+      "Enable offline PIN in settings while online",
+      "Set a 6-digit PIN",
+      "Put device in airplane mode",
+      "Force close and reopen app",
+      "Verify PIN entry screen appears",
+      "Enter correct PIN",
+      "Verify access to offline-cached data is granted"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Session token refreshes automatically",
+    "steps": [
+      "Login to the app",
+      "Wait for token to near expiration",
+      "Perform an API action",
+      "Verify token refresh happens transparently",
+      "Verify action completes successfully",
+      "Verify new token is stored"
+    ],
+    "passes": false
+  },
+  {
+    "category": "validation",
+    "description": "Login form validates email format",
+    "steps": [
+      "Navigate to login screen",
+      "Enter invalid email format (e.g., 'notanemail')",
+      "Tap password field or login button",
+      "Verify email validation error is displayed",
+      "Enter valid email format",
+      "Verify validation error disappears"
+    ],
+    "passes": false
+  },
+  {
+    "category": "validation",
+    "description": "Registration form validates password requirements",
+    "steps": [
+      "Navigate to registration screen",
+      "Enter password shorter than 8 characters",
+      "Verify minimum length error is displayed",
+      "Enter password without uppercase letter",
+      "Verify uppercase requirement error is displayed",
+      "Enter password without number",
+      "Verify number requirement error is displayed",
+      "Enter valid password meeting all requirements",
+      "Verify all validation errors disappear"
+    ],
+    "passes": false
+  },
+  {
+    "category": "validation",
+    "description": "Registration form validates password confirmation match",
+    "steps": [
+      "Navigate to registration screen",
+      "Enter password in password field",
+      "Enter different password in confirmation field",
+      "Verify 'passwords do not match' error appears",
+      "Enter matching password in confirmation field",
+      "Verify error disappears"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Invalid credentials show appropriate error",
+    "steps": [
+      "Navigate to login screen",
+      "Enter valid email format",
+      "Enter incorrect password",
+      "Tap login button",
+      "Verify 'Invalid credentials' error message appears",
+      "Verify password field is cleared",
+      "Verify email field retains value"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Network error during login shows retry option",
+    "steps": [
+      "Enable airplane mode",
+      "Navigate to login screen",
+      "Enter valid credentials",
+      "Tap login button",
+      "Verify network error message appears",
+      "Verify 'Retry' button is displayed",
+      "Disable airplane mode",
+      "Tap 'Retry' button",
+      "Verify login succeeds"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Account locked after multiple failed attempts",
+    "steps": [
+      "Navigate to login screen",
+      "Enter valid email",
+      "Enter wrong password 5 times",
+      "Verify account locked message appears",
+      "Verify lockout duration is displayed",
+      "Verify login button is disabled temporarily"
+    ],
+    "passes": false
+  },
+  {
+    "category": "error-handling",
+    "description": "Expired session redirects to login",
+    "steps": [
+      "Login to the app",
+      "Simulate token expiration (or wait)",
+      "Attempt to perform an API action",
+      "Verify session expired message appears",
+      "Verify redirect to login screen",
+      "Verify return URL is preserved for post-login redirect"
+    ],
+    "passes": false
+  },
+  {
+    "category": "security",
+    "description": "Sensitive credentials are stored securely",
+    "steps": [
+      "Login to the app successfully",
+      "Use device file explorer to check app storage",
+      "Verify tokens are stored in secure storage (Keychain/Keystore)",
+      "Verify no plain text credentials in shared preferences",
+      "Verify no sensitive data in app logs"
+    ],
+    "passes": false
+  },
+  {
+    "category": "security",
+    "description": "App clears sensitive data on logout",
+    "steps": [
+      "Login and navigate through the app",
+      "Logout from the app",
+      "Check secure storage",
+      "Verify auth tokens are removed",
+      "Verify cached user data is cleared",
+      "Verify biometric credentials are retained for next login"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Login screen displays correctly on various screen sizes",
+    "steps": [
+      "Open app on small phone (e.g., iPhone SE)",
+      "Verify all elements are visible without scrolling",
+      "Open app on large phone (e.g., iPhone 15 Pro Max)",
+      "Verify layout is properly centered",
+      "Open app on tablet",
+      "Verify layout adapts appropriately"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Password visibility toggle works correctly",
+    "steps": [
+      "Navigate to login screen",
+      "Enter password in password field",
+      "Verify password is masked by default",
+      "Tap visibility toggle icon",
+      "Verify password is now visible",
+      "Tap visibility toggle again",
+      "Verify password is masked again"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ui",
+    "description": "Loading states are displayed during authentication",
+    "steps": [
+      "Navigate to login screen",
+      "Enter valid credentials",
+      "Tap login button",
+      "Verify loading indicator appears",
+      "Verify login button is disabled during loading",
+      "Verify input fields are disabled during loading"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "Login screen is accessible with screen reader",
+    "steps": [
+      "Enable device screen reader (TalkBack/VoiceOver)",
+      "Navigate to login screen",
+      "Verify all form fields are properly labeled",
+      "Verify focus order is logical",
+      "Verify error messages are announced",
+      "Verify buttons are properly described"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ios",
+    "description": "iOS Face ID authentication works correctly",
+    "steps": [
+      "On Face ID enabled device",
+      "Enable biometric login in settings",
+      "Verify Face ID enrollment prompt",
+      "Complete enrollment",
+      "Close and reopen app",
+      "Verify Face ID prompt appears",
+      "Authenticate with Face ID",
+      "Verify successful login"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ios",
+    "description": "iOS Touch ID authentication works correctly",
+    "steps": [
+      "On Touch ID enabled device",
+      "Enable biometric login in settings",
+      "Verify Touch ID enrollment prompt",
+      "Complete fingerprint scan",
+      "Close and reopen app",
+      "Verify Touch ID prompt appears",
+      "Authenticate with fingerprint",
+      "Verify successful login"
+    ],
+    "passes": false
+  },
+  {
+    "category": "ios",
+    "description": "iOS Keychain stores credentials securely",
+    "steps": [
+      "Login successfully",
+      "Verify tokens stored in iOS Keychain",
+      "Verify Keychain access control set appropriately",
+      "Verify credentials persist across app updates",
+      "Verify credentials cleared on logout"
+    ],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "Android fingerprint authentication works correctly",
+    "steps": [
+      "On device with fingerprint sensor",
+      "Enable biometric login in settings",
+      "Verify fingerprint enrollment prompt",
+      "Complete fingerprint scan",
+      "Close and reopen app",
+      "Verify fingerprint prompt appears",
+      "Authenticate with fingerprint",
+      "Verify successful login"
+    ],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "Android face unlock works correctly",
+    "steps": [
+      "On device with face unlock capability",
+      "Enable biometric login in settings",
+      "Verify face enrollment handled by system",
+      "Close and reopen app",
+      "Verify face authentication prompt",
+      "Authenticate with face",
+      "Verify successful login"
+    ],
+    "passes": false
+  },
+  {
+    "category": "android",
+    "description": "Android Keystore stores credentials securely",
+    "steps": [
+      "Login successfully",
+      "Verify tokens stored in Android Keystore",
+      "Verify hardware-backed storage used when available",
+      "Verify EncryptedSharedPreferences for sensitive data",
+      "Verify credentials cleared on logout"
+    ],
+    "passes": false
+  }
+]
