@@ -1,16 +1,24 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../auth/providers/biometric_provider.dart';
 
-/// Settings screen with biometric authentication toggle.
+/// Settings screen with biometric authentication toggle and logout.
 class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({
+    super.key,
+    this.onLogout,
+  });
+
+  /// Callback invoked when logout is successful.
+  final VoidCallback? onLogout;
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -49,6 +57,69 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _showLogoutConfirmation() async {
+    final brightness = Theme.of(context).brightness;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface(brightness),
+        shape: RoundedRectangleBorder(
+          borderRadius: AppSpacing.borderRadiusLg,
+        ),
+        title: Text(
+          'Log Out',
+          style: AppTypography.headline3.copyWith(
+            color: AppColors.textPrimary(brightness),
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to log out?',
+          style: AppTypography.body1.copyWith(
+            color: AppColors.textSecondary(brightness),
+          ),
+        ),
+        actions: [
+          TextButton(
+            key: const Key('logout_cancel_button'),
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancel',
+              style: AppTypography.button.copyWith(
+                color: AppColors.textSecondary(brightness),
+              ),
+            ),
+          ),
+          TextButton(
+            key: const Key('logout_confirm_button'),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Log Out',
+              style: AppTypography.button.copyWith(
+                color: AppColors.error(brightness),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await _performLogout();
+    }
+  }
+
+  Future<void> _performLogout() async {
+    // Perform logout - clears tokens and sensitive data
+    await ref.read(authProvider.notifier).logout();
+
+    // Provide haptic feedback
+    HapticFeedback.lightImpact();
+
+    // Navigate to login
+    widget.onLogout?.call();
   }
 
   Future<void> _toggleBiometric(bool value) async {
@@ -191,6 +262,58 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     ),
                   ),
+                // Spacer before account section
+                const SizedBox(height: AppSpacing.xl),
+                // Account section header
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: Text(
+                    'Account',
+                    style: AppTypography.headline3.copyWith(
+                      color: AppColors.textPrimary(brightness),
+                    ),
+                  ),
+                ),
+                // Logout button
+                GestureDetector(
+                  key: const Key('logout_button'),
+                  onTap: _showLogoutConfirmation,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surface(brightness),
+                      borderRadius: AppSpacing.borderRadiusLg,
+                      border: brightness == Brightness.light
+                          ? Border.all(color: AppColors.border(brightness))
+                          : null,
+                    ),
+                    child: Padding(
+                      padding: AppSpacing.cardInsets,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.logout,
+                            color: AppColors.error(brightness),
+                            size: AppSpacing.iconSize,
+                          ),
+                          AppSpacing.horizontalSm,
+                          Expanded(
+                            child: Text(
+                              'Logout',
+                              style: AppTypography.body1.copyWith(
+                                color: AppColors.error(brightness),
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right,
+                            color: AppColors.textMuted(brightness),
+                            size: AppSpacing.iconSize,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
     );

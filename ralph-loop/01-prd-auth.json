@@ -87,7 +87,7 @@
       "Verify local tokens are cleared",
       "Verify cached sensitive data is cleared"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
