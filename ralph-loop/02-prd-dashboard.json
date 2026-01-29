@@ -86,7 +86,7 @@
       "Verify statistics update if changed",
       "Verify recent reports list updates"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

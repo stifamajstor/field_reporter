@@ -64,6 +64,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     }
   }
 
+  Future<void> _onRefresh(WidgetRef ref) async {
+    await Future.wait([
+      ref.read(dashboardStatsNotifierProvider.notifier).refresh(),
+      ref.read(recentReportsNotifierProvider.notifier).refresh(),
+      ref.read(pendingUploadsNotifierProvider.notifier).refresh(),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final statsAsync = ref.watch(dashboardStatsNotifierProvider);
@@ -89,108 +97,112 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       body: Stack(
         children: [
           // Main content
-          statsAsync.when(
-            loading: () => const Center(
-              child: CircularProgressIndicator(),
-            ),
-            error: (error, stack) => Center(
-              child: Text('Error: $error'),
-            ),
-            data: (stats) => SingleChildScrollView(
-              padding: AppSpacing.screenPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Stats grid - 2x2 layout
-                  GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    mainAxisSpacing: AppSpacing.md,
-                    crossAxisSpacing: AppSpacing.md,
-                    childAspectRatio: 1.3,
-                    children: [
-                      StatCard(
-                        title: 'Reports This Week',
-                        value: stats.reportsThisWeek.toString(),
-                        icon: Icons.description_outlined,
-                        onTap: () {
-                          Navigator.pushNamed(context, '/reports');
-                        },
-                      ),
-                      StatCard(
-                        title: 'Pending Uploads',
-                        value: stats.pendingUploads.toString(),
-                        icon: Icons.cloud_upload_outlined,
-                        onTap: () {
-                          Navigator.pushNamed(context, '/sync');
-                        },
-                      ),
-                      StatCard(
-                        title: 'Total Projects',
-                        value: stats.totalProjects.toString(),
-                        icon: Icons.folder_outlined,
-                        onTap: () {
-                          Navigator.pushNamed(context, '/projects');
-                        },
-                      ),
-                      StatCard(
-                        title: 'Recent Activity',
-                        value: stats.recentActivity.toString(),
-                        icon: Icons.history_outlined,
-                        onTap: () {
-                          Navigator.pushNamed(context, '/activity');
-                        },
-                      ),
-                    ],
-                  ),
-                  // Pending Uploads section
-                  _buildPendingUploadsSection(
-                    context,
-                    pendingUploadsAsync,
-                    isDark,
-                  ),
-                  // Recent Reports section
-                  AppSpacing.verticalXl,
-                  Text(
-                    'Recent Reports',
-                    style: AppTypography.headline2.copyWith(
-                      color: isDark
-                          ? AppColors.darkTextPrimary
-                          : AppColors.slate900,
+          RefreshIndicator(
+            onRefresh: () => _onRefresh(ref),
+            child: statsAsync.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              error: (error, stack) => Center(
+                child: Text('Error: $error'),
+              ),
+              data: (stats) => SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: AppSpacing.screenPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Stats grid - 2x2 layout
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: AppSpacing.md,
+                      crossAxisSpacing: AppSpacing.md,
+                      childAspectRatio: 1.3,
+                      children: [
+                        StatCard(
+                          title: 'Reports This Week',
+                          value: stats.reportsThisWeek.toString(),
+                          icon: Icons.description_outlined,
+                          onTap: () {
+                            Navigator.pushNamed(context, '/reports');
+                          },
+                        ),
+                        StatCard(
+                          title: 'Pending Uploads',
+                          value: stats.pendingUploads.toString(),
+                          icon: Icons.cloud_upload_outlined,
+                          onTap: () {
+                            Navigator.pushNamed(context, '/sync');
+                          },
+                        ),
+                        StatCard(
+                          title: 'Total Projects',
+                          value: stats.totalProjects.toString(),
+                          icon: Icons.folder_outlined,
+                          onTap: () {
+                            Navigator.pushNamed(context, '/projects');
+                          },
+                        ),
+                        StatCard(
+                          title: 'Recent Activity',
+                          value: stats.recentActivity.toString(),
+                          icon: Icons.history_outlined,
+                          onTap: () {
+                            Navigator.pushNamed(context, '/activity');
+                          },
+                        ),
+                      ],
                     ),
-                  ),
-                  AppSpacing.verticalMd,
-                  // Recent reports list
-                  recentReportsAsync.when(
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(),
+                    // Pending Uploads section
+                    _buildPendingUploadsSection(
+                      context,
+                      pendingUploadsAsync,
+                      isDark,
                     ),
-                    error: (error, stack) => Text('Error: $error'),
-                    data: (reports) => Column(
-                      children: reports
-                          .take(5)
-                          .map(
-                            (report) => Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: AppSpacing.listItemSpacing,
+                    // Recent Reports section
+                    AppSpacing.verticalXl,
+                    Text(
+                      'Recent Reports',
+                      style: AppTypography.headline2.copyWith(
+                        color: isDark
+                            ? AppColors.darkTextPrimary
+                            : AppColors.slate900,
+                      ),
+                    ),
+                    AppSpacing.verticalMd,
+                    // Recent reports list
+                    recentReportsAsync.when(
+                      loading: () => const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                      error: (error, stack) => Text('Error: $error'),
+                      data: (reports) => Column(
+                        children: reports
+                            .take(5)
+                            .map(
+                              (report) => Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: AppSpacing.listItemSpacing,
+                                ),
+                                child: ReportCard(
+                                  report: report,
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/report-detail',
+                                      arguments: report.id,
+                                    );
+                                  },
+                                ),
                               ),
-                              child: ReportCard(
-                                report: report,
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    '/report-detail',
-                                    arguments: report.id,
-                                  );
-                                },
-                              ),
-                            ),
-                          )
-                          .toList(),
+                            )
+                            .toList(),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
