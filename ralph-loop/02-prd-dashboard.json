@@ -187,7 +187,7 @@
       "Verify 'Last updated X minutes ago' message appears",
       "Verify visual indicator that data may be stale"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",

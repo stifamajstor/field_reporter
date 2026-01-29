@@ -8,10 +8,18 @@ part 'dashboard_provider.g.dart';
 /// Provider for dashboard statistics.
 @riverpod
 class DashboardStatsNotifier extends _$DashboardStatsNotifier {
+  DateTime? _lastUpdated;
+
+  /// The timestamp when the data was last successfully fetched.
+  DateTime? get lastUpdated => _lastUpdated;
+
   @override
   Future<DashboardStats> build() async {
     // Simulate loading stats from local database/API
     await Future.delayed(const Duration(milliseconds: 100));
+
+    // Update the last updated timestamp
+    _lastUpdated = DateTime.now();
 
     // Return mock data for now - will be replaced with actual repository calls
     return const DashboardStats(

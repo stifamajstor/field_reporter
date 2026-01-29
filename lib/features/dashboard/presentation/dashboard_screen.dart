@@ -8,6 +8,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../widgets/cards/report_card.dart';
 import '../../../widgets/cards/stat_card.dart';
 import '../../../widgets/indicators/offline_indicator.dart';
+import '../../../widgets/indicators/stale_data_indicator.dart';
 import '../../../widgets/indicators/sync_status_indicator.dart';
 import '../../../services/connectivity_service.dart';
 import '../../auth/domain/user.dart';
@@ -83,6 +84,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   @override
   Widget build(BuildContext context) {
     final statsAsync = ref.watch(dashboardStatsNotifierProvider);
+    final statsNotifier = ref.watch(dashboardStatsNotifierProvider.notifier);
     final recentReportsAsync = ref.watch(recentReportsNotifierProvider);
     final pendingUploadsAsync = ref.watch(pendingUploadsNotifierProvider);
     final syncStatus = ref.watch(syncStatusNotifierProvider);
@@ -91,6 +93,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final unreadCount = ref.watch(unreadNotificationCountProvider);
     final connectivityService = ref.watch(connectivityServiceProvider);
     final isOnline = connectivityService.isOnline;
+    final lastUpdated = statsNotifier.lastUpdated;
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
@@ -156,6 +159,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                     // User greeting and tenant context
                     _buildUserContextHeader(
                         currentUser, selectedTenant, isDark),
+                    // Stale data indicator (only when offline)
+                    if (!isOnline && lastUpdated != null) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      StaleDataIndicator(lastUpdated: lastUpdated),
+                    ],
                     AppSpacing.verticalLg,
                     // Stats grid - 2x2 layout
                     GridView.count(
