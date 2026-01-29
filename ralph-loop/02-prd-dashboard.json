@@ -12,7 +12,7 @@
       "Tap on any stat card",
       "Verify navigation to relevant detail screen"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

@@ -27,3 +27,4 @@
 [2026-01-29 22:54] | auth | Android fingerprint authentication works correctly | PASS | test/unit/services/auth/android_biometric_auth_test.dart
 [2026-01-29 22:54] | auth | Android face unlock works correctly | PASS | test/unit/services/auth/android_biometric_auth_test.dart
 [2026-01-29 22:54] | auth | Android Keystore stores credentials securely | PASS | test/unit/services/auth/android_biometric_auth_test.dart
+[2026-01-29 23:08] | dashboard | Dashboard displays overview statistics | PASS | lib/features/dashboard/domain/dashboard_stats.dart, lib/features/dashboard/providers/dashboard_provider.dart, lib/features/dashboard/presentation/dashboard_screen.dart, lib/widgets/cards/stat_card.dart, test/widget/screens/dashboard/dashboard_overview_statistics_test.dart
