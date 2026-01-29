@@ -264,7 +264,7 @@
       "Verify cached user data is cleared",
       "Verify biometric credentials are retained for next login"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
