@@ -15,3 +15,4 @@
 [2026-01-29 16:29] | auth | Network error during login shows retry option | PASS | lib/features/auth/domain/auth_state.dart, lib/features/auth/providers/auth_provider.dart, lib/features/auth/presentation/login_screen.dart, test/widget/screens/auth/login_screen_test.dart
 [2026-01-29 17:57] | auth | Account locked after multiple failed attempts | PASS | lib/features/auth/domain/auth_state.dart, lib/features/auth/providers/auth_provider.dart, lib/features/auth/presentation/login_screen.dart, test/widget/screens/auth/login_screen_test.dart
 [2026-01-29 22:54] | auth | Expired session redirects to login | PASS | lib/features/auth/services/session_expiry_service.dart, test/unit/services/auth/session_expiry_test.dart
+[2026-01-29 22:54] | auth | Sensitive credentials are stored securely | PASS | lib/features/auth/providers/auth_provider.dart, test/unit/services/auth/secure_credential_storage_test.dart

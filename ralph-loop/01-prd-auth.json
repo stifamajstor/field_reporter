@@ -251,7 +251,7 @@
       "Verify no plain text credentials in shared preferences",
       "Verify no sensitive data in app logs"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "security",
