@@ -6,7 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../widgets/cards/report_card.dart';
-import '../../../widgets/cards/stat_card.dart';
+import '../../../widgets/cards/animated_stat_card.dart';
 import '../../../widgets/indicators/offline_indicator.dart';
 import '../../../widgets/indicators/stale_data_indicator.dart';
 import '../../../widgets/indicators/sync_status_indicator.dart';
@@ -178,34 +178,38 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                           crossAxisSpacing: AppSpacing.md,
                           childAspectRatio: _getAspectRatio(crossAxisCount),
                           children: [
-                            StatCard(
+                            AnimatedStatCard(
                               title: 'Reports This Week',
-                              value: stats.reportsThisWeek.toString(),
+                              value: stats.reportsThisWeek,
                               icon: Icons.description_outlined,
+                              animationDelay: Duration.zero,
                               onTap: () {
                                 Navigator.pushNamed(context, '/reports');
                               },
                             ),
-                            StatCard(
+                            AnimatedStatCard(
                               title: 'Pending Uploads',
-                              value: stats.pendingUploads.toString(),
+                              value: stats.pendingUploads,
                               icon: Icons.cloud_upload_outlined,
+                              animationDelay: const Duration(milliseconds: 50),
                               onTap: () {
                                 Navigator.pushNamed(context, '/sync');
                               },
                             ),
-                            StatCard(
+                            AnimatedStatCard(
                               title: 'Total Projects',
-                              value: stats.totalProjects.toString(),
+                              value: stats.totalProjects,
                               icon: Icons.folder_outlined,
+                              animationDelay: const Duration(milliseconds: 100),
                               onTap: () {
                                 Navigator.pushNamed(context, '/projects');
                               },
                             ),
-                            StatCard(
+                            AnimatedStatCard(
                               title: 'Recent Activity',
-                              value: stats.recentActivity.toString(),
+                              value: stats.recentActivity,
                               icon: Icons.history_outlined,
+                              animationDelay: const Duration(milliseconds: 150),
                               onTap: () {
                                 Navigator.pushNamed(context, '/activity');
                               },

@@ -213,7 +213,7 @@
       "Verify numbers count up animation",
       "Verify animations are smooth (60fps)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
