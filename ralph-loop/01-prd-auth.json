@@ -183,7 +183,7 @@
       "Enter matching password in confirmation field",
       "Verify error disappears"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "error-handling",

@@ -233,5 +233,65 @@ void main() {
 
       container.dispose();
     });
+
+    testWidgets('Registration form validates password confirmation match',
+        (tester) async {
+      final mockStorage = MockSecureStorage();
+
+      final container = ProviderContainer(
+        overrides: [
+          secureStorageProvider.overrideWithValue(mockStorage),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: AppTheme.light,
+            home: RegistrationScreen(
+              onRegistrationSuccess: () {},
+            ),
+          ),
+        ),
+      );
+
+      // Navigate to registration screen (already on it)
+      expect(find.byType(RegistrationScreen), findsOneWidget);
+
+      final passwordField =
+          find.byKey(const Key('registration_password_field'));
+      final confirmPasswordField =
+          find.byKey(const Key('registration_confirm_password_field'));
+      final registerButton = find.byKey(const Key('registration_button'));
+
+      // Enter password in password field
+      await tester.enterText(passwordField, 'Password123');
+      await tester.pump();
+
+      // Enter different password in confirmation field
+      await tester.enterText(confirmPasswordField, 'DifferentPassword456');
+      await tester.pump();
+
+      // Tap register to trigger validation
+      await tester.tap(registerButton);
+      await tester.pump();
+
+      // Verify 'passwords do not match' error appears
+      expect(find.text('Passwords do not match'), findsOneWidget);
+
+      // Enter matching password in confirmation field
+      await tester.enterText(confirmPasswordField, 'Password123');
+      await tester.pump();
+
+      // Trigger validation again
+      await tester.tap(registerButton);
+      await tester.pump();
+
+      // Verify error disappears
+      expect(find.text('Passwords do not match'), findsNothing);
+
+      container.dispose();
+    });
   });
 }
