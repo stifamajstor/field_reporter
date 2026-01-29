@@ -58,7 +58,7 @@
       "Verify account creation success message",
       "Verify redirect to tenant selection or dashboard"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

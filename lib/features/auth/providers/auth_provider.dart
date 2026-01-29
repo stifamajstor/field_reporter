@@ -105,6 +105,42 @@ class Auth extends _$Auth {
       token: token,
     );
   }
+
+  /// Registers a new user account.
+  Future<void> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    state = const AuthState.loading();
+
+    try {
+      // Simulate API call
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // In a real app, this would call the API
+      if (name.isNotEmpty && email.isNotEmpty && password.isNotEmpty) {
+        const token = 'new_user_token_123';
+        final userId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+
+        // Store credentials securely
+        final storage = ref.read(secureStorageProvider);
+        await storage.write(key: _tokenKey, value: token);
+        await storage.write(key: _userIdKey, value: userId);
+        await storage.write(key: _emailKey, value: email);
+
+        state = AuthState.authenticated(
+          userId: userId,
+          email: email,
+          token: token,
+        );
+      } else {
+        state = const AuthState.error('Please fill in all fields');
+      }
+    } catch (e) {
+      state = AuthState.error(e.toString());
+    }
+  }
 }
 
 /// Type alias for the auth notifier
