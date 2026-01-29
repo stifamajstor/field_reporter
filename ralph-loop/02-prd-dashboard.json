@@ -144,7 +144,7 @@
       "Tap sync indicator",
       "Verify navigation to Sync Status screen"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

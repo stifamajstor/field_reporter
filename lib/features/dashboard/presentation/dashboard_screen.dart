@@ -7,11 +7,13 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../widgets/cards/report_card.dart';
 import '../../../widgets/cards/stat_card.dart';
+import '../../../widgets/indicators/sync_status_indicator.dart';
 import '../../auth/domain/user.dart';
 import '../../auth/providers/tenant_provider.dart';
 import '../../auth/providers/user_provider.dart';
 import '../../sync/domain/pending_upload.dart';
 import '../../sync/providers/pending_uploads_provider.dart';
+import '../../sync/providers/sync_status_provider.dart';
 import '../providers/dashboard_provider.dart';
 
 /// The main dashboard screen showing overview statistics.
@@ -80,6 +82,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final statsAsync = ref.watch(dashboardStatsNotifierProvider);
     final recentReportsAsync = ref.watch(recentReportsNotifierProvider);
     final pendingUploadsAsync = ref.watch(pendingUploadsNotifierProvider);
+    final syncStatus = ref.watch(syncStatusNotifierProvider);
     final currentUser = ref.watch(currentUserProvider);
     final selectedTenant = ref.watch(selectedTenantProvider);
     final brightness = Theme.of(context).brightness;
@@ -106,6 +109,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         backgroundColor: isDark ? AppColors.darkBackground : AppColors.white,
         elevation: 0,
         actions: [
+          SyncStatusIndicator(
+            status: syncStatus,
+            onTap: () => Navigator.pushNamed(context, '/sync'),
+          ),
           if (currentUser != null)
             Padding(
               padding: const EdgeInsets.only(right: AppSpacing.md),
