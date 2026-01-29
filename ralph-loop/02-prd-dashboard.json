@@ -41,7 +41,7 @@
       "Tap on pending uploads section",
       "Verify navigation to Sync Status screen"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
