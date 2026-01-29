@@ -317,7 +317,7 @@
       "Verify error messages are announced",
       "Verify buttons are properly described"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ios",
