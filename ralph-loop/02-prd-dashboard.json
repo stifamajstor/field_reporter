@@ -252,7 +252,7 @@
       "Verify skeleton loaders appear immediately",
       "Verify content replaces skeletons smoothly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "error-handling",

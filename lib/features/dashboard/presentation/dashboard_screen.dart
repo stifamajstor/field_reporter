@@ -8,6 +8,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../widgets/cards/report_card.dart';
 import '../../../widgets/cards/animated_stat_card.dart';
 import '../../../widgets/layout/empty_state.dart';
+import '../../../widgets/feedback/skeleton_loader.dart';
 import '../../../widgets/indicators/offline_indicator.dart';
 import '../../../widgets/indicators/stale_data_indicator.dart';
 import '../../../widgets/indicators/sync_status_indicator.dart';
@@ -173,9 +174,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           RefreshIndicator(
             onRefresh: () => _onRefresh(ref),
             child: statsAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              loading: () => _buildLoadingSkeleton(context, isDark),
               error: (error, stack) => Center(
                 child: Text('Error: $error'),
               ),
@@ -972,6 +971,32 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           color: Colors.white,
           fontWeight: FontWeight.w600,
         ),
+      ),
+    );
+  }
+
+  /// Builds skeleton loaders for the loading state.
+  ///
+  /// Shows skeleton placeholders that match the exact dimensions of the
+  /// actual content, per DESIGN_GUIDELINES.md.
+  Widget _buildLoadingSkeleton(BuildContext context, bool isDark) {
+    return const SingleChildScrollView(
+      physics: AlwaysScrollableScrollPhysics(),
+      padding: AppSpacing.screenPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Greeting skeleton
+          SkeletonLoader(width: 200, height: 28, borderRadius: 4),
+          SizedBox(height: AppSpacing.xs),
+          SkeletonLoader(width: 120, height: 16, borderRadius: 4),
+          AppSpacing.verticalLg,
+          // Stats grid skeleton
+          DashboardStatsSkeleton(),
+          AppSpacing.verticalXl,
+          // Recent reports skeleton
+          RecentReportsSkeleton(count: 3),
+        ],
       ),
     );
   }
