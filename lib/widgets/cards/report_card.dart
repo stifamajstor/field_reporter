@@ -29,89 +29,94 @@ class ReportCard extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTap: onTap != null
-          ? () {
-              HapticFeedback.lightImpact();
-              onTap!();
-            }
-          : null,
-      child: Container(
-        padding: AppSpacing.cardInsets,
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurface : AppColors.white,
-          borderRadius: AppSpacing.borderRadiusLg,
-          border:
-              isDark ? null : Border.all(color: AppColors.slate200, width: 1),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Report icon
-            Container(
-              width: AppSpacing.thumbnailSm,
-              height: AppSpacing.thumbnailSm,
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
-                borderRadius: AppSpacing.borderRadiusMd,
+    return Semantics(
+      label: '${report.title}, ${report.projectName}',
+      button: onTap != null,
+      child: GestureDetector(
+        onTap: onTap != null
+            ? () {
+                HapticFeedback.lightImpact();
+                onTap!();
+              }
+            : null,
+        child: Container(
+          padding: AppSpacing.cardInsets,
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : AppColors.white,
+            borderRadius: AppSpacing.borderRadiusLg,
+            border:
+                isDark ? null : Border.all(color: AppColors.slate200, width: 1),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Report icon
+              Container(
+                width: AppSpacing.thumbnailSm,
+                height: AppSpacing.thumbnailSm,
+                decoration: BoxDecoration(
+                  color:
+                      isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
+                  borderRadius: AppSpacing.borderRadiusMd,
+                ),
+                child: Icon(
+                  Icons.description_outlined,
+                  size: AppSpacing.iconSize,
+                  color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+                ),
               ),
-              child: Icon(
-                Icons.description_outlined,
-                size: AppSpacing.iconSize,
-                color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
-              ),
-            ),
-            AppSpacing.horizontalMd,
-            // Report details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  Text(
-                    report.title,
-                    style: AppTypography.headline3.copyWith(
-                      color: isDark
-                          ? AppColors.darkTextPrimary
-                          : AppColors.slate900,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  AppSpacing.verticalXs,
-                  // Project name
-                  Text(
-                    report.projectName,
-                    style: AppTypography.body2.copyWith(
-                      color: isDark
-                          ? AppColors.darkTextSecondary
-                          : AppColors.slate700,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  AppSpacing.verticalXs,
-                  // Date and status row
-                  Row(
-                    children: [
-                      // Date
-                      Text(
-                        DateFormat('MMM d, yyyy').format(report.date),
-                        style: AppTypography.mono.copyWith(
-                          color: isDark
-                              ? AppColors.darkTextMuted
-                              : AppColors.slate400,
-                        ),
+              AppSpacing.horizontalMd,
+              // Report details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title
+                    Text(
+                      report.title,
+                      style: AppTypography.headline3.copyWith(
+                        color: isDark
+                            ? AppColors.darkTextPrimary
+                            : AppColors.slate900,
                       ),
-                      const Spacer(),
-                      // Status indicator
-                      _StatusBadge(status: report.status),
-                    ],
-                  ),
-                ],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    AppSpacing.verticalXs,
+                    // Project name
+                    Text(
+                      report.projectName,
+                      style: AppTypography.body2.copyWith(
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.slate700,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    AppSpacing.verticalXs,
+                    // Date and status row
+                    Row(
+                      children: [
+                        // Date
+                        Text(
+                          DateFormat('MMM d, yyyy').format(report.date),
+                          style: AppTypography.mono.copyWith(
+                            color: isDark
+                                ? AppColors.darkTextMuted
+                                : AppColors.slate400,
+                          ),
+                        ),
+                        const Spacer(),
+                        // Status indicator
+                        _StatusBadge(status: report.status),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

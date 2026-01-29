@@ -46,3 +46,4 @@
 [2026-01-30 00:06] | dashboard | FAB hides when scrolling down, shows when scrolling up | PASS | lib/features/dashboard/presentation/dashboard_screen.dart, test/widget/screens/dashboard/dashboard_fab_scroll_hide_test.dart
 [2026-01-30 00:08] | dashboard | Dashboard loads within acceptable time | PASS | lib/widgets/feedback/skeleton_loader.dart, lib/features/dashboard/presentation/dashboard_screen.dart, test/widget/screens/dashboard/dashboard_loading_performance_test.dart
 [2026-01-30 00:17] | dashboard | Dashboard handles API error gracefully | PASS | lib/features/dashboard/presentation/dashboard_screen.dart, test/widget/screens/dashboard/dashboard_api_error_handling_test.dart
+[2026-01-30 00:20] | dashboard | Dashboard is navigable with screen reader | PASS | lib/features/dashboard/presentation/dashboard_screen.dart lib/widgets/cards/animated_stat_card.dart lib/widgets/cards/report_card.dart test/widget/screens/dashboard/dashboard_screen_reader_test.dart

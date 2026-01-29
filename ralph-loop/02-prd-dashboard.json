@@ -279,6 +279,6 @@
       "Verify FAB is announced as 'Quick capture, button'",
       "Verify navigation elements are properly labeled"
     ],
-    "passes": false
+    "passes": true
   }
 ]

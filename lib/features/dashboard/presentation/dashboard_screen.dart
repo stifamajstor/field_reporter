@@ -130,13 +130,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     return Scaffold(
       appBar: AppBar(
         leading: Builder(
-          builder: (context) => IconButton(
-            icon: Icon(
-              Icons.menu,
-              color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+          builder: (context) => Semantics(
+            label: 'Open navigation menu',
+            button: true,
+            child: IconButton(
+              icon: Icon(
+                Icons.menu,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+              ),
+              tooltip: 'Open navigation menu',
+              onPressed: () => Scaffold.of(context).openDrawer(),
             ),
-            tooltip: 'Open navigation menu',
-            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
         title: Text(
@@ -346,22 +350,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           child: child,
         );
       },
-      child: FloatingActionButton(
-        onPressed: _toggleCaptureMenu,
-        backgroundColor: isDark ? AppColors.darkOrange : AppColors.orange500,
-        elevation: 4,
-        child: AnimatedBuilder(
-          animation: _fabAnimationController,
-          builder: (context, child) {
-            return Transform.rotate(
-              angle: _fabAnimationController.value * 0.785, // 45 degrees
-              child: Icon(
-                _isCaptureMenuOpen ? Icons.close : Icons.add,
-                size: 28,
-                color: Colors.white,
-              ),
-            );
-          },
+      child: Semantics(
+        label: 'Quick capture',
+        button: true,
+        child: FloatingActionButton(
+          onPressed: _toggleCaptureMenu,
+          backgroundColor: isDark ? AppColors.darkOrange : AppColors.orange500,
+          elevation: 4,
+          child: AnimatedBuilder(
+            animation: _fabAnimationController,
+            builder: (context, child) {
+              return Transform.rotate(
+                angle: _fabAnimationController.value * 0.785, // 45 degrees
+                child: Icon(
+                  _isCaptureMenuOpen ? Icons.close : Icons.add,
+                  size: 28,
+                  color: Colors.white,
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -457,59 +465,65 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           ),
         );
       },
-      child: GestureDetector(
-        onTap: onTap,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.sm,
-              ),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : AppColors.white,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+      child: Semantics(
+        label: label,
+        button: true,
+        excludeSemantics: true,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : AppColors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  label,
+                  style: AppTypography.body2.copyWith(
+                    color:
+                        isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+                    fontWeight: FontWeight.w500,
                   ),
-                ],
-              ),
-              child: Text(
-                label,
-                style: AppTypography.body2.copyWith(
-                  color:
-                      isDark ? AppColors.darkTextPrimary : AppColors.slate900,
-                  fontWeight: FontWeight.w500,
                 ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkOrange : AppColors.orange500,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: (isDark ? AppColors.darkOrange : AppColors.orange500)
-                        .withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+              const SizedBox(width: AppSpacing.sm),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          (isDark ? AppColors.darkOrange : AppColors.orange500)
+                              .withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  icon,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
-              child: Icon(
-                icon,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -667,50 +681,54 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         ? 'Notifications: $unreadCount unread'
         : 'Notifications';
 
-    return Tooltip(
-      message: tooltipText,
-      child: IconButton(
-        key: const Key('notification_bell_icon'),
-        icon: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Icon(
-              Icons.notifications_outlined,
-              color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
-            ),
-            if (unreadCount > 0)
-              Positioned(
-                right: -6,
-                top: -6,
-                child: Container(
-                  key: const Key('notification_badge'),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.rose500,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 16,
-                    minHeight: 16,
-                  ),
-                  child: Center(
-                    child: Text(
-                      unreadCount > 9 ? '9+' : unreadCount.toString(),
-                      style: AppTypography.overline.copyWith(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
+    return Semantics(
+      label: 'Notifications',
+      button: true,
+      child: Tooltip(
+        message: tooltipText,
+        child: IconButton(
+          key: const Key('notification_bell_icon'),
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Icon(
+                Icons.notifications_outlined,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+              ),
+              if (unreadCount > 0)
+                Positioned(
+                  right: -6,
+                  top: -6,
+                  child: Container(
+                    key: const Key('notification_badge'),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.rose500,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Center(
+                      child: Text(
+                        unreadCount > 9 ? '9+' : unreadCount.toString(),
+                        style: AppTypography.overline.copyWith(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
+          onPressed: () => Navigator.pushNamed(context, '/notifications'),
         ),
-        onPressed: () => Navigator.pushNamed(context, '/notifications'),
       ),
     );
   }
