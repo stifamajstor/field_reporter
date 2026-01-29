@@ -18,3 +18,4 @@
 [2026-01-29 22:54] | auth | Sensitive credentials are stored securely | PASS | lib/features/auth/providers/auth_provider.dart, test/unit/services/auth/secure_credential_storage_test.dart
 [2026-01-29 22:54] | auth | App clears sensitive data on logout | PASS | lib/features/auth/providers/auth_provider.dart, test/unit/services/auth/logout_data_clearing_test.dart
 [2026-01-29 22:54] | auth | Login screen displays correctly on various screen sizes | PASS | lib/features/auth/presentation/login_screen.dart, test/widget/screens/auth/login_screen_responsive_test.dart
+[2026-01-29 22:54] | auth | Password visibility toggle works correctly | PASS | test/widget/screens/auth/password_visibility_toggle_test.dart

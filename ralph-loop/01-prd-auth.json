@@ -291,7 +291,7 @@
       "Tap visibility toggle again",
       "Verify password is masked again"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
