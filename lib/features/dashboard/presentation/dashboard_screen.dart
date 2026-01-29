@@ -34,9 +34,12 @@ class DashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   bool _isCaptureMenuOpen = false;
   late AnimationController _fabAnimationController;
+  late AnimationController _fabVisibilityController;
+  late ScrollController _scrollController;
+  double _lastScrollPosition = 0;
 
   @override
   void initState() {
@@ -45,11 +48,36 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
+    _fabVisibilityController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+      value: 1.0, // Start fully visible
+    );
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    final currentPosition = _scrollController.position.pixels;
+    final delta = currentPosition - _lastScrollPosition;
+
+    if (delta > 0 && currentPosition > 0) {
+      // Scrolling down - hide FAB
+      _fabVisibilityController.reverse();
+    } else if (delta < 0) {
+      // Scrolling up - show FAB
+      _fabVisibilityController.forward();
+    }
+
+    _lastScrollPosition = currentPosition;
   }
 
   @override
   void dispose() {
     _fabAnimationController.dispose();
+    _fabVisibilityController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -177,6 +205,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 }
 
                 return SingleChildScrollView(
+                  controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: AppSpacing.screenPadding,
                   child: Column(
@@ -307,22 +336,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   }
 
   Widget _buildQuickCaptureFAB(bool isDark) {
-    return FloatingActionButton(
-      onPressed: _toggleCaptureMenu,
-      backgroundColor: isDark ? AppColors.darkOrange : AppColors.orange500,
-      elevation: 4,
-      child: AnimatedBuilder(
-        animation: _fabAnimationController,
-        builder: (context, child) {
-          return Transform.rotate(
-            angle: _fabAnimationController.value * 0.785, // 45 degrees
-            child: Icon(
-              _isCaptureMenuOpen ? Icons.close : Icons.add,
-              size: 28,
-              color: Colors.white,
-            ),
-          );
-        },
+    return AnimatedBuilder(
+      animation: _fabVisibilityController,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, 100 * (1 - _fabVisibilityController.value)),
+          child: child,
+        );
+      },
+      child: FloatingActionButton(
+        onPressed: _toggleCaptureMenu,
+        backgroundColor: isDark ? AppColors.darkOrange : AppColors.orange500,
+        elevation: 4,
+        child: AnimatedBuilder(
+          animation: _fabAnimationController,
+          builder: (context, child) {
+            return Transform.rotate(
+              angle: _fabAnimationController.value * 0.785, // 45 degrees
+              child: Icon(
+                _isCaptureMenuOpen ? Icons.close : Icons.add,
+                size: 28,
+                color: Colors.white,
+              ),
+            );
+          },
+        ),
       ),
     );
   }

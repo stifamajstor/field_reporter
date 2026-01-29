@@ -240,7 +240,7 @@
       "Scroll up slightly",
       "Verify FAB reappears with animation"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "performance",
