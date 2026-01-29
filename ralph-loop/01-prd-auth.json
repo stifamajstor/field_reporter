@@ -304,7 +304,7 @@
       "Verify login button is disabled during loading",
       "Verify input fields are disabled during loading"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "accessibility",
