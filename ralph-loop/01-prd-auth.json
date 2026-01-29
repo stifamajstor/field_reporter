@@ -114,7 +114,7 @@
       "Verify app reloads with new tenant context",
       "Verify all data reflects new tenant"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

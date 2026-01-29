@@ -9,16 +9,21 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/providers/biometric_provider.dart';
+import '../../auth/providers/tenant_provider.dart';
 
 /// Settings screen with biometric authentication toggle and logout.
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({
     super.key,
     this.onLogout,
+    this.onSwitchOrganization,
   });
 
   /// Callback invoked when logout is successful.
   final VoidCallback? onLogout;
+
+  /// Callback invoked when user wants to switch organization.
+  final VoidCallback? onSwitchOrganization;
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -159,6 +164,104 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Widget _buildOrganizationSection(Brightness brightness) {
+    final availableTenants = ref.watch(availableTenantsProvider);
+    final selectedTenant = ref.watch(selectedTenantProvider);
+
+    // Only show if user has multiple tenants
+    if (availableTenants.length <= 1) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Organization section header
+        Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+          child: Text(
+            'Organization',
+            style: AppTypography.headline3.copyWith(
+              color: AppColors.textPrimary(brightness),
+            ),
+          ),
+        ),
+        // Current organization display with switch option
+        GestureDetector(
+          key: const Key('switch_organization_button'),
+          onTap: () {
+            HapticFeedback.lightImpact();
+            widget.onSwitchOrganization?.call();
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface(brightness),
+              borderRadius: AppSpacing.borderRadiusLg,
+              border: brightness == Brightness.light
+                  ? Border.all(color: AppColors.border(brightness))
+                  : null,
+            ),
+            child: Padding(
+              padding: AppSpacing.cardInsets,
+              child: Row(
+                children: [
+                  // Organization icon
+                  Container(
+                    width: AppSpacing.touchTargetMin,
+                    height: AppSpacing.touchTargetMin,
+                    decoration: BoxDecoration(
+                      color: brightness == Brightness.dark
+                          ? AppColors.darkOrangeSubtle
+                          : AppColors.orange50,
+                      borderRadius: AppSpacing.borderRadiusMd,
+                    ),
+                    child: Center(
+                      child: Text(
+                        selectedTenant?.name.isNotEmpty == true
+                            ? selectedTenant!.name[0].toUpperCase()
+                            : '?',
+                        style: AppTypography.headline2.copyWith(
+                          color: AppColors.primary(brightness),
+                        ),
+                      ),
+                    ),
+                  ),
+                  AppSpacing.horizontalMd,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          selectedTenant?.name ?? 'No organization selected',
+                          style: AppTypography.body1.copyWith(
+                            color: AppColors.textPrimary(brightness),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        AppSpacing.verticalXs,
+                        Text(
+                          'Switch Organization',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.primary(brightness),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: AppColors.textMuted(brightness),
+                    size: AppSpacing.iconSize,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
@@ -262,6 +365,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     ),
                   ),
+                // Spacer before organization section
+                const SizedBox(height: AppSpacing.xl),
+                // Organization section
+                _buildOrganizationSection(brightness),
                 // Spacer before account section
                 const SizedBox(height: AppSpacing.xl),
                 // Account section header
