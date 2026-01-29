@@ -100,7 +100,7 @@
       "Verify dashboard loads with selected tenant context",
       "Verify tenant name appears in app header/drawer"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
