@@ -159,7 +159,7 @@
       "Verify notifications list opens",
       "Verify marking notification as read updates badge"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "offline",

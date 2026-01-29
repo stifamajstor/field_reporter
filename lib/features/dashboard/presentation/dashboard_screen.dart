@@ -11,6 +11,7 @@ import '../../../widgets/indicators/sync_status_indicator.dart';
 import '../../auth/domain/user.dart';
 import '../../auth/providers/tenant_provider.dart';
 import '../../auth/providers/user_provider.dart';
+import '../../notifications/providers/notifications_provider.dart';
 import '../../sync/domain/pending_upload.dart';
 import '../../sync/providers/pending_uploads_provider.dart';
 import '../../sync/providers/sync_status_provider.dart';
@@ -85,6 +86,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final syncStatus = ref.watch(syncStatusNotifierProvider);
     final currentUser = ref.watch(currentUserProvider);
     final selectedTenant = ref.watch(selectedTenantProvider);
+    final unreadCount = ref.watch(unreadNotificationCountProvider);
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
@@ -113,6 +115,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
             status: syncStatus,
             onTap: () => Navigator.pushNamed(context, '/sync'),
           ),
+          _buildNotificationBell(context, unreadCount, isDark),
           if (currentUser != null)
             Padding(
               padding: const EdgeInsets.only(right: AppSpacing.md),
@@ -560,6 +563,60 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildNotificationBell(
+      BuildContext context, int unreadCount, bool isDark) {
+    final tooltipText = unreadCount > 0
+        ? 'Notifications: $unreadCount unread'
+        : 'Notifications';
+
+    return Tooltip(
+      message: tooltipText,
+      child: IconButton(
+        key: const Key('notification_bell_icon'),
+        icon: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Icon(
+              Icons.notifications_outlined,
+              color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+            ),
+            if (unreadCount > 0)
+              Positioned(
+                right: -6,
+                top: -6,
+                child: Container(
+                  key: const Key('notification_badge'),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.rose500,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 16,
+                    minHeight: 16,
+                  ),
+                  child: Center(
+                    child: Text(
+                      unreadCount > 9 ? '9+' : unreadCount.toString(),
+                      style: AppTypography.overline.copyWith(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        onPressed: () => Navigator.pushNamed(context, '/notifications'),
+      ),
     );
   }
 
