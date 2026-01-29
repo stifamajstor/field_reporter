@@ -1,1 +1,2 @@
 [2026-01-29 10:28] | auth | User can login with email and password | PASS | lib/features/auth/domain/auth_state.dart, lib/features/auth/providers/auth_provider.dart, lib/features/auth/presentation/login_screen.dart, test/widget/screens/auth/login_screen_test.dart
+[2026-01-29 15:46] | auth | User can login with biometric authentication | PASS | lib/features/auth/providers/biometric_provider.dart, test/unit/services/auth/biometric_auth_test.dart

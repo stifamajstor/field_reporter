@@ -92,6 +92,19 @@ class Auth extends _$Auth {
       state = const AuthState.unauthenticated();
     }
   }
+
+  /// Restores session from stored credentials (used by biometric auth).
+  void restoreSession({
+    required String userId,
+    required String email,
+    required String token,
+  }) {
+    state = AuthState.authenticated(
+      userId: userId,
+      email: email,
+      token: token,
+    );
+  }
 }
 
 /// Type alias for the auth notifier

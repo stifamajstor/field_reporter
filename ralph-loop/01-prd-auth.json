@@ -25,7 +25,7 @@
       "Verify successful login redirects to Dashboard",
       "Verify session is restored correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
