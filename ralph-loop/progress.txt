@@ -21,3 +21,9 @@
 [2026-01-29 22:54] | auth | Password visibility toggle works correctly | PASS | test/widget/screens/auth/password_visibility_toggle_test.dart
 [2026-01-29 22:54] | auth | Loading states are displayed during authentication | PASS | test/widget/screens/auth/login_loading_states_test.dart
 [2026-01-29 22:54] | auth | Login screen is accessible with screen reader | PASS | test/widget/screens/auth/login_screen_accessibility_test.dart
+[2026-01-29 22:54] | auth | iOS Face ID authentication works correctly | PASS | test/unit/services/auth/ios_biometric_auth_test.dart
+[2026-01-29 22:54] | auth | iOS Touch ID authentication works correctly | PASS | test/unit/services/auth/ios_biometric_auth_test.dart
+[2026-01-29 22:54] | auth | iOS Keychain stores credentials securely | PASS | test/unit/services/auth/ios_biometric_auth_test.dart
+[2026-01-29 22:54] | auth | Android fingerprint authentication works correctly | PASS | test/unit/services/auth/android_biometric_auth_test.dart
+[2026-01-29 22:54] | auth | Android face unlock works correctly | PASS | test/unit/services/auth/android_biometric_auth_test.dart
+[2026-01-29 22:54] | auth | Android Keystore stores credentials securely | PASS | test/unit/services/auth/android_biometric_auth_test.dart

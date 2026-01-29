@@ -332,7 +332,7 @@
       "Authenticate with Face ID",
       "Verify successful login"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ios",
@@ -347,7 +347,7 @@
       "Authenticate with fingerprint",
       "Verify successful login"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ios",
@@ -359,7 +359,7 @@
       "Verify credentials persist across app updates",
       "Verify credentials cleared on logout"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "android",
@@ -374,7 +374,7 @@
       "Authenticate with fingerprint",
       "Verify successful login"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "android",
@@ -388,7 +388,7 @@
       "Authenticate with face",
       "Verify successful login"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "android",
@@ -400,6 +400,6 @@
       "Verify EncryptedSharedPreferences for sensitive data",
       "Verify credentials cleared on logout"
     ],
-    "passes": false
+    "passes": true
   }
 ]
