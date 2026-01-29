@@ -75,6 +75,66 @@ void main() {
       container.dispose();
     });
 
+    testWidgets('Invalid credentials show appropriate error', (tester) async {
+      // Create mock secure storage
+      final mockStorage = MockSecureStorage();
+
+      final container = ProviderContainer(
+        overrides: [
+          secureStorageProvider.overrideWithValue(mockStorage),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: AppTheme.light,
+            home: const LoginScreen(),
+          ),
+        ),
+      );
+
+      // Step 1: Navigate to login screen (already there)
+      expect(find.byType(LoginScreen), findsOneWidget);
+
+      final emailField = find.byKey(const Key('login_email_field'));
+      final passwordField = find.byKey(const Key('login_password_field'));
+      final loginButton = find.byKey(const Key('login_button'));
+
+      // Step 2: Enter valid email format
+      await tester.enterText(emailField, 'user@example.com');
+      await tester.pump();
+
+      // Step 3: Enter incorrect password
+      await tester.enterText(passwordField, 'wrongpassword');
+      await tester.pump();
+
+      // Step 4: Tap login button
+      await tester.tap(loginButton);
+      await tester.pump();
+
+      // Wait for async operation
+      await tester.pumpAndSettle();
+
+      // Step 5: Verify 'Invalid credentials' error message appears
+      expect(find.text('Invalid credentials'), findsOneWidget);
+
+      // Step 6: Verify password field is cleared
+      final passwordFieldWidget = tester.widget<TextFormField>(passwordField);
+      final passwordController =
+          (passwordFieldWidget.controller as TextEditingController);
+      expect(passwordController.text, isEmpty);
+
+      // Step 7: Verify email field retains value
+      final emailFieldWidget = tester.widget<TextFormField>(emailField);
+      final emailController =
+          (emailFieldWidget.controller as TextEditingController);
+      expect(emailController.text, equals('user@example.com'));
+
+      container.dispose();
+    });
+
     testWidgets('Login form validates email format', (tester) async {
       // Create mock secure storage
       final mockStorage = MockSecureStorage();

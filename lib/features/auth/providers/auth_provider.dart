@@ -28,7 +28,9 @@ class Auth extends _$Auth {
   }
 
   /// Attempts to login with the provided credentials.
-  Future<void> login(String email, String password) async {
+  ///
+  /// Returns true if successful, false if invalid credentials.
+  Future<bool> login(String email, String password) async {
     state = const AuthState.loading();
 
     try {
@@ -36,8 +38,8 @@ class Auth extends _$Auth {
       await Future.delayed(const Duration(milliseconds: 500));
 
       // In a real app, this would call the API
-      // For now, accept any valid-looking credentials
-      if (email.isNotEmpty && password.isNotEmpty) {
+      // For now, simulate invalid credentials for specific password
+      if (email.isNotEmpty && password == 'Password123!') {
         const token = 'test_token_123';
         const userId = 'user_1';
 
@@ -52,11 +54,14 @@ class Auth extends _$Auth {
           email: email,
           token: token,
         );
+        return true;
       } else {
         state = const AuthState.error('Invalid credentials');
+        return false;
       }
     } catch (e) {
       state = AuthState.error(e.toString());
+      return false;
     }
   }
 

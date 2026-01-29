@@ -197,7 +197,7 @@
       "Verify password field is cleared",
       "Verify email field retains value"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "error-handling",
