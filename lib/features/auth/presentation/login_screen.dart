@@ -278,8 +278,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     AppSpacing.verticalMd,
 
                     // Create account link
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           "Don't have an account? ",

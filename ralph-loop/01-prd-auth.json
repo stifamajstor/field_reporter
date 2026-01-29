@@ -277,7 +277,7 @@
       "Open app on tablet",
       "Verify layout adapts appropriately"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
