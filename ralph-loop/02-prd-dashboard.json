@@ -98,7 +98,7 @@
       "Verify current tenant/organization name is visible",
       "Verify greeting message includes user's first name"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

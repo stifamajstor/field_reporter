@@ -7,6 +7,9 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../widgets/cards/report_card.dart';
 import '../../../widgets/cards/stat_card.dart';
+import '../../auth/domain/user.dart';
+import '../../auth/providers/tenant_provider.dart';
+import '../../auth/providers/user_provider.dart';
 import '../../sync/domain/pending_upload.dart';
 import '../../sync/providers/pending_uploads_provider.dart';
 import '../providers/dashboard_provider.dart';
@@ -77,6 +80,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final statsAsync = ref.watch(dashboardStatsNotifierProvider);
     final recentReportsAsync = ref.watch(recentReportsNotifierProvider);
     final pendingUploadsAsync = ref.watch(pendingUploadsNotifierProvider);
+    final currentUser = ref.watch(currentUserProvider);
+    final selectedTenant = ref.watch(selectedTenantProvider);
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
@@ -90,6 +95,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         ),
         backgroundColor: isDark ? AppColors.darkBackground : AppColors.white,
         elevation: 0,
+        actions: [
+          if (currentUser != null)
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.md),
+              child: _buildUserAvatar(currentUser, isDark),
+            ),
+        ],
       ),
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.white,
       floatingActionButton: _buildQuickCaptureFAB(isDark),
@@ -112,6 +124,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // User greeting and tenant context
+                    _buildUserContextHeader(
+                        currentUser, selectedTenant, isDark),
+                    AppSpacing.verticalLg,
                     // Stats grid - 2x2 layout
                     GridView.count(
                       crossAxisCount: 2,
@@ -494,5 +510,80 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         );
       },
     );
+  }
+
+  Widget _buildUserContextHeader(
+    User? user,
+    dynamic tenant,
+    bool isDark,
+  ) {
+    final greeting = _getGreeting();
+    final firstName = user?.firstName ?? 'User';
+    final tenantName = tenant?.name as String?;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Greeting with user's first name
+        Text(
+          '$greeting, $firstName',
+          style: AppTypography.headline2.copyWith(
+            color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+          ),
+        ),
+        if (tenantName != null) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            tenantName,
+            style: AppTypography.body2.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.slate500,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildUserAvatar(User user, bool isDark) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkOrange : AppColors.orange500,
+        shape: BoxShape.circle,
+      ),
+      child: user.avatarUrl != null
+          ? ClipOval(
+              child: Image.network(
+                user.avatarUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildInitials(user),
+              ),
+            )
+          : _buildInitials(user),
+    );
+  }
+
+  Widget _buildInitials(User user) {
+    return Center(
+      child: Text(
+        user.initials,
+        style: AppTypography.body2.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Good morning';
+    } else if (hour < 17) {
+      return 'Good afternoon';
+    } else {
+      return 'Good evening';
+    }
   }
 }
