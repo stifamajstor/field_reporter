@@ -72,7 +72,7 @@
       "Select existing report or create new",
       "Verify photo is added to report"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

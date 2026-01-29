@@ -279,7 +279,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                       delay: 0,
                       onTap: () {
                         _closeCaptureMenu();
-                        // Navigate to photo capture
+                        Navigator.pushNamed(context, '/camera');
                       },
                     ),
                   ],
