@@ -209,7 +209,8 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('Account locked after multiple failed attempts', (tester) async {
+    testWidgets('Account locked after multiple failed attempts',
+        (tester) async {
       final mockStorage = MockSecureStorage();
 
       final container = ProviderContainer(

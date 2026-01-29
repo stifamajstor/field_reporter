@@ -7,7 +7,9 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../widgets/cards/report_card.dart';
 import '../../../widgets/cards/stat_card.dart';
+import '../../../widgets/indicators/offline_indicator.dart';
 import '../../../widgets/indicators/sync_status_indicator.dart';
+import '../../../services/connectivity_service.dart';
 import '../../auth/domain/user.dart';
 import '../../auth/providers/tenant_provider.dart';
 import '../../auth/providers/user_provider.dart';
@@ -87,6 +89,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final currentUser = ref.watch(currentUserProvider);
     final selectedTenant = ref.watch(selectedTenantProvider);
     final unreadCount = ref.watch(unreadNotificationCountProvider);
+    final connectivityService = ref.watch(connectivityServiceProvider);
+    final isOnline = connectivityService.isOnline;
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
@@ -111,10 +115,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         backgroundColor: isDark ? AppColors.darkBackground : AppColors.white,
         elevation: 0,
         actions: [
-          SyncStatusIndicator(
-            status: syncStatus,
-            onTap: () => Navigator.pushNamed(context, '/sync'),
-          ),
+          if (!isOnline)
+            const OfflineIndicator()
+          else
+            SyncStatusIndicator(
+              status: syncStatus,
+              onTap: () => Navigator.pushNamed(context, '/sync'),
+            ),
           _buildNotificationBell(context, unreadCount, isDark),
           if (currentUser != null)
             Padding(

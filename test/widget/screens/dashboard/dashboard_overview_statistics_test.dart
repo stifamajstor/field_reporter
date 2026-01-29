@@ -36,7 +36,8 @@ void main() {
       );
     }
 
-    testWidgets('Dashboard is the default landing screen after login', (tester) async {
+    testWidgets('Dashboard is the default landing screen after login',
+        (tester) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
@@ -81,7 +82,8 @@ void main() {
       expect(find.text('24'), findsOneWidget);
     });
 
-    testWidgets('Tapping stat card navigates to relevant detail screen', (tester) async {
+    testWidgets('Tapping stat card navigates to relevant detail screen',
+        (tester) async {
       bool navigatedToReports = false;
 
       await tester.pumpWidget(

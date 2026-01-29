@@ -197,7 +197,8 @@ void main() {
       );
     });
 
-    testWidgets('Reports are displayed in chronological order (most recent first)',
+    testWidgets(
+        'Reports are displayed in chronological order (most recent first)',
         (tester) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
