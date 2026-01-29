@@ -230,83 +230,76 @@ for ((i=1; i<=$ITERATIONS; i++)); do
   echo "----------------------------------------"
 
   # ============================================================
-  # Build Claude prompt with TDD enforcement
+  # Extract the current feature JSON from PRD
   # ============================================================
-  CLAUDE_PROMPT="@$PRD_PATH @$PROGRESS_FILE @$DESIGN_GUIDELINES @$CLAUDE_INSTRUCTIONS
-You are implementing the Field Reporter Flutter app using strict TDD.
+  FEATURE_JSON=$(jq -c '[.[] | select(.passes == false)][0]' "$PRD_PATH" 2>/dev/null || echo "{}")
+  FEATURE_STEPS=$(jq -r '[.[] | select(.passes == false)][0].steps | join("\n- ")' "$PRD_PATH" 2>/dev/null || echo "")
 
-## CURRENT STATE
-- PRD: $CURRENT_PRD ($PRD_NAME)
+  # ============================================================
+  # Build Claude prompt with TDD enforcement
+  # Embed only essential data, reference docs by path for Claude to read
+  # ============================================================
+  CLAUDE_PROMPT="You are implementing the Field Reporter Flutter app using strict TDD.
+
+## CURRENT TASK
+- PRD File: $PRD_PATH
+- PRD Name: $PRD_NAME
 - PRD Progress: $PRD_DONE/$PRD_TOTAL
 - Global Progress: $GLOBAL_PROGRESS
-- Feature: $CURRENT_FEATURE
 
-## STRICT TDD WORKFLOW - FOLLOW EXACTLY
+## FEATURE TO IMPLEMENT
+Description: $CURRENT_FEATURE
+Category: $(echo "$FEATURE_JSON" | jq -r '.category // "functional"')
 
-### STEP 1: WRITE TEST FIRST
-- Create test file in appropriate test/ subdirectory
-- Test must verify feature's acceptance criteria from PRD steps
-- Test should be in: $TEST_PATH
+Acceptance Criteria (steps):
+- $FEATURE_STEPS
 
-### STEP 2: VERIFY TEST FAILS (RED)
-- Run: flutter test <path_to_test>
-- Test MUST fail - if it passes, your test is incomplete
-- This proves the feature doesn't exist yet
+## REFERENCE DOCS (read these first if doing UI work)
+- DESIGN_GUIDELINES.md - for colors, typography, spacing, components
+- ralph-loop/CLAUDE_CODE_INSTRUCTIONS.md - for architecture patterns
 
-### STEP 3: WRITE MINIMAL CODE (GREEN)
-- Implement ONLY what's needed to make the test pass
-- Follow DESIGN_GUIDELINES.md for all UI components
-- Follow CLAUDE_CODE_INSTRUCTIONS.md for architecture patterns
-- Use Riverpod for state management
+## STRICT TDD WORKFLOW
 
-### STEP 4: VERIFY TEST PASSES
-- Run: flutter test <path_to_test>
-- All tests must pass
+1. WRITE TEST FIRST in: $TEST_PATH
+   - Test must verify ALL acceptance criteria steps above
 
-### STEP 5: LINT & FORMAT
-- Run: dart analyze
-- Run: dart format --output=none --set-exit-if-changed .
-- Fix any issues before committing
+2. RUN TEST - MUST FAIL (RED)
+   flutter test <your_test_file>
 
-### STEP 6: UPDATE & COMMIT
-- Set \"passes\": true for this feature in $PRD_PATH
-- Append to progress.txt: [timestamp] | $PRD_NAME | feature description | PASS | files changed
-- Git commit with descriptive message
+3. IMPLEMENT MINIMAL CODE (GREEN)
+   - Only what's needed to pass the test
+   - Use Riverpod for state management
+
+4. RUN TEST - MUST PASS
+   flutter test <your_test_file>
+
+5. LINT & FORMAT
+   dart analyze
+   dart format --output=none --set-exit-if-changed .
+
+6. UPDATE PRD & COMMIT
+   - Edit $PRD_PATH: set \"passes\": true for this feature
+   - Append to ralph-loop/progress.txt: [$(date '+%Y-%m-%d %H:%M')] | $PRD_NAME | $CURRENT_FEATURE | PASS | <files>
+   - git add -A && git commit -m \"feat($PRD_NAME): <description>\"
 
 ## RULES
-- ONE FEATURE ONLY per iteration
-- Be terse - skip explanations
-- Test MUST fail before implementation
-- Follow existing code patterns
-- Reference DESIGN_GUIDELINES.md for all UI
+- ONE FEATURE ONLY
+- Test MUST fail before you write implementation
+- Be terse, skip explanations
 
-## COMMANDS
-\`\`\`bash
-# Run specific test
-flutter test <test_file_path>
-
-# Run all tests for feature area
-flutter test $TEST_PATH
-
-# Lint and format
-dart analyze && dart format --output=none --set-exit-if-changed .
-\`\`\`
-
-Output <promise>COMPLETE</promise> when ALL features in ALL PRDs pass.
-"
+Output <promise>COMPLETE</promise> when ALL features in ALL PRDs pass."
 
   # ============================================================
   # Run Claude with optional timeout (45 min max)
+  # Pass prompt as argument (works with multi-line strings)
   # ============================================================
-  CLAUDE_CMD="claude --permission-mode acceptEdits -p \"$CLAUDE_PROMPT\""
-
   if [ -n "$TIMEOUT_CMD" ]; then
-    result=$($TIMEOUT_CMD 2700 bash -c "$CLAUDE_CMD") || {
+    result=$($TIMEOUT_CMD 2700 claude -p "$CLAUDE_PROMPT" --permission-mode acceptEdits 2>&1) || {
       echo "WARNING: Iteration timed out or failed, continuing..."
       continue
     }
   else
-    result=$(bash -c "$CLAUDE_CMD") || {
+    result=$(claude -p "$CLAUDE_PROMPT" --permission-mode acceptEdits 2>&1) || {
       echo "WARNING: Iteration failed, continuing..."
       continue
     }
