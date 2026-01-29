@@ -128,7 +128,7 @@
       "Enter correct PIN",
       "Verify access to offline-cached data is granted"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
