@@ -226,7 +226,7 @@
       "Verify lockout duration is displayed",
       "Verify login button is disabled temporarily"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "error-handling",

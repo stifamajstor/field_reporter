@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:field_reporter/features/auth/presentation/login_screen.dart';
 import 'package:field_reporter/features/auth/providers/auth_provider.dart';
 import 'package:field_reporter/core/theme/app_theme.dart';
+import 'package:field_reporter/widgets/buttons/primary_button.dart';
 
 void main() {
   group('LoginScreen', () {
@@ -204,6 +205,59 @@ void main() {
 
       // Step 10: Verify login succeeds
       expect(navigatedToDashboard, isTrue);
+
+      container.dispose();
+    });
+
+    testWidgets('Account locked after multiple failed attempts', (tester) async {
+      final mockStorage = MockSecureStorage();
+
+      final container = ProviderContainer(
+        overrides: [
+          secureStorageProvider.overrideWithValue(mockStorage),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: AppTheme.light,
+            home: const LoginScreen(),
+          ),
+        ),
+      );
+
+      // Step 1: Navigate to login screen (already there)
+      expect(find.byType(LoginScreen), findsOneWidget);
+
+      final emailField = find.byKey(const Key('login_email_field'));
+      final passwordField = find.byKey(const Key('login_password_field'));
+      final loginButton = find.byKey(const Key('login_button'));
+
+      // Step 2: Enter valid email
+      await tester.enterText(emailField, 'user@example.com');
+      await tester.pump();
+
+      // Step 3: Enter wrong password 5 times
+      for (var i = 0; i < 5; i++) {
+        await tester.enterText(passwordField, 'wrongpassword$i');
+        await tester.pump();
+        await tester.tap(loginButton);
+        await tester.pump();
+        await tester.pumpAndSettle();
+      }
+
+      // Step 4: Verify account locked message appears
+      expect(find.text('Account locked due to too many failed attempts'),
+          findsOneWidget);
+
+      // Step 5: Verify lockout duration is displayed
+      expect(find.textContaining('Try again in'), findsOneWidget);
+
+      // Step 6: Verify login button is disabled temporarily
+      final button = tester.widget<PrimaryButton>(loginButton);
+      expect(button.onPressed, isNull);
 
       container.dispose();
     });

@@ -23,6 +23,10 @@ FlutterSecureStorage secureStorage(Ref ref) {
 @Riverpod(keepAlive: true)
 class Auth extends _$Auth {
   bool _simulateNetworkError = false;
+  int _failedAttempts = 0;
+  DateTime? _lockoutUntil;
+  static const int _maxFailedAttempts = 5;
+  static const Duration _lockoutDuration = Duration(minutes: 5);
 
   @override
   AuthState build() {
@@ -38,6 +42,16 @@ class Auth extends _$Auth {
   ///
   /// Returns true if successful, false if invalid credentials.
   Future<bool> login(String email, String password) async {
+    // Check if account is locked
+    if (_lockoutUntil != null && DateTime.now().isBefore(_lockoutUntil!)) {
+      final remaining = _lockoutUntil!.difference(DateTime.now());
+      state = AuthState.accountLocked(
+        message: 'Account locked due to too many failed attempts',
+        lockoutDuration: remaining,
+      );
+      return false;
+    }
+
     state = const AuthState.loading();
 
     try {
@@ -63,6 +77,10 @@ class Auth extends _$Auth {
         await storage.write(key: _userIdKey, value: userId);
         await storage.write(key: _emailKey, value: email);
 
+        // Reset failed attempts on successful login
+        _failedAttempts = 0;
+        _lockoutUntil = null;
+
         state = AuthState.authenticated(
           userId: userId,
           email: email,
@@ -70,7 +88,17 @@ class Auth extends _$Auth {
         );
         return true;
       } else {
-        state = const AuthState.error('Invalid credentials');
+        _failedAttempts++;
+
+        if (_failedAttempts >= _maxFailedAttempts) {
+          _lockoutUntil = DateTime.now().add(_lockoutDuration);
+          state = const AuthState.accountLocked(
+            message: 'Account locked due to too many failed attempts',
+            lockoutDuration: _lockoutDuration,
+          );
+        } else {
+          state = const AuthState.error('Invalid credentials');
+        }
         return false;
       }
     } catch (e) {

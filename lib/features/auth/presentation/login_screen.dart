@@ -70,6 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     final isLoading = authState is AuthLoading;
+    final isLocked = authState is AuthAccountLocked;
 
     return Scaffold(
       body: SafeArea(
@@ -220,11 +221,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
 
+                    // Account locked message
+                    if (authState is AuthAccountLocked)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        child: Column(
+                          children: [
+                            Text(
+                              authState.message,
+                              style: AppTypography.body2.copyWith(
+                                color: isDark
+                                    ? AppColors.darkRose
+                                    : AppColors.rose500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            AppSpacing.verticalXs,
+                            Text(
+                              'Try again in ${_formatDuration(authState.lockoutDuration)}',
+                              style: AppTypography.body2.copyWith(
+                                color: isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.slate500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+
                     // Login button
                     PrimaryButton(
                       key: const Key('login_button'),
                       label: 'Login',
-                      onPressed: isLoading ? null : _handleLogin,
+                      onPressed: (isLoading || isLocked) ? null : _handleLogin,
                       isLoading: isLoading,
                     ),
                     AppSpacing.verticalMd,
@@ -288,5 +318,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   bool _isValidEmail(String email) {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    if (minutes > 0) {
+      return '$minutes minute${minutes == 1 ? '' : 's'}';
+    }
+    return '$seconds second${seconds == 1 ? '' : 's'}';
   }
 }

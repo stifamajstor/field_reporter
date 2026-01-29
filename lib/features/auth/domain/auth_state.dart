@@ -15,6 +15,10 @@ sealed class AuthState {
   }) = AuthAuthenticated;
   const factory AuthState.error(String message) = AuthError;
   const factory AuthState.networkError(String message) = AuthNetworkError;
+  const factory AuthState.accountLocked({
+    required String message,
+    required Duration lockoutDuration,
+  }) = AuthAccountLocked;
 }
 
 final class AuthInitial extends AuthState {
@@ -83,4 +87,25 @@ final class AuthNetworkError extends AuthState {
 
   @override
   int get hashCode => message.hashCode;
+}
+
+final class AuthAccountLocked extends AuthState {
+  const AuthAccountLocked({
+    required this.message,
+    required this.lockoutDuration,
+  });
+
+  final String message;
+  final Duration lockoutDuration;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AuthAccountLocked &&
+          runtimeType == other.runtimeType &&
+          message == other.message &&
+          lockoutDuration == other.lockoutDuration;
+
+  @override
+  int get hashCode => message.hashCode ^ lockoutDuration.hashCode;
 }
