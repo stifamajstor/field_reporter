@@ -74,6 +74,62 @@ void main() {
 
       container.dispose();
     });
+
+    testWidgets('Login form validates email format', (tester) async {
+      // Create mock secure storage
+      final mockStorage = MockSecureStorage();
+
+      final container = ProviderContainer(
+        overrides: [
+          secureStorageProvider.overrideWithValue(mockStorage),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: AppTheme.light,
+            home: const LoginScreen(),
+          ),
+        ),
+      );
+
+      // Step 1: Navigate to login screen (already there)
+      expect(find.byType(LoginScreen), findsOneWidget);
+
+      final emailField = find.byKey(const Key('login_email_field'));
+      final passwordField = find.byKey(const Key('login_password_field'));
+      final loginButton = find.byKey(const Key('login_button'));
+
+      // Step 2: Enter invalid email format
+      await tester.enterText(emailField, 'notanemail');
+      await tester.pump();
+
+      // Step 3: Tap password field to trigger validation
+      await tester.tap(passwordField);
+      await tester.pump();
+
+      // Also tap login button to ensure form validation runs
+      await tester.tap(loginButton);
+      await tester.pumpAndSettle();
+
+      // Step 4: Verify email validation error is displayed
+      expect(find.text('Please enter a valid email'), findsOneWidget);
+
+      // Step 5: Enter valid email format
+      await tester.enterText(emailField, 'valid@example.com');
+      await tester.pump();
+
+      // Tap login button to re-validate
+      await tester.tap(loginButton);
+      await tester.pumpAndSettle();
+
+      // Step 6: Verify validation error disappears
+      expect(find.text('Please enter a valid email'), findsNothing);
+
+      container.dispose();
+    });
   });
 }
 

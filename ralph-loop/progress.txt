@@ -8,3 +8,4 @@
 [2026-01-29 16:11] | auth | User can switch between tenants | PASS | lib/features/settings/presentation/settings_screen.dart, test/widget/screens/auth/switch_tenant_test.dart
 [2026-01-29 16:14] | auth | Offline PIN fallback allows access when biometrics unavailable | PASS | lib/services/connectivity_service.dart, lib/features/auth/providers/offline_pin_provider.dart, lib/features/auth/domain/offline_pin_state.dart, test/unit/services/auth/offline_pin_auth_test.dart
 [2026-01-29 16:18] | auth | Session token refreshes automatically | PASS | lib/features/auth/services/token_refresh_service.dart, test/unit/services/auth/token_refresh_test.dart
+[2026-01-29 16:22] | auth | Login form validates email format | PASS | test/widget/screens/auth/login_screen_test.dart

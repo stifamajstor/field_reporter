@@ -154,7 +154,7 @@
       "Enter valid email format",
       "Verify validation error disappears"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "validation",
