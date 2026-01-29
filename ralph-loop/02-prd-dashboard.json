@@ -114,7 +114,7 @@
       "Verify navigation to Projects screen",
       "Verify drawer closes"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

@@ -87,6 +87,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
 
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(
+              Icons.menu,
+              color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+            ),
+            tooltip: 'Open navigation menu',
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
         title: Text(
           'Dashboard',
           style: AppTypography.headline1.copyWith(
@@ -103,6 +113,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
             ),
         ],
       ),
+      drawer:
+          _buildNavigationDrawer(context, currentUser, selectedTenant, isDark),
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.white,
       floatingActionButton: _buildQuickCaptureFAB(isDark),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -585,5 +597,196 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     } else {
       return 'Good evening';
     }
+  }
+
+  Widget _buildNavigationDrawer(
+    BuildContext context,
+    User? user,
+    dynamic tenant,
+    bool isDark,
+  ) {
+    final tenantName = tenant?.name as String?;
+
+    return Drawer(
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.white,
+      child: Column(
+        children: [
+          // User profile header
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + AppSpacing.lg,
+              left: AppSpacing.md,
+              right: AppSpacing.md,
+              bottom: AppSpacing.lg,
+            ),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkBackground : AppColors.slate100,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // User avatar
+                if (user != null) ...[
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color:
+                          isDark ? AppColors.darkOrange : AppColors.orange500,
+                      shape: BoxShape.circle,
+                    ),
+                    child: user.avatarUrl != null
+                        ? ClipOval(
+                            child: Image.network(
+                              user.avatarUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  _buildDrawerInitials(user),
+                            ),
+                          )
+                        : _buildDrawerInitials(user),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  // User full name
+                  Text(
+                    user.fullName,
+                    style: AppTypography.headline3.copyWith(
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.slate900,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  // User email
+                  Text(
+                    user.email,
+                    style: AppTypography.body2.copyWith(
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.slate500,
+                    ),
+                  ),
+                ],
+                // Tenant name
+                if (tenantName != null) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    tenantName,
+                    style: AppTypography.caption.copyWith(
+                      color:
+                          isDark ? AppColors.darkTextMuted : AppColors.slate400,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          // Navigation menu items
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.dashboard_outlined,
+                  label: 'Dashboard',
+                  isDark: isDark,
+                  isSelected: true,
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.folder_outlined,
+                  label: 'Projects',
+                  isDark: isDark,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/projects');
+                  },
+                ),
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.description_outlined,
+                  label: 'Reports',
+                  isDark: isDark,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/reports');
+                  },
+                ),
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.photo_library_outlined,
+                  label: 'Media',
+                  isDark: isDark,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/media');
+                  },
+                ),
+                const Divider(),
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.settings_outlined,
+                  label: 'Settings',
+                  isDark: isDark,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/settings');
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required bool isDark,
+    bool isSelected = false,
+    required VoidCallback onTap,
+  }) {
+    final selectedColor = isDark ? AppColors.darkOrange : AppColors.orange500;
+    final defaultColor =
+        isDark ? AppColors.darkTextPrimary : AppColors.slate900;
+
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isSelected ? selectedColor : defaultColor,
+      ),
+      title: Text(
+        label,
+        style: AppTypography.body1.copyWith(
+          color: isSelected ? selectedColor : defaultColor,
+          fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+        ),
+      ),
+      selected: isSelected,
+      selectedTileColor:
+          isDark ? AppColors.darkOrangeSubtle : AppColors.orange50,
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildDrawerInitials(User user) {
+    return Center(
+      child: Text(
+        user.initials,
+        style: AppTypography.headline3.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
   }
 }
