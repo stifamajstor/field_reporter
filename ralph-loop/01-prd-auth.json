@@ -170,7 +170,7 @@
       "Enter valid password meeting all requirements",
       "Verify all validation errors disappear"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "validation",

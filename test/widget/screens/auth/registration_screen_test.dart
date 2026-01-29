@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:field_reporter/features/auth/presentation/registration_screen.dart';
 import 'package:field_reporter/features/auth/providers/auth_provider.dart';
@@ -151,6 +150,86 @@ void main() {
       // Verify navigation to registration screen
       expect(navigatedToRegistration, isTrue);
       expect(find.byType(RegistrationScreen), findsOneWidget);
+
+      container.dispose();
+    });
+
+    testWidgets('Registration form validates password requirements',
+        (tester) async {
+      final mockStorage = MockSecureStorage();
+
+      final container = ProviderContainer(
+        overrides: [
+          secureStorageProvider.overrideWithValue(mockStorage),
+        ],
+      );
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: AppTheme.light,
+            home: RegistrationScreen(
+              onRegistrationSuccess: () {},
+            ),
+          ),
+        ),
+      );
+
+      // Navigate to registration screen (already on it)
+      expect(find.byType(RegistrationScreen), findsOneWidget);
+
+      final passwordField =
+          find.byKey(const Key('registration_password_field'));
+      final registerButton = find.byKey(const Key('registration_button'));
+
+      // Enter password shorter than 8 characters
+      await tester.enterText(passwordField, 'short');
+      await tester.pump();
+
+      // Tap register to trigger validation
+      await tester.tap(registerButton);
+      await tester.pump();
+
+      // Verify minimum length error is displayed
+      expect(
+          find.text('Password must be at least 8 characters'), findsOneWidget);
+
+      // Enter password without uppercase letter
+      await tester.enterText(passwordField, 'password123');
+      await tester.pump();
+
+      await tester.tap(registerButton);
+      await tester.pump();
+
+      // Verify uppercase requirement error is displayed
+      expect(find.text('Password must contain an uppercase letter'),
+          findsOneWidget);
+
+      // Enter password without number
+      await tester.enterText(passwordField, 'Password');
+      await tester.pump();
+
+      await tester.tap(registerButton);
+      await tester.pump();
+
+      // Verify number requirement error is displayed
+      expect(find.text('Password must contain a number'), findsOneWidget);
+
+      // Enter valid password meeting all requirements
+      await tester.enterText(passwordField, 'Password123');
+      await tester.pump();
+
+      // Trigger form validation by tapping register
+      // (other fields are invalid so no API call is made)
+      await tester.tap(registerButton);
+      await tester.pump();
+
+      // Verify all password validation errors disappear
+      expect(find.text('Password must be at least 8 characters'), findsNothing);
+      expect(
+          find.text('Password must contain an uppercase letter'), findsNothing);
+      expect(find.text('Password must contain a number'), findsNothing);
 
       container.dispose();
     });
