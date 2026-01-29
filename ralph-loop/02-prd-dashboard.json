@@ -55,7 +55,7 @@
       "Tap outside the menu",
       "Verify menu collapses"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
