@@ -87,7 +87,8 @@ class EmptyState extends StatelessWidget {
             Text(
               description!,
               style: AppTypography.body2.copyWith(
-                color: isDark ? AppColors.darkTextSecondary : AppColors.slate500,
+                color:
+                    isDark ? AppColors.darkTextSecondary : AppColors.slate500,
               ),
               textAlign: TextAlign.center,
             ),
@@ -205,7 +206,8 @@ class LoadingState extends StatelessWidget {
             Text(
               message!,
               style: AppTypography.body2.copyWith(
-                color: isDark ? AppColors.darkTextSecondary : AppColors.slate500,
+                color:
+                    isDark ? AppColors.darkTextSecondary : AppColors.slate500,
               ),
               textAlign: TextAlign.center,
             ),

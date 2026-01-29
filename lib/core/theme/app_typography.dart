@@ -160,7 +160,8 @@ class AppTypography {
   }
 
   /// Returns display style with the given color.
-  static TextStyle displayColored(Color color) => display.copyWith(color: color);
+  static TextStyle displayColored(Color color) =>
+      display.copyWith(color: color);
 
   /// Returns headline1 style with the given color.
   static TextStyle headline1Colored(Color color) =>
@@ -181,7 +182,8 @@ class AppTypography {
   static TextStyle body2Colored(Color color) => body2.copyWith(color: color);
 
   /// Returns caption style with the given color.
-  static TextStyle captionColored(Color color) => caption.copyWith(color: color);
+  static TextStyle captionColored(Color color) =>
+      caption.copyWith(color: color);
 
   /// Returns mono style with the given color.
   static TextStyle monoColored(Color color) => mono.copyWith(color: color);

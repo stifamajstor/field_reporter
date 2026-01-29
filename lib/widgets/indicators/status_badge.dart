@@ -153,11 +153,13 @@ class StatusDot extends StatelessWidget {
 
   Color _getColor(bool isDark) {
     return switch (type) {
-      StatusType.success => isDark ? AppColors.darkEmerald : AppColors.emerald500,
+      StatusType.success =>
+        isDark ? AppColors.darkEmerald : AppColors.emerald500,
       StatusType.warning => isDark ? AppColors.darkAmber : AppColors.amber500,
       StatusType.error => isDark ? AppColors.darkRose : AppColors.rose500,
       StatusType.active => isDark ? AppColors.darkOrange : AppColors.orange500,
-      StatusType.neutral => isDark ? AppColors.darkTextMuted : AppColors.slate400,
+      StatusType.neutral =>
+        isDark ? AppColors.darkTextMuted : AppColors.slate400,
     };
   }
 }
@@ -302,9 +304,8 @@ class SyncStatusIndicator extends StatelessWidget {
           ? 'Synced at ${_formatTime(lastSyncTime!)}'
           : 'Synced',
       SyncStatus.syncing => 'Syncing...',
-      SyncStatus.pending => pendingCount != null
-          ? '$pendingCount items pending'
-          : 'Pending',
+      SyncStatus.pending =>
+        pendingCount != null ? '$pendingCount items pending' : 'Pending',
       SyncStatus.error => 'Sync failed',
       SyncStatus.offline => 'Offline',
     };

@@ -1,0 +1,69 @@
+import 'package:flutter/foundation.dart';
+
+/// Represents the authentication state of the app.
+@immutable
+sealed class AuthState {
+  const AuthState();
+
+  const factory AuthState.initial() = AuthInitial;
+  const factory AuthState.unauthenticated() = AuthUnauthenticated;
+  const factory AuthState.loading() = AuthLoading;
+  const factory AuthState.authenticated({
+    required String userId,
+    required String email,
+    required String token,
+  }) = AuthAuthenticated;
+  const factory AuthState.error(String message) = AuthError;
+}
+
+final class AuthInitial extends AuthState {
+  const AuthInitial();
+}
+
+final class AuthUnauthenticated extends AuthState {
+  const AuthUnauthenticated();
+}
+
+final class AuthLoading extends AuthState {
+  const AuthLoading();
+}
+
+final class AuthAuthenticated extends AuthState {
+  const AuthAuthenticated({
+    required this.userId,
+    required this.email,
+    required this.token,
+  });
+
+  final String userId;
+  final String email;
+  final String token;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AuthAuthenticated &&
+          runtimeType == other.runtimeType &&
+          userId == other.userId &&
+          email == other.email &&
+          token == other.token;
+
+  @override
+  int get hashCode => userId.hashCode ^ email.hashCode ^ token.hashCode;
+}
+
+final class AuthError extends AuthState {
+  const AuthError(this.message);
+
+  final String message;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AuthError &&
+          runtimeType == other.runtimeType &&
+          message == other.message;
+
+  @override
+  int get hashCode => message.hashCode;
+}

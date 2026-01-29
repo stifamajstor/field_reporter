@@ -54,7 +54,8 @@ class AppColors {
   // Orange accent adapts for dark mode (slightly brighter for contrast)
   static const darkOrange = Color(0xFFFB923C); // Primary actions in dark
   static const darkOrangePressed = Color(0xFFF97316); // Pressed state
-  static const darkOrangeSubtle = Color(0xFF2D1F0F); // Subtle orange backgrounds
+  static const darkOrangeSubtle =
+      Color(0xFF2D1F0F); // Subtle orange backgrounds
 
   // Dark semantic colors (slightly desaturated for eye comfort)
   static const darkEmerald = Color(0xFF34D399); // Success in dark

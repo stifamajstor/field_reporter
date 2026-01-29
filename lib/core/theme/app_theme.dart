@@ -128,7 +128,8 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.orange500,
-          minimumSize: const Size(AppSpacing.touchTargetMin, AppSpacing.touchTargetMin),
+          minimumSize:
+              const Size(AppSpacing.touchTargetMin, AppSpacing.touchTargetMin),
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           textStyle: AppTypography.textButton,
         ),
@@ -373,7 +374,8 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.darkOrange,
-          minimumSize: const Size(AppSpacing.touchTargetMin, AppSpacing.touchTargetMin),
+          minimumSize:
+              const Size(AppSpacing.touchTargetMin, AppSpacing.touchTargetMin),
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           textStyle: AppTypography.textButton,
         ),
@@ -487,7 +489,8 @@ class AppTheme {
       // Snackbar
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.darkSurfaceHigher,
-        contentTextStyle: AppTypography.body2.copyWith(color: AppColors.darkTextPrimary),
+        contentTextStyle:
+            AppTypography.body2.copyWith(color: AppColors.darkTextPrimary),
         shape: RoundedRectangleBorder(
           borderRadius: AppSpacing.borderRadiusMd,
         ),

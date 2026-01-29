@@ -12,7 +12,7 @@
       "Verify successful login redirects to Dashboard",
       "Verify user token is stored securely in local storage"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

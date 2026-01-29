@@ -237,7 +237,8 @@ class _SecondaryButtonState extends State<SecondaryButton>
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
-    final foregroundColor = isDark ? AppColors.darkTextPrimary : AppColors.slate700;
+    final foregroundColor =
+        isDark ? AppColors.darkTextPrimary : AppColors.slate700;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.slate200;
 
     return GestureDetector(

@@ -114,7 +114,8 @@ class AppAnimations {
   }
 
   /// Creates a scale animation for button press effect.
-  static Animation<double> buttonScaleAnimation(AnimationController controller) {
+  static Animation<double> buttonScaleAnimation(
+      AnimationController controller) {
     return Tween<double>(begin: 1.0, end: buttonPressScale).animate(
       CurvedAnimation(parent: controller, curve: easeOut),
     );
