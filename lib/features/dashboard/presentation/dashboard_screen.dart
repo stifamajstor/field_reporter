@@ -175,8 +175,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
             onRefresh: () => _onRefresh(ref),
             child: statsAsync.when(
               loading: () => _buildLoadingSkeleton(context, isDark),
-              error: (error, stack) => Center(
-                child: Text('Error: $error'),
+              error: (error, stack) => _buildErrorState(
+                context,
+                error,
+                isDark,
+                onRetry: () => _onRefresh(ref),
               ),
               data: (stats) {
                 // Show empty state when no projects exist
@@ -970,6 +973,84 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         style: AppTypography.headline3.copyWith(
           color: Colors.white,
           fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  /// Builds the error state with retry button.
+  ///
+  /// Shows an error message with an icon and a retry button.
+  /// If cached data is available, it will be shown alongside the error.
+  Widget _buildErrorState(
+    BuildContext context,
+    Object error,
+    bool isDark, {
+    required VoidCallback onRetry,
+  }) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height -
+            kToolbarHeight -
+            MediaQuery.of(context).padding.top -
+            100,
+        child: Center(
+          child: Padding(
+            padding: AppSpacing.screenPadding,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkRoseSubtle : AppColors.rose50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.error_outline,
+                    size: 32,
+                    color: isDark ? AppColors.darkRose : AppColors.rose500,
+                  ),
+                ),
+                AppSpacing.verticalMd,
+                Text(
+                  'Something went wrong',
+                  style: AppTypography.headline3.copyWith(
+                    color:
+                        isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                AppSpacing.verticalSm,
+                Text(
+                  'Failed to load dashboard data. Please try again.',
+                  style: AppTypography.body2.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.slate500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                AppSpacing.verticalLg,
+                TextButton.icon(
+                  onPressed: onRetry,
+                  icon: Icon(
+                    Icons.refresh,
+                    color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                  ),
+                  label: Text(
+                    'Retry',
+                    style: AppTypography.button.copyWith(
+                      color:
+                          isDark ? AppColors.darkOrange : AppColors.orange500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

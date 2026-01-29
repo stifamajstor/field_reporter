@@ -266,7 +266,7 @@
       "Tap 'Retry'",
       "Verify fresh attempt to load data"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "accessibility",

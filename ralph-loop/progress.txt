@@ -45,3 +45,4 @@
 [2026-01-30 00:03] | dashboard | Empty state displayed when no data exists | PASS | lib/features/dashboard/presentation/dashboard_screen.dart, lib/widgets/layout/empty_state.dart, test/widget/screens/dashboard/dashboard_empty_state_test.dart
 [2026-01-30 00:06] | dashboard | FAB hides when scrolling down, shows when scrolling up | PASS | lib/features/dashboard/presentation/dashboard_screen.dart, test/widget/screens/dashboard/dashboard_fab_scroll_hide_test.dart
 [2026-01-30 00:08] | dashboard | Dashboard loads within acceptable time | PASS | lib/widgets/feedback/skeleton_loader.dart, lib/features/dashboard/presentation/dashboard_screen.dart, test/widget/screens/dashboard/dashboard_loading_performance_test.dart
+[2026-01-30 00:17] | dashboard | Dashboard handles API error gracefully | PASS | lib/features/dashboard/presentation/dashboard_screen.dart, test/widget/screens/dashboard/dashboard_api_error_handling_test.dart
