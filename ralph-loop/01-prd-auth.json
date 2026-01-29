@@ -213,7 +213,7 @@
       "Tap 'Retry' button",
       "Verify login succeeds"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "error-handling",

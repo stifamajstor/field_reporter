@@ -22,9 +22,16 @@ FlutterSecureStorage secureStorage(Ref ref) {
 /// Auth state notifier that manages authentication.
 @Riverpod(keepAlive: true)
 class Auth extends _$Auth {
+  bool _simulateNetworkError = false;
+
   @override
   AuthState build() {
     return const AuthState.unauthenticated();
+  }
+
+  /// Sets whether to simulate network errors (for testing).
+  void setNetworkError(bool value) {
+    _simulateNetworkError = value;
   }
 
   /// Attempts to login with the provided credentials.
@@ -36,6 +43,13 @@ class Auth extends _$Auth {
     try {
       // Simulate API call
       await Future.delayed(const Duration(milliseconds: 500));
+
+      // Check for network error
+      if (_simulateNetworkError) {
+        state = const AuthState.networkError(
+            'Network error. Please check your connection.');
+        return false;
+      }
 
       // In a real app, this would call the API
       // For now, simulate invalid credentials for specific password

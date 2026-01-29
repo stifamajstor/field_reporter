@@ -47,9 +47,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             _emailController.text.trim(),
             _passwordController.text,
           );
-      // Clear password field on failed login
+      // Clear password field on failed login (but not for network errors)
       if (!success) {
-        _passwordController.clear();
+        final authState = ref.read(authProvider);
+        if (authState is! AuthNetworkError) {
+          _passwordController.clear();
+        }
       }
     }
   }
@@ -182,6 +185,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 isDark ? AppColors.darkRose : AppColors.rose500,
                           ),
                           textAlign: TextAlign.center,
+                        ),
+                      ),
+
+                    // Network error with retry option
+                    if (authState is AuthNetworkError)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        child: Column(
+                          children: [
+                            Text(
+                              authState.message,
+                              style: AppTypography.body2.copyWith(
+                                color: isDark
+                                    ? AppColors.darkRose
+                                    : AppColors.rose500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            AppSpacing.verticalSm,
+                            TextButton(
+                              key: const Key('retry_button'),
+                              onPressed: _handleLogin,
+                              child: Text(
+                                'Retry',
+                                style: AppTypography.textButton.copyWith(
+                                  color: isDark
+                                      ? AppColors.darkOrange
+                                      : AppColors.orange500,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
 

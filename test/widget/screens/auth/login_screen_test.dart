@@ -135,6 +135,79 @@ void main() {
       container.dispose();
     });
 
+    testWidgets('Network error during login shows retry option',
+        (tester) async {
+      // Create mock secure storage
+      final mockStorage = MockSecureStorage();
+
+      final container = ProviderContainer(
+        overrides: [
+          secureStorageProvider.overrideWithValue(mockStorage),
+        ],
+      );
+
+      // Track navigation to dashboard
+      var navigatedToDashboard = false;
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: AppTheme.light,
+            home: LoginScreen(
+              onLoginSuccess: () {
+                navigatedToDashboard = true;
+              },
+            ),
+          ),
+        ),
+      );
+
+      // Step 1: Enable airplane mode - simulate offline
+      container.read(authProvider.notifier).setNetworkError(true);
+
+      // Step 2: Navigate to login screen (already there)
+      expect(find.byType(LoginScreen), findsOneWidget);
+
+      final emailField = find.byKey(const Key('login_email_field'));
+      final passwordField = find.byKey(const Key('login_password_field'));
+      final loginButton = find.byKey(const Key('login_button'));
+
+      // Step 3: Enter valid credentials
+      await tester.enterText(emailField, 'test@example.com');
+      await tester.pump();
+
+      // Step 4: Enter valid password
+      await tester.enterText(passwordField, 'Password123!');
+      await tester.pump();
+
+      // Step 5: Tap login button
+      await tester.tap(loginButton);
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      // Step 6: Verify network error message appears
+      expect(find.text('Network error. Please check your connection.'),
+          findsOneWidget);
+
+      // Step 7: Verify 'Retry' button is displayed
+      final retryButton = find.byKey(const Key('retry_button'));
+      expect(retryButton, findsOneWidget);
+
+      // Step 8: Disable airplane mode - simulate back online
+      container.read(authProvider.notifier).setNetworkError(false);
+
+      // Step 9: Tap 'Retry' button
+      await tester.tap(retryButton);
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      // Step 10: Verify login succeeds
+      expect(navigatedToDashboard, isTrue);
+
+      container.dispose();
+    });
+
     testWidgets('Login form validates email format', (tester) async {
       // Create mock secure storage
       final mockStorage = MockSecureStorage();

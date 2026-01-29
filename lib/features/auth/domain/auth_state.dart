@@ -14,6 +14,7 @@ sealed class AuthState {
     required String token,
   }) = AuthAuthenticated;
   const factory AuthState.error(String message) = AuthError;
+  const factory AuthState.networkError(String message) = AuthNetworkError;
 }
 
 final class AuthInitial extends AuthState {
@@ -61,6 +62,22 @@ final class AuthError extends AuthState {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is AuthError &&
+          runtimeType == other.runtimeType &&
+          message == other.message;
+
+  @override
+  int get hashCode => message.hashCode;
+}
+
+final class AuthNetworkError extends AuthState {
+  const AuthNetworkError(this.message);
+
+  final String message;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AuthNetworkError &&
           runtimeType == other.runtimeType &&
           message == other.message;
 
