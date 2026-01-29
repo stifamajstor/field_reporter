@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../widgets/cards/report_card.dart';
 import '../../../widgets/cards/stat_card.dart';
 import '../providers/dashboard_provider.dart';
 
@@ -18,6 +19,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(dashboardStatsNotifierProvider);
+    final recentReportsAsync = ref.watch(recentReportsNotifierProvider);
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
@@ -87,6 +89,45 @@ class DashboardScreen extends ConsumerWidget {
                     },
                   ),
                 ],
+              ),
+              // Recent Reports section
+              AppSpacing.verticalXl,
+              Text(
+                'Recent Reports',
+                style: AppTypography.headline2.copyWith(
+                  color:
+                      isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+                ),
+              ),
+              AppSpacing.verticalMd,
+              // Recent reports list
+              recentReportsAsync.when(
+                loading: () => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+                error: (error, stack) => Text('Error: $error'),
+                data: (reports) => Column(
+                  children: reports
+                      .take(5)
+                      .map(
+                        (report) => Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: AppSpacing.listItemSpacing,
+                          ),
+                          child: ReportCard(
+                            report: report,
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                '/report-detail',
+                                arguments: report.id,
+                              );
+                            },
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
               ),
             ],
           ),

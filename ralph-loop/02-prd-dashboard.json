@@ -27,7 +27,7 @@
       "Tap on a report",
       "Verify navigation to Report Detail screen"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
