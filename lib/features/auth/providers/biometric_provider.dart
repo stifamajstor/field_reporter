@@ -33,7 +33,7 @@ class Biometric extends _$Biometric {
     return BiometricState.initial;
   }
 
-  /// Checks if biometrics can be used on this device.
+  /// Checks if biometrics can be used on this device and updates state.
   Future<bool> canUseBiometrics() async {
     state = BiometricState.checking;
 
@@ -59,6 +59,25 @@ class Biometric extends _$Biometric {
     }
   }
 
+  /// Checks if biometrics are available without modifying state.
+  Future<bool> checkBiometricAvailability() async {
+    final localAuth = ref.read(localAuthProvider);
+
+    try {
+      final canCheck = await localAuth.canCheckBiometrics;
+      final isSupported = await localAuth.isDeviceSupported();
+
+      if (canCheck && isSupported) {
+        final availableBiometrics = await localAuth.getAvailableBiometrics();
+        return availableBiometrics.isNotEmpty;
+      }
+
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
   /// Checks if biometric login is enabled for the user.
   Future<bool> isBiometricEnabled() async {
     final storage = ref.read(secureStorageProvider);
@@ -76,6 +95,34 @@ class Biometric extends _$Biometric {
   Future<void> disableBiometric() async {
     final storage = ref.read(secureStorageProvider);
     await storage.delete(key: _biometricEnabledKey);
+  }
+
+  /// Authenticates the user for biometric enrollment.
+  Future<bool> authenticateForEnrollment() async {
+    state = BiometricState.authenticating;
+
+    final localAuth = ref.read(localAuthProvider);
+
+    try {
+      final authenticated = await localAuth.authenticate(
+        localizedReason: 'Authenticate to enable biometric login',
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: true,
+        ),
+      );
+
+      if (authenticated) {
+        state = BiometricState.authenticated;
+        return true;
+      }
+
+      state = BiometricState.failed;
+      return false;
+    } catch (e) {
+      state = BiometricState.failed;
+      return false;
+    }
   }
 
   /// Authenticates the user with biometrics and restores session.

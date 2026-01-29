@@ -40,7 +40,7 @@
       "Verify success message is displayed",
       "Verify setting is persisted"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
