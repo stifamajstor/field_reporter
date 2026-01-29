@@ -239,7 +239,7 @@
       "Verify redirect to login screen",
       "Verify return URL is preserved for post-login redirect"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "security",
