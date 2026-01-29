@@ -52,7 +52,7 @@ class StatCard extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (icon != null) ...[
               Icon(
@@ -62,18 +62,29 @@ class StatCard extends StatelessWidget {
               ),
               AppSpacing.verticalSm,
             ],
-            Text(
-              value,
-              style: AppTypography.headline2.copyWith(
-                color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  style: AppTypography.headline2.copyWith(
+                    color:
+                        isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+                  ),
+                ),
               ),
             ),
             AppSpacing.verticalXs,
-            Text(
-              title,
-              style: AppTypography.caption.copyWith(
-                color:
-                    isDark ? AppColors.darkTextSecondary : AppColors.slate500,
+            Flexible(
+              child: Text(
+                title,
+                style: AppTypography.caption.copyWith(
+                  color:
+                      isDark ? AppColors.darkTextSecondary : AppColors.slate500,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

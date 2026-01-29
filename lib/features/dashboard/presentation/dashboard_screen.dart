@@ -165,48 +165,54 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                       StaleDataIndicator(lastUpdated: lastUpdated),
                     ],
                     AppSpacing.verticalLg,
-                    // Stats grid - 2x2 layout
-                    GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: AppSpacing.md,
-                      crossAxisSpacing: AppSpacing.md,
-                      childAspectRatio: 1.3,
-                      children: [
-                        StatCard(
-                          title: 'Reports This Week',
-                          value: stats.reportsThisWeek.toString(),
-                          icon: Icons.description_outlined,
-                          onTap: () {
-                            Navigator.pushNamed(context, '/reports');
-                          },
-                        ),
-                        StatCard(
-                          title: 'Pending Uploads',
-                          value: stats.pendingUploads.toString(),
-                          icon: Icons.cloud_upload_outlined,
-                          onTap: () {
-                            Navigator.pushNamed(context, '/sync');
-                          },
-                        ),
-                        StatCard(
-                          title: 'Total Projects',
-                          value: stats.totalProjects.toString(),
-                          icon: Icons.folder_outlined,
-                          onTap: () {
-                            Navigator.pushNamed(context, '/projects');
-                          },
-                        ),
-                        StatCard(
-                          title: 'Recent Activity',
-                          value: stats.recentActivity.toString(),
-                          icon: Icons.history_outlined,
-                          onTap: () {
-                            Navigator.pushNamed(context, '/activity');
-                          },
-                        ),
-                      ],
+                    // Stats grid - responsive layout
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final crossAxisCount =
+                            _getResponsiveColumnCount(constraints.maxWidth);
+                        return GridView.count(
+                          crossAxisCount: crossAxisCount,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          mainAxisSpacing: AppSpacing.md,
+                          crossAxisSpacing: AppSpacing.md,
+                          childAspectRatio: _getAspectRatio(crossAxisCount),
+                          children: [
+                            StatCard(
+                              title: 'Reports This Week',
+                              value: stats.reportsThisWeek.toString(),
+                              icon: Icons.description_outlined,
+                              onTap: () {
+                                Navigator.pushNamed(context, '/reports');
+                              },
+                            ),
+                            StatCard(
+                              title: 'Pending Uploads',
+                              value: stats.pendingUploads.toString(),
+                              icon: Icons.cloud_upload_outlined,
+                              onTap: () {
+                                Navigator.pushNamed(context, '/sync');
+                              },
+                            ),
+                            StatCard(
+                              title: 'Total Projects',
+                              value: stats.totalProjects.toString(),
+                              icon: Icons.folder_outlined,
+                              onTap: () {
+                                Navigator.pushNamed(context, '/projects');
+                              },
+                            ),
+                            StatCard(
+                              title: 'Recent Activity',
+                              value: stats.recentActivity.toString(),
+                              icon: Icons.history_outlined,
+                              onTap: () {
+                                Navigator.pushNamed(context, '/activity');
+                              },
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     // Pending Uploads section
                     _buildPendingUploadsSection(
@@ -675,6 +681,35 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       return 'Good afternoon';
     } else {
       return 'Good evening';
+    }
+  }
+
+  /// Returns the number of columns based on available width.
+  ///
+  /// Breakpoints:
+  /// - < 500px: 2 columns (phone portrait)
+  /// - 500-700px: 3 columns (tablet portrait/phone landscape)
+  /// - >= 700px: 4 columns (tablet landscape/desktop)
+  int _getResponsiveColumnCount(double width) {
+    if (width >= 700) {
+      return 4;
+    } else if (width >= 500) {
+      return 3;
+    }
+    return 2;
+  }
+
+  /// Returns the aspect ratio for stat cards based on column count.
+  ///
+  /// More columns = wider cards need lower aspect ratio to maintain height.
+  double _getAspectRatio(int columnCount) {
+    switch (columnCount) {
+      case 4:
+        return 1.0;
+      case 3:
+        return 1.1;
+      default:
+        return 1.2;
     }
   }
 

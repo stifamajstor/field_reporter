@@ -201,7 +201,7 @@
       "Rotate back to portrait",
       "Verify layout returns to original"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
