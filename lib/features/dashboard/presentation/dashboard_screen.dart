@@ -7,6 +7,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../widgets/cards/report_card.dart';
 import '../../../widgets/cards/animated_stat_card.dart';
+import '../../../widgets/layout/empty_state.dart';
 import '../../../widgets/indicators/offline_indicator.dart';
 import '../../../widgets/indicators/stale_data_indicator.dart';
 import '../../../widgets/indicators/sync_status_indicator.dart';
@@ -150,123 +151,152 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
               error: (error, stack) => Center(
                 child: Text('Error: $error'),
               ),
-              data: (stats) => SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: AppSpacing.screenPadding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // User greeting and tenant context
-                    _buildUserContextHeader(
-                        currentUser, selectedTenant, isDark),
-                    // Stale data indicator (only when offline)
-                    if (!isOnline && lastUpdated != null) ...[
-                      const SizedBox(height: AppSpacing.sm),
-                      StaleDataIndicator(lastUpdated: lastUpdated),
-                    ],
-                    AppSpacing.verticalLg,
-                    // Stats grid - responsive layout
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final crossAxisCount =
-                            _getResponsiveColumnCount(constraints.maxWidth);
-                        return GridView.count(
-                          crossAxisCount: crossAxisCount,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          mainAxisSpacing: AppSpacing.md,
-                          crossAxisSpacing: AppSpacing.md,
-                          childAspectRatio: _getAspectRatio(crossAxisCount),
-                          children: [
-                            AnimatedStatCard(
-                              title: 'Reports This Week',
-                              value: stats.reportsThisWeek,
-                              icon: Icons.description_outlined,
-                              animationDelay: Duration.zero,
-                              onTap: () {
-                                Navigator.pushNamed(context, '/reports');
-                              },
-                            ),
-                            AnimatedStatCard(
-                              title: 'Pending Uploads',
-                              value: stats.pendingUploads,
-                              icon: Icons.cloud_upload_outlined,
-                              animationDelay: const Duration(milliseconds: 50),
-                              onTap: () {
-                                Navigator.pushNamed(context, '/sync');
-                              },
-                            ),
-                            AnimatedStatCard(
-                              title: 'Total Projects',
-                              value: stats.totalProjects,
-                              icon: Icons.folder_outlined,
-                              animationDelay: const Duration(milliseconds: 100),
-                              onTap: () {
-                                Navigator.pushNamed(context, '/projects');
-                              },
-                            ),
-                            AnimatedStatCard(
-                              title: 'Recent Activity',
-                              value: stats.recentActivity,
-                              icon: Icons.history_outlined,
-                              animationDelay: const Duration(milliseconds: 150),
-                              onTap: () {
-                                Navigator.pushNamed(context, '/activity');
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                    // Pending Uploads section
-                    _buildPendingUploadsSection(
-                      context,
-                      pendingUploadsAsync,
-                      isDark,
-                    ),
-                    // Recent Reports section
-                    AppSpacing.verticalXl,
-                    Text(
-                      'Recent Reports',
-                      style: AppTypography.headline2.copyWith(
-                        color: isDark
-                            ? AppColors.darkTextPrimary
-                            : AppColors.slate900,
+              data: (stats) {
+                // Show empty state when no projects exist
+                if (stats.totalProjects == 0) {
+                  return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height -
+                          kToolbarHeight -
+                          MediaQuery.of(context).padding.top -
+                          100,
+                      child: EmptyState(
+                        icon: Icons.folder_open_outlined,
+                        title: 'No projects yet',
+                        description:
+                            'Create your first project to start capturing reports.',
+                        actionLabel: 'Create First Project',
+                        actionIcon: Icons.add,
+                        onAction: () {
+                          Navigator.pushNamed(context, '/projects/create');
+                        },
                       ),
                     ),
-                    AppSpacing.verticalMd,
-                    // Recent reports list
-                    recentReportsAsync.when(
-                      loading: () => const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                      error: (error, stack) => Text('Error: $error'),
-                      data: (reports) => Column(
-                        children: reports
-                            .take(5)
-                            .map(
-                              (report) => Padding(
-                                padding: const EdgeInsets.only(
-                                  bottom: AppSpacing.listItemSpacing,
-                                ),
-                                child: ReportCard(
-                                  report: report,
-                                  onTap: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      '/report-detail',
-                                      arguments: report.id,
-                                    );
-                                  },
-                                ),
+                  );
+                }
+
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: AppSpacing.screenPadding,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // User greeting and tenant context
+                      _buildUserContextHeader(
+                          currentUser, selectedTenant, isDark),
+                      // Stale data indicator (only when offline)
+                      if (!isOnline && lastUpdated != null) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        StaleDataIndicator(lastUpdated: lastUpdated),
+                      ],
+                      AppSpacing.verticalLg,
+                      // Stats grid - responsive layout
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final crossAxisCount =
+                              _getResponsiveColumnCount(constraints.maxWidth);
+                          return GridView.count(
+                            crossAxisCount: crossAxisCount,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            mainAxisSpacing: AppSpacing.md,
+                            crossAxisSpacing: AppSpacing.md,
+                            childAspectRatio: _getAspectRatio(crossAxisCount),
+                            children: [
+                              AnimatedStatCard(
+                                title: 'Reports This Week',
+                                value: stats.reportsThisWeek,
+                                icon: Icons.description_outlined,
+                                animationDelay: Duration.zero,
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/reports');
+                                },
                               ),
-                            )
-                            .toList(),
+                              AnimatedStatCard(
+                                title: 'Pending Uploads',
+                                value: stats.pendingUploads,
+                                icon: Icons.cloud_upload_outlined,
+                                animationDelay:
+                                    const Duration(milliseconds: 50),
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/sync');
+                                },
+                              ),
+                              AnimatedStatCard(
+                                title: 'Total Projects',
+                                value: stats.totalProjects,
+                                icon: Icons.folder_outlined,
+                                animationDelay:
+                                    const Duration(milliseconds: 100),
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/projects');
+                                },
+                              ),
+                              AnimatedStatCard(
+                                title: 'Recent Activity',
+                                value: stats.recentActivity,
+                                icon: Icons.history_outlined,
+                                animationDelay:
+                                    const Duration(milliseconds: 150),
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/activity');
+                                },
+                              ),
+                            ],
+                          );
+                        },
                       ),
-                    ),
-                  ],
-                ),
-              ),
+                      // Pending Uploads section
+                      _buildPendingUploadsSection(
+                        context,
+                        pendingUploadsAsync,
+                        isDark,
+                      ),
+                      // Recent Reports section
+                      AppSpacing.verticalXl,
+                      Text(
+                        'Recent Reports',
+                        style: AppTypography.headline2.copyWith(
+                          color: isDark
+                              ? AppColors.darkTextPrimary
+                              : AppColors.slate900,
+                        ),
+                      ),
+                      AppSpacing.verticalMd,
+                      // Recent reports list
+                      recentReportsAsync.when(
+                        loading: () => const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                        error: (error, stack) => Text('Error: $error'),
+                        data: (reports) => Column(
+                          children: reports
+                              .take(5)
+                              .map(
+                                (report) => Padding(
+                                  padding: const EdgeInsets.only(
+                                    bottom: AppSpacing.listItemSpacing,
+                                  ),
+                                  child: ReportCard(
+                                    report: report,
+                                    onTap: () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        '/report-detail',
+                                        arguments: report.id,
+                                      );
+                                    },
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
           // Capture menu overlay

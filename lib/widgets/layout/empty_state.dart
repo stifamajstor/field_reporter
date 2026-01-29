@@ -97,14 +97,11 @@ class EmptyState extends StatelessWidget {
           // Action button
           if (actionLabel != null && onAction != null) ...[
             AppSpacing.verticalXl,
-            SizedBox(
-              width: 200,
-              child: PrimaryButton(
-                label: actionLabel!,
-                icon: actionIcon,
-                onPressed: onAction,
-                isExpanded: false,
-              ),
+            PrimaryButton(
+              label: actionLabel!,
+              icon: actionIcon,
+              onPressed: onAction,
+              isExpanded: false,
             ),
           ],
         ],

@@ -227,7 +227,7 @@
       "Tap the button",
       "Verify navigation to project creation"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
