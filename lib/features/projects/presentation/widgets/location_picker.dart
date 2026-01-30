@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/theme.dart';
+import '../../../../services/location_service.dart';
 import '../../../../widgets/buttons/primary_button.dart';
 
 /// A modal bottom sheet for picking a location.
-class LocationPicker extends StatefulWidget {
+class LocationPicker extends ConsumerStatefulWidget {
   const LocationPicker({
     super.key,
     this.initialLatitude,
@@ -20,15 +23,16 @@ class LocationPicker extends StatefulWidget {
       onLocationSelected;
 
   @override
-  State<LocationPicker> createState() => _LocationPickerState();
+  ConsumerState<LocationPicker> createState() => _LocationPickerState();
 }
 
-class _LocationPickerState extends State<LocationPicker> {
+class _LocationPickerState extends ConsumerState<LocationPicker> {
   final _addressController = TextEditingController();
 
   double? _latitude;
   double? _longitude;
   String? _address;
+  bool _isLoadingLocation = false;
 
   @override
   void initState() {
@@ -66,6 +70,111 @@ class _LocationPickerState extends State<LocationPicker> {
     if (_latitude != null && _longitude != null && _address != null) {
       widget.onLocationSelected(_latitude!, _longitude!, _address!);
     }
+  }
+
+  Future<void> _useCurrentLocation() async {
+    final locationService = ref.read(locationServiceProvider);
+
+    setState(() => _isLoadingLocation = true);
+
+    try {
+      // Check permission first
+      var status = await locationService.checkPermission();
+
+      if (status == LocationPermissionStatus.denied) {
+        status = await locationService.requestPermission();
+      }
+
+      if (status == LocationPermissionStatus.permanentlyDenied) {
+        if (mounted) {
+          _showSettingsDialog();
+        }
+        return;
+      }
+
+      if (status == LocationPermissionStatus.serviceDisabled) {
+        if (mounted) {
+          _showServiceDisabledDialog();
+        }
+        return;
+      }
+
+      if (status != LocationPermissionStatus.granted) {
+        return;
+      }
+
+      // Get current position
+      final position = await locationService.getCurrentPosition();
+
+      // Reverse geocode
+      final address = await locationService.reverseGeocode(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (mounted) {
+        HapticFeedback.lightImpact();
+        setState(() {
+          _latitude = position.latitude;
+          _longitude = position.longitude;
+          _address = address;
+          _addressController.text = address;
+        });
+      }
+    } on LocationServiceException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingLocation = false);
+      }
+    }
+  }
+
+  void _showSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Location Permission Required'),
+        content: const Text(
+          'Location permission is permanently denied. Please enable it in Settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await ref.read(locationServiceProvider).openAppSettings();
+            },
+            child: const Text('Settings'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showServiceDisabledDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Location Services Disabled'),
+        content: const Text(
+          'Please enable location services to use this feature.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -109,6 +218,78 @@ class _LocationPickerState extends State<LocationPicker> {
               ),
               AppSpacing.verticalMd,
 
+              // Use Current Location button
+              GestureDetector(
+                onTap: _isLoadingLocation ? null : _useCurrentLocation,
+                child: Container(
+                  padding: AppSpacing.cardInsets,
+                  decoration: BoxDecoration(
+                    color:
+                        isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
+                    borderRadius: AppSpacing.borderRadiusLg,
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : AppColors.slate200,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      if (_isLoadingLocation)
+                        const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      else
+                        const Icon(
+                          Icons.my_location,
+                          color: AppColors.orange500,
+                          size: 24,
+                        ),
+                      AppSpacing.horizontalMd,
+                      Text(
+                        'Use Current Location',
+                        style: AppTypography.body1.copyWith(
+                          color: isDark
+                              ? AppColors.darkTextPrimary
+                              : AppColors.slate900,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              AppSpacing.verticalMd,
+
+              // Divider with "or"
+              Row(
+                children: [
+                  Expanded(
+                    child: Divider(
+                      color: isDark ? AppColors.darkBorder : AppColors.slate200,
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                    child: Text(
+                      'or',
+                      style: AppTypography.caption.copyWith(
+                        color: isDark
+                            ? AppColors.darkTextMuted
+                            : AppColors.slate400,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Divider(
+                      color: isDark ? AppColors.darkBorder : AppColors.slate200,
+                    ),
+                  ),
+                ],
+              ),
+              AppSpacing.verticalMd,
+
               // Address search field
               TextField(
                 key: const Key('address_search_field'),
@@ -136,8 +317,9 @@ class _LocationPickerState extends State<LocationPicker> {
               ),
               AppSpacing.verticalMd,
 
-              // Map placeholder
+              // Map preview with location
               Container(
+                key: const Key('location_map_preview'),
                 height: 200,
                 decoration: BoxDecoration(
                   color:
@@ -147,30 +329,7 @@ class _LocationPickerState extends State<LocationPicker> {
                     color: isDark ? AppColors.darkBorder : AppColors.slate200,
                   ),
                 ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.map_outlined,
-                        size: 48,
-                        color: isDark
-                            ? AppColors.darkTextMuted
-                            : AppColors.slate400,
-                      ),
-                      AppSpacing.verticalSm,
-                      Text(
-                        _address ?? 'Tap to select location on map',
-                        style: AppTypography.body2.copyWith(
-                          color: isDark
-                              ? AppColors.darkTextSecondary
-                              : AppColors.slate700,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
+                child: _buildMapContent(isDark),
               ),
               AppSpacing.verticalLg,
 
@@ -185,6 +344,59 @@ class _LocationPickerState extends State<LocationPicker> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMapContent(bool isDark) {
+    if (_latitude != null && _longitude != null) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.location_on,
+            size: 48,
+            color: AppColors.orange500,
+          ),
+          AppSpacing.verticalSm,
+          Text(
+            _address ?? '',
+            style: AppTypography.body2.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          AppSpacing.verticalXs,
+          Text(
+            '${_latitude!.toStringAsFixed(4)}, ${_longitude!.toStringAsFixed(4)}',
+            style: AppTypography.mono.copyWith(
+              color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.map_outlined,
+            size: 48,
+            color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+          ),
+          AppSpacing.verticalSm,
+          Text(
+            'Tap to select location on map',
+            style: AppTypography.body2.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

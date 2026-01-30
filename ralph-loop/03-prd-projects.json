@@ -43,7 +43,7 @@
       "Verify address is reverse-geocoded and displayed",
       "Verify map preview shows correct location"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

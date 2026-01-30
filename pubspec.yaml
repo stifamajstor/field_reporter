@@ -13,61 +13,61 @@ dependencies:
   # UI
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.9
-  cached_network_image: ^3.3.0
+  # cached_network_image: ^3.3.0  # Temporarily disabled - requires SDK 35
   shimmer: ^3.0.0
 
   # State Management
   flutter_riverpod: ^2.4.0
   riverpod_annotation: ^2.3.0
 
-  # Navigation
-  go_router: ^12.0.0
+  # Navigation (not yet implemented - using basic MaterialApp)
+  # go_router: ^12.0.0
 
-  # Network
-  dio: ^5.3.0
-  retrofit: ^4.0.0
+  # Network (not yet needed)
+  # dio: ^5.3.0
+  # retrofit: ^4.0.0
 
-  # Local Storage
-  drift: ^2.13.0
+  # Local Storage (Phase 1 - auth only)
+  # drift: ^2.13.0
   flutter_secure_storage: ^9.0.0
   shared_preferences: ^2.2.0
-  sqlite3_flutter_libs: ^0.5.0
+  # sqlite3_flutter_libs: ^0.5.0
 
-  # Camera & Media
-  camera: ^0.10.5
-  video_player: ^2.8.0
-  audio_waveforms: ^1.0.4
-  record: ^5.0.4
-  image_picker: ^1.0.4
+  # Camera & Media (Phase 5 - not yet implemented)
+  # camera: ^0.10.5
+  # video_player: ^2.8.0
+  # audio_waveforms: ^1.0.4
+  # record: ^5.0.4
+  # image_picker: ^1.0.4
 
   # Location & Maps
   geolocator: ^10.1.0
   geocoding: ^2.1.1
-  flutter_map: ^6.0.1
-  latlong2: ^0.9.0
+  # flutter_map: ^6.0.1
+  # latlong2: ^0.9.0
 
-  # Sensors
-  sensors_plus: ^4.0.2
-  flutter_compass: ^0.8.0
+  # Sensors (Phase 6 - not yet implemented)
+  # sensors_plus: ^4.0.2
+  # flutter_compass: ^0.8.0
 
-  # Scanning
-  mobile_scanner: ^3.5.2
+  # Scanning (not yet implemented)
+  # mobile_scanner: ^3.5.2
 
-  # Biometrics
+  # Biometrics (Phase 1 - implemented)
   local_auth: ^2.1.6
 
-  # Notifications
-  firebase_messaging: ^14.7.0
-  flutter_local_notifications: ^16.1.0
+  # Notifications (Phase 12 - not yet implemented)
+  # firebase_messaging: ^14.7.0
+  # flutter_local_notifications: ^16.1.0
 
-  # File Handling
-  path_provider: ^2.1.1
-  share_plus: ^7.2.1
-  open_file: ^3.3.2
+  # File Handling (not yet needed)
+  # path_provider: ^2.1.1
+  # share_plus: ^7.2.1
+  # open_file: ^3.3.2
 
-  # PDF
-  pdf: ^3.10.4
-  printing: ^5.11.1
+  # PDF (Phase 11 - not yet implemented)
+  # pdf: ^3.10.4
+  # printing: ^5.11.1
 
   # Utilities
   intl: ^0.18.1
