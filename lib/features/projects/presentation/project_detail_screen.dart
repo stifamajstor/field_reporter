@@ -258,13 +258,38 @@ class _ReportsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Reports',
-          style: AppTypography.headline3.copyWith(
-            color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Reports',
+              style: AppTypography.headline3.copyWith(
+                color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                Navigator.of(context).pushNamed(
+                  '/reports/new',
+                  arguments: {'projectId': project.id},
+                );
+              },
+              icon: Icon(
+                Icons.add,
+                size: 18,
+                color: isDark ? AppColors.darkOrange : AppColors.orange500,
+              ),
+              label: Text(
+                'New Report',
+                style: AppTypography.button.copyWith(
+                  color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                ),
+              ),
+            ),
+          ],
         ),
-        AppSpacing.verticalSm,
+        AppSpacing.verticalXs,
         Text(
           '${project.reportCount} reports',
           style: AppTypography.body2.copyWith(

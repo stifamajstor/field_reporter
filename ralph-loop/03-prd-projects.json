@@ -163,7 +163,7 @@
       "Verify report is in draft status",
       "Add an entry to confirm report is linked"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
