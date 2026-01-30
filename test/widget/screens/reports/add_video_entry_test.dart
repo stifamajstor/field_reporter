@@ -14,7 +14,7 @@ import 'package:field_reporter/features/reports/providers/reports_provider.dart'
 import 'package:field_reporter/services/camera_service.dart';
 
 void main() {
-  group('User can add photo entry to report', () {
+  group('User can add video entry to report', () {
     late Report testReport;
     late List<Project> testProjects;
     late List<Entry> testEntries;
@@ -105,11 +105,13 @@ void main() {
       await tester.tap(addEntryButton);
       await tester.pumpAndSettle();
 
-      // Verify entry type options appear
-      expect(find.text('Photo'), findsOneWidget);
+      // Verify entry type options appear including Video
+      expect(find.text('Video'), findsOneWidget);
     });
 
-    testWidgets('Step 3: Select Photo from options', (tester) async {
+    testWidgets(
+        'Step 3-4: Select Video from options and camera opens in video mode',
+        (tester) async {
       final mockCamera = MockCameraService();
 
       await tester.pumpWidget(createTestWidget(cameraService: mockCamera));
@@ -127,21 +129,22 @@ void main() {
       await tester.tap(find.text('Add Entry'));
       await tester.pumpAndSettle();
 
-      // Select Photo option
-      final photoOption = find.text('Photo');
-      expect(photoOption, findsOneWidget);
+      // Select Video option
+      final videoOption = find.text('Video');
+      expect(videoOption, findsOneWidget);
 
-      await tester.tap(photoOption);
+      await tester.tap(videoOption);
       await tester.pumpAndSettle();
 
-      // Step 4: Verify camera opens (via mock)
-      expect(mockCamera.openCameraCalled, isTrue);
+      // Step 4: Verify camera opens in video mode (via mock)
+      expect(mockCamera.openCameraForVideoCalled, isTrue);
     });
 
-    testWidgets('Step 5-7: Capture photo, preview, and confirm',
-        (tester) async {
+    testWidgets('Step 5-7: Tap record, record video, tap stop', (tester) async {
       final mockCamera = MockCameraService(
-        capturedPhotoPath: '/mock/photos/test_photo.jpg',
+        capturedVideoPath: '/mock/videos/test_video.mp4',
+        capturedVideoDuration: 5,
+        capturedVideoThumbnailPath: '/mock/thumbnails/test_video_thumb.jpg',
       );
 
       await tester.pumpWidget(createTestWidget(cameraService: mockCamera));
@@ -159,22 +162,54 @@ void main() {
       await tester.tap(find.text('Add Entry'));
       await tester.pumpAndSettle();
 
-      // Select Photo option
-      await tester.tap(find.text('Photo'));
+      // Select Video option
+      await tester.tap(find.text('Video'));
       await tester.pumpAndSettle();
 
-      // Camera was opened and photo captured (mocked)
-      expect(mockCamera.capturePhotoCalled, isTrue);
+      // Video recording was started and stopped (mocked)
+      expect(mockCamera.startRecordingCalled, isTrue);
+      expect(mockCamera.stopRecordingCalled, isTrue);
+    });
 
-      // Photo preview should appear with Use Photo button
-      expect(find.text('Use Photo'), findsOneWidget);
+    testWidgets('Step 8-9: Verify video preview plays and Use Video button',
+        (tester) async {
+      final mockCamera = MockCameraService(
+        capturedVideoPath: '/mock/videos/test_video.mp4',
+        capturedVideoDuration: 5,
+        capturedVideoThumbnailPath: '/mock/thumbnails/test_video_thumb.jpg',
+      );
+
+      await tester.pumpWidget(createTestWidget(cameraService: mockCamera));
+      await tester.pumpAndSettle();
+
+      // Scroll to make Add Entry button visible
+      await tester.scrollUntilVisible(
+        find.text('Add Entry'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+
+      // Tap Add Entry button
+      await tester.tap(find.text('Add Entry'));
+      await tester.pumpAndSettle();
+
+      // Select Video option
+      await tester.tap(find.text('Video'));
+      await tester.pumpAndSettle();
+
+      // Video preview should appear with Use Video button
+      expect(find.text('Use Video'), findsOneWidget);
+      expect(find.text('Video Preview'), findsOneWidget);
     });
 
     testWidgets(
-        'Step 8-9: Verify photo entry added with thumbnail and timestamp',
+        'Step 10-11: Verify video entry added with thumbnail and duration',
         (tester) async {
       final mockCamera = MockCameraService(
-        capturedPhotoPath: '/mock/photos/test_photo.jpg',
+        capturedVideoPath: '/mock/videos/test_video.mp4',
+        capturedVideoDuration: 5,
+        capturedVideoThumbnailPath: '/mock/thumbnails/test_video_thumb.jpg',
       );
 
       Entry? addedEntry;
@@ -199,31 +234,35 @@ void main() {
       await tester.tap(find.text('Add Entry'));
       await tester.pumpAndSettle();
 
-      // Select Photo option
-      await tester.tap(find.text('Photo'));
+      // Select Video option
+      await tester.tap(find.text('Video'));
       await tester.pumpAndSettle();
 
-      // Confirm photo
-      await tester.tap(find.text('Use Photo'));
+      // Confirm video
+      await tester.tap(find.text('Use Video'));
       await tester.pumpAndSettle();
 
       // Verify entry was added
       expect(addedEntry, isNotNull);
-      expect(addedEntry!.type, EntryType.photo);
-      expect(addedEntry!.mediaPath, '/mock/photos/test_photo.jpg');
+      expect(addedEntry!.type, EntryType.video);
+      expect(addedEntry!.mediaPath, '/mock/videos/test_video.mp4');
+      expect(
+          addedEntry!.thumbnailPath, '/mock/thumbnails/test_video_thumb.jpg');
       expect(addedEntry!.reportId, 'report-1');
 
       // Verify entry card is displayed
       expect(find.byType(EntryCard), findsOneWidget);
 
-      // Verify timestamp is displayed (time format like "10:30 AM")
-      expect(find.textContaining(RegExp(r'\d{1,2}:\d{2}')), findsWidgets);
+      // Verify duration is displayed (e.g., "0:05")
+      expect(find.textContaining(RegExp(r'0:0?5|5\s*s')), findsWidgets);
     });
 
-    testWidgets('Full flow: Add photo entry from start to finish',
+    testWidgets('Full flow: Add video entry from start to finish',
         (tester) async {
       final mockCamera = MockCameraService(
-        capturedPhotoPath: '/mock/photos/test_photo.jpg',
+        capturedVideoPath: '/mock/videos/test_video.mp4',
+        capturedVideoDuration: 5,
+        capturedVideoThumbnailPath: '/mock/thumbnails/test_video_thumb.jpg',
       );
 
       Entry? addedEntry;
@@ -251,31 +290,35 @@ void main() {
       await tester.tap(find.text('Add Entry'));
       await tester.pumpAndSettle();
 
-      // Step 3: Select Photo from options
-      expect(find.text('Photo'), findsOneWidget);
-      await tester.tap(find.text('Photo'));
+      // Step 3: Select Video from options
+      expect(find.text('Video'), findsOneWidget);
+      await tester.tap(find.text('Video'));
       await tester.pumpAndSettle();
 
-      // Step 4: Verify camera opens
-      expect(mockCamera.openCameraCalled, isTrue);
+      // Step 4: Verify camera opens in video mode
+      expect(mockCamera.openCameraForVideoCalled, isTrue);
 
-      // Step 5: Capture photo (automatic in mock)
-      expect(mockCamera.capturePhotoCalled, isTrue);
+      // Step 5: Tap record button to start (automatic in mock)
+      expect(mockCamera.startRecordingCalled, isTrue);
 
-      // Step 6: Verify photo preview appears
-      expect(find.text('Use Photo'), findsOneWidget);
+      // Step 6: Record for a few seconds (automatic in mock)
+      // Step 7: Tap stop button
+      expect(mockCamera.stopRecordingCalled, isTrue);
 
-      // Step 7: Tap Use Photo to confirm
-      await tester.tap(find.text('Use Photo'));
+      // Step 8: Verify video preview plays
+      expect(find.text('Video Preview'), findsOneWidget);
+
+      // Step 9: Tap Use Video to confirm
+      expect(find.text('Use Video'), findsOneWidget);
+      await tester.tap(find.text('Use Video'));
       await tester.pumpAndSettle();
 
-      // Step 8: Verify photo entry added to report
+      // Step 10: Verify video entry added to report
       expect(addedEntry, isNotNull);
-      expect(addedEntry!.type, EntryType.photo);
+      expect(addedEntry!.type, EntryType.video);
       expect(addedEntry!.reportId, 'report-1');
 
-      // Step 9: Verify entry shows thumbnail and timestamp
-      // The entry should now be in the list
+      // Step 11: Verify entry shows thumbnail and duration
       expect(find.byType(EntryCard), findsOneWidget);
     });
   });
@@ -343,14 +386,23 @@ class _MockEntriesNotifier extends EntriesNotifier {
   }
 }
 
-/// Mock CameraService for testing
+/// Mock CameraService for testing video capture
 class MockCameraService implements CameraService {
-  final String? capturedPhotoPath;
+  final String? capturedVideoPath;
+  final int? capturedVideoDuration;
+  final String? capturedVideoThumbnailPath;
 
   bool openCameraCalled = false;
+  bool openCameraForVideoCalled = false;
+  bool startRecordingCalled = false;
+  bool stopRecordingCalled = false;
   bool capturePhotoCalled = false;
 
-  MockCameraService({this.capturedPhotoPath});
+  MockCameraService({
+    this.capturedVideoPath,
+    this.capturedVideoDuration,
+    this.capturedVideoThumbnailPath,
+  });
 
   @override
   Future<void> openCamera() async {
@@ -358,19 +410,33 @@ class MockCameraService implements CameraService {
   }
 
   @override
-  Future<void> openCameraForVideo() async {}
+  Future<void> openCameraForVideo() async {
+    openCameraForVideoCalled = true;
+  }
 
   @override
   Future<String?> capturePhoto() async {
     capturePhotoCalled = true;
-    return capturedPhotoPath;
+    return null;
   }
 
   @override
-  Future<void> startRecording() async {}
+  Future<void> startRecording() async {
+    startRecordingCalled = true;
+  }
 
   @override
-  Future<VideoRecordingResult?> stopRecording() async => null;
+  Future<VideoRecordingResult?> stopRecording() async {
+    stopRecordingCalled = true;
+    if (capturedVideoPath != null) {
+      return VideoRecordingResult(
+        path: capturedVideoPath!,
+        durationSeconds: capturedVideoDuration ?? 0,
+        thumbnailPath: capturedVideoThumbnailPath,
+      );
+    }
+    return null;
+  }
 
   @override
   Future<void> closeCamera() async {}

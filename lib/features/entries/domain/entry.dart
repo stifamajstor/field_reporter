@@ -27,6 +27,7 @@ class Entry {
     required this.type,
     this.mediaPath,
     this.thumbnailPath,
+    this.durationSeconds,
     this.content,
     this.aiDescription,
     this.annotation,
@@ -55,6 +56,9 @@ class Entry {
 
   /// Local path to the thumbnail image.
   final String? thumbnailPath;
+
+  /// Duration in seconds (for video and audio entries).
+  final int? durationSeconds;
 
   /// Text content (for notes) or transcription (for audio).
   final String? content;
@@ -102,6 +106,7 @@ class Entry {
           type == other.type &&
           mediaPath == other.mediaPath &&
           thumbnailPath == other.thumbnailPath &&
+          durationSeconds == other.durationSeconds &&
           content == other.content &&
           aiDescription == other.aiDescription &&
           annotation == other.annotation &&
@@ -122,6 +127,7 @@ class Entry {
       type.hashCode ^
       mediaPath.hashCode ^
       thumbnailPath.hashCode ^
+      durationSeconds.hashCode ^
       content.hashCode ^
       aiDescription.hashCode ^
       annotation.hashCode ^
@@ -141,6 +147,7 @@ class Entry {
     EntryType? type,
     String? mediaPath,
     String? thumbnailPath,
+    int? durationSeconds,
     String? content,
     String? aiDescription,
     String? annotation,
@@ -160,6 +167,7 @@ class Entry {
       type: type ?? this.type,
       mediaPath: mediaPath ?? this.mediaPath,
       thumbnailPath: thumbnailPath ?? this.thumbnailPath,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
       content: content ?? this.content,
       aiDescription: aiDescription ?? this.aiDescription,
       annotation: annotation ?? this.annotation,

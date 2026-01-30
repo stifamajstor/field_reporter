@@ -50,6 +50,12 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
   String? _capturedPhotoPath;
   bool _showPhotoPreview = false;
 
+  // State for video preview
+  String? _capturedVideoPath;
+  String? _capturedVideoThumbnailPath;
+  int? _capturedVideoDuration;
+  bool _showVideoPreview = false;
+
   @override
   void initState() {
     super.initState();
@@ -188,6 +194,80 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     });
   }
 
+  Future<void> _handleVideoCapture() async {
+    setState(() {
+      _showEntryTypeOptions = false;
+    });
+
+    final cameraService = ref.read(cameraServiceProvider);
+
+    // Open camera in video mode and start recording
+    await cameraService.openCameraForVideo();
+    await cameraService.startRecording();
+    final result = await cameraService.stopRecording();
+
+    if (result != null) {
+      setState(() {
+        _capturedVideoPath = result.path;
+        _capturedVideoThumbnailPath = result.thumbnailPath;
+        _capturedVideoDuration = result.durationSeconds;
+        _showVideoPreview = true;
+      });
+    }
+  }
+
+  Future<void> _confirmVideoEntry() async {
+    if (_capturedVideoPath == null) return;
+
+    HapticFeedback.lightImpact();
+
+    // Get current entries to determine sort order
+    final entriesNotifier = ref.read(entriesNotifierProvider.notifier);
+    final currentEntries = ref.read(entriesNotifierProvider).valueOrNull ?? [];
+    final reportEntries =
+        currentEntries.where((e) => e.reportId == _report.id).toList();
+
+    // Create the entry
+    final entry = Entry(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      reportId: _report.id,
+      type: EntryType.video,
+      mediaPath: _capturedVideoPath,
+      thumbnailPath: _capturedVideoThumbnailPath,
+      durationSeconds: _capturedVideoDuration,
+      sortOrder: reportEntries.length,
+      capturedAt: DateTime.now(),
+      createdAt: DateTime.now(),
+    );
+
+    await entriesNotifier.addEntry(entry);
+
+    // Update report entry count
+    final updatedReport = _report.copyWith(
+      entryCount: _report.entryCount + 1,
+      updatedAt: DateTime.now(),
+    );
+    _report = updatedReport;
+    ref.read(allReportsNotifierProvider.notifier).updateReport(updatedReport);
+
+    setState(() {
+      _capturedVideoPath = null;
+      _capturedVideoThumbnailPath = null;
+      _capturedVideoDuration = null;
+      _showVideoPreview = false;
+    });
+  }
+
+  void _cancelVideoPreview() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _capturedVideoPath = null;
+      _capturedVideoThumbnailPath = null;
+      _capturedVideoDuration = null;
+      _showVideoPreview = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
@@ -274,6 +354,7 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
               isDark: isDark,
               onClose: () => setState(() => _showEntryTypeOptions = false),
               onPhotoSelected: _handlePhotoCapture,
+              onVideoSelected: _handleVideoCapture,
             ),
 
           // Photo preview overlay
@@ -283,6 +364,16 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
               photoPath: _capturedPhotoPath!,
               onConfirm: _confirmPhotoEntry,
               onCancel: _cancelPhotoPreview,
+            ),
+
+          // Video preview overlay
+          if (_showVideoPreview && _capturedVideoPath != null)
+            _VideoPreviewOverlay(
+              isDark: isDark,
+              videoPath: _capturedVideoPath!,
+              durationSeconds: _capturedVideoDuration ?? 0,
+              onConfirm: _confirmVideoEntry,
+              onCancel: _cancelVideoPreview,
             ),
         ],
       ),
@@ -622,11 +713,13 @@ class _EntryTypeOptionsOverlay extends StatelessWidget {
     required this.isDark,
     required this.onClose,
     required this.onPhotoSelected,
+    required this.onVideoSelected,
   });
 
   final bool isDark;
   final VoidCallback onClose;
   final VoidCallback onPhotoSelected;
+  final VoidCallback onVideoSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -665,9 +758,7 @@ class _EntryTypeOptionsOverlay extends StatelessWidget {
                   icon: Icons.videocam,
                   label: 'Video',
                   isDark: isDark,
-                  onTap: () {
-                    // TODO: Implement video capture
-                  },
+                  onTap: onVideoSelected,
                 ),
                 _EntryTypeOption(
                   icon: Icons.mic,
@@ -830,6 +921,147 @@ class _PhotoPreviewOverlay extends StatelessWidget {
                     ),
                   ),
                   child: const Text('Use Photo'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VideoPreviewOverlay extends StatelessWidget {
+  const _VideoPreviewOverlay({
+    required this.isDark,
+    required this.videoPath,
+    required this.durationSeconds,
+    required this.onConfirm,
+    required this.onCancel,
+  });
+
+  final bool isDark;
+  final String videoPath;
+  final int durationSeconds;
+  final VoidCallback onConfirm;
+  final VoidCallback onCancel;
+
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black87,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Top bar with cancel
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: onCancel,
+                    child: Text(
+                      'Retake',
+                      style: AppTypography.button.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'Video Preview',
+                    style: AppTypography.headline3.copyWith(
+                      color: AppColors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 60), // Balance the layout
+                ],
+              ),
+            ),
+
+            // Video preview
+            Expanded(
+              child: Container(
+                margin: AppSpacing.screenPadding,
+                decoration: BoxDecoration(
+                  color: AppColors.slate900,
+                  borderRadius: AppSpacing.borderRadiusLg,
+                ),
+                child: Stack(
+                  children: [
+                    const Center(
+                      child: Icon(
+                        Icons.videocam,
+                        size: 100,
+                        color: AppColors.slate400,
+                      ),
+                    ),
+                    // Play button overlay
+                    Center(
+                      child: Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withOpacity(0.9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.play_arrow,
+                          size: 48,
+                          color: AppColors.slate900,
+                        ),
+                      ),
+                    ),
+                    // Duration badge
+                    Positioned(
+                      bottom: AppSpacing.md,
+                      right: AppSpacing.md,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          _formatDuration(durationSeconds),
+                          style: AppTypography.mono.copyWith(
+                            color: AppColors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Bottom bar with confirm
+            Padding(
+              padding: AppSpacing.screenPadding,
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: onConfirm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.orange500,
+                    foregroundColor: AppColors.white,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.md,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Use Video'),
                 ),
               ),
             ),

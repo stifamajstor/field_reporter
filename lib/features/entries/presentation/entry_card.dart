@@ -72,13 +72,41 @@ class EntryCard extends StatelessWidget {
                     ],
                   ),
                   AppSpacing.verticalXs,
-                  // Timestamp
-                  Text(
-                    timeFormat.format(entry.capturedAt),
-                    style: AppTypography.mono.copyWith(
-                      color:
-                          isDark ? AppColors.darkTextMuted : AppColors.slate400,
-                    ),
+                  // Timestamp and duration
+                  Row(
+                    children: [
+                      Text(
+                        timeFormat.format(entry.capturedAt),
+                        style: AppTypography.mono.copyWith(
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : AppColors.slate400,
+                        ),
+                      ),
+                      if (entry.durationSeconds != null) ...[
+                        AppSpacing.horizontalSm,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkSurfaceHigh
+                                : AppColors.slate100,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            _formatDuration(entry.durationSeconds!),
+                            style: AppTypography.mono.copyWith(
+                              color: isDark
+                                  ? AppColors.darkTextMuted
+                                  : AppColors.slate400,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   // Annotation or content preview
                   if (entry.annotation != null || entry.content != null) ...[
@@ -110,6 +138,12 @@ class EntryCard extends StatelessWidget {
         EntryType.note => Icons.note,
         EntryType.scan => Icons.qr_code_scanner,
       };
+
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
 
   String _labelForType(EntryType type) => switch (type) {
         EntryType.photo => 'Photo',
