@@ -40,6 +40,35 @@ class LocationPosition {
   int get hashCode => latitude.hashCode ^ longitude.hashCode;
 }
 
+/// Address suggestion for autocomplete.
+class AddressSuggestion {
+  final String address;
+  final double latitude;
+  final double longitude;
+
+  const AddressSuggestion({
+    required this.address,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  @override
+  String toString() =>
+      'AddressSuggestion(address: $address, latitude: $latitude, longitude: $longitude)';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AddressSuggestion &&
+          runtimeType == other.runtimeType &&
+          address == other.address &&
+          latitude == other.latitude &&
+          longitude == other.longitude;
+
+  @override
+  int get hashCode => address.hashCode ^ latitude.hashCode ^ longitude.hashCode;
+}
+
 /// Exception thrown by LocationService.
 class LocationServiceException implements Exception {
   final String message;
@@ -65,6 +94,12 @@ abstract class LocationService {
 
   /// Opens the app settings for the user to grant permissions.
   Future<void> openAppSettings();
+
+  /// Searches for addresses matching the query and returns suggestions.
+  Future<List<AddressSuggestion>> searchAddress(String query);
+
+  /// Geocodes an address string to coordinates.
+  Future<LocationPosition> geocodeAddress(String address);
 }
 
 /// Default implementation of LocationService using geolocator and geocoding.
@@ -139,6 +174,64 @@ class DefaultLocationService implements LocationService {
   @override
   Future<void> openAppSettings() async {
     await Geolocator.openAppSettings();
+  }
+
+  @override
+  Future<List<AddressSuggestion>> searchAddress(String query) async {
+    if (query.trim().isEmpty) return [];
+
+    try {
+      final locations = await geocoding.locationFromAddress(query);
+      final suggestions = <AddressSuggestion>[];
+
+      for (final location in locations.take(5)) {
+        final placemarks = await geocoding.placemarkFromCoordinates(
+          location.latitude,
+          location.longitude,
+        );
+        if (placemarks.isNotEmpty) {
+          final place = placemarks.first;
+          final parts = <String>[
+            if (place.name?.isNotEmpty == true &&
+                place.name != place.street &&
+                place.name != place.locality)
+              place.name!,
+            if (place.street?.isNotEmpty == true) place.street!,
+            if (place.locality?.isNotEmpty == true) place.locality!,
+            if (place.administrativeArea?.isNotEmpty == true)
+              place.administrativeArea!,
+          ];
+          final address =
+              parts.isNotEmpty ? parts.join(', ') : 'Unknown location';
+          suggestions.add(AddressSuggestion(
+            address: address,
+            latitude: location.latitude,
+            longitude: location.longitude,
+          ));
+        }
+      }
+
+      return suggestions;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  @override
+  Future<LocationPosition> geocodeAddress(String address) async {
+    try {
+      final locations = await geocoding.locationFromAddress(address);
+      if (locations.isEmpty) {
+        throw const LocationServiceException('Address not found');
+      }
+      final location = locations.first;
+      return LocationPosition(
+        latitude: location.latitude,
+        longitude: location.longitude,
+      );
+    } catch (e) {
+      throw LocationServiceException('Failed to geocode address: $e');
+    }
   }
 
   LocationPermissionStatus _mapPermission(LocationPermission permission) {

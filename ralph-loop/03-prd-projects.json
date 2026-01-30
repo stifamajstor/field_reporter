@@ -58,7 +58,7 @@
       "Verify map updates to show selected location",
       "Verify coordinates are populated"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

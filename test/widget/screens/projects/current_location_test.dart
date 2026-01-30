@@ -345,7 +345,7 @@ class MockLocationService implements LocationService {
       await Future.delayed(const Duration(milliseconds: 500));
     }
     if (mockPosition == null) {
-      throw LocationServiceException('Location not available');
+      throw const LocationServiceException('Location not available');
     }
     return mockPosition!;
   }
@@ -360,4 +360,15 @@ class MockLocationService implements LocationService {
 
   @override
   Future<void> openAppSettings() async {}
+
+  @override
+  Future<List<AddressSuggestion>> searchAddress(String query) async {
+    return [];
+  }
+
+  @override
+  Future<LocationPosition> geocodeAddress(String address) async {
+    return mockPosition ??
+        const LocationPosition(latitude: 40.7128, longitude: -74.0060);
+  }
 }

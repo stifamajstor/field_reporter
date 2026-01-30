@@ -1,0 +1,6 @@
+targets:
+  $default:
+    builders:
+      # Disable drift_dev until database is implemented
+      drift_dev:
+        enabled: false

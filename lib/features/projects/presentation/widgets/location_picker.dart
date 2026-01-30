@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,6 +35,9 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
   double? _longitude;
   String? _address;
   bool _isLoadingLocation = false;
+  bool _isSearching = false;
+  List<AddressSuggestion> _suggestions = [];
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -48,21 +53,61 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
   @override
   void dispose() {
     _addressController.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
   void _onAddressChanged(String value) {
+    _debounceTimer?.cancel();
+
+    if (value.trim().isEmpty) {
+      setState(() {
+        _suggestions = [];
+        _isSearching = false;
+      });
+      return;
+    }
+
     setState(() {
-      _address = value;
-      // In a real implementation, we would geocode the address
-      // For now, set mock coordinates when address is entered
-      if (value.isNotEmpty) {
-        _latitude = 40.7128;
-        _longitude = -74.0060;
-      } else {
-        _latitude = null;
-        _longitude = null;
+      _isSearching = true;
+    });
+
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      _searchAddress(value);
+    });
+  }
+
+  Future<void> _searchAddress(String query) async {
+    if (!mounted) return;
+
+    final locationService = ref.read(locationServiceProvider);
+
+    try {
+      final suggestions = await locationService.searchAddress(query);
+      if (mounted) {
+        setState(() {
+          _suggestions = suggestions;
+          _isSearching = false;
+        });
       }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _suggestions = [];
+          _isSearching = false;
+        });
+      }
+    }
+  }
+
+  void _selectSuggestion(AddressSuggestion suggestion) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _latitude = suggestion.latitude;
+      _longitude = suggestion.longitude;
+      _address = suggestion.address;
+      _addressController.text = suggestion.address;
+      _suggestions = [];
     });
   }
 
@@ -119,6 +164,7 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
           _longitude = position.longitude;
           _address = address;
           _addressController.text = address;
+          _suggestions = [];
         });
       }
     } on LocationServiceException catch (e) {
@@ -298,6 +344,17 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
                   labelText: 'Search address',
                   hintText: 'Enter address or place name',
                   prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _isSearching
+                      ? const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            key: Key('search_loading_indicator'),
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : null,
                   filled: true,
                   fillColor:
                       isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
@@ -315,6 +372,81 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
                 ),
                 onChanged: _onAddressChanged,
               ),
+
+              // Autocomplete suggestions
+              if (_suggestions.isNotEmpty) ...[
+                AppSpacing.verticalSm,
+                Container(
+                  key: const Key('autocomplete_suggestions'),
+                  decoration: BoxDecoration(
+                    color:
+                        isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
+                    borderRadius: AppSpacing.borderRadiusLg,
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : AppColors.slate200,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: _suggestions.map((suggestion) {
+                      final isLast = suggestion == _suggestions.last;
+                      return Column(
+                        children: [
+                          InkWell(
+                            onTap: () => _selectSuggestion(suggestion),
+                            borderRadius: isLast && _suggestions.length == 1
+                                ? AppSpacing.borderRadiusLg
+                                : isLast
+                                    ? const BorderRadius.vertical(
+                                        bottom: Radius.circular(12))
+                                    : _suggestions.first == suggestion
+                                        ? const BorderRadius.vertical(
+                                            top: Radius.circular(12))
+                                        : BorderRadius.zero,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md,
+                                vertical: AppSpacing.sm + 4,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_on_outlined,
+                                    size: 20,
+                                    color: isDark
+                                        ? AppColors.darkTextMuted
+                                        : AppColors.slate400,
+                                  ),
+                                  AppSpacing.horizontalSm,
+                                  Expanded(
+                                    child: Text(
+                                      suggestion.address,
+                                      style: AppTypography.body2.copyWith(
+                                        color: isDark
+                                            ? AppColors.darkTextPrimary
+                                            : AppColors.slate900,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (!isLast)
+                            Divider(
+                              height: 1,
+                              color: isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.slate200,
+                            ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
               AppSpacing.verticalMd,
 
               // Map preview with location
@@ -359,14 +491,18 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
             color: AppColors.orange500,
           ),
           AppSpacing.verticalSm,
-          Text(
-            _address ?? '',
-            style: AppTypography.body2.copyWith(
-              color: isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            child: Text(
+              _address ?? '',
+              style: AppTypography.body2.copyWith(
+                color:
+                    isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
           AppSpacing.verticalXs,
           Text(
