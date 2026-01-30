@@ -370,6 +370,6 @@
       "Verify each project name, location, status is read",
       "Verify action buttons are properly labeled"
     ],
-    "passes": false
+    "passes": true
   }
 ]

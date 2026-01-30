@@ -185,10 +185,12 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
           IconButton(
             icon: Icon(_isSearching ? Icons.close : Icons.search),
             onPressed: _toggleSearch,
+            tooltip: _isSearching ? 'Close search' : 'Search projects',
           ),
           IconButton(
             icon: Icon(_isMapView ? Icons.list : Icons.map_outlined),
             onPressed: _toggleMapView,
+            tooltip: _isMapView ? 'Show list view' : 'Show map view',
           ),
           IconButton(
             icon: Badge(
@@ -197,12 +199,14 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
               child: const Icon(Icons.filter_list),
             ),
             onPressed: _showFilterSheet,
+            tooltip: 'Filter projects',
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _navigateToCreateProject(context),
         backgroundColor: isDark ? AppColors.darkOrange : AppColors.orange500,
+        tooltip: 'Create new project',
         child: Icon(
           Icons.add,
           color: isDark ? AppColors.darkBackground : AppColors.white,
