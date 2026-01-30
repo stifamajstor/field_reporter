@@ -165,3 +165,86 @@ FutureOr<List<Project>> userVisibleProjects(Ref ref) async {
     return project.teamMembers.any((member) => member.id == user.id);
   }).toList();
 }
+
+/// State class for paginated projects
+class PaginatedProjectsState {
+  final List<Project> projects;
+  final bool isLoadingMore;
+  final bool hasMore;
+  final int currentPage;
+
+  const PaginatedProjectsState({
+    this.projects = const [],
+    this.isLoadingMore = false,
+    this.hasMore = true,
+    this.currentPage = 0,
+  });
+
+  PaginatedProjectsState copyWith({
+    List<Project>? projects,
+    bool? isLoadingMore,
+    bool? hasMore,
+    int? currentPage,
+  }) {
+    return PaginatedProjectsState(
+      projects: projects ?? this.projects,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      hasMore: hasMore ?? this.hasMore,
+      currentPage: currentPage ?? this.currentPage,
+    );
+  }
+}
+
+/// Provider for paginated projects list.
+@riverpod
+class PaginatedProjectsNotifier extends _$PaginatedProjectsNotifier {
+  static const int _pageSize = 20;
+
+  @override
+  Future<PaginatedProjectsState> build() async {
+    final allProjects = await ref.watch(userVisibleProjectsProvider.future);
+    final initialPage = allProjects.take(_pageSize).toList();
+
+    return PaginatedProjectsState(
+      projects: initialPage,
+      hasMore: allProjects.length > _pageSize,
+      currentPage: 1,
+    );
+  }
+
+  /// Loads the next page of projects.
+  Future<void> loadMore() async {
+    final currentState = state.valueOrNull;
+    if (currentState == null ||
+        currentState.isLoadingMore ||
+        !currentState.hasMore) {
+      return;
+    }
+
+    // Mark as loading
+    state = AsyncData(currentState.copyWith(isLoadingMore: true));
+
+    try {
+      // Get all user-visible projects
+      final allProjects = await ref.read(userVisibleProjectsProvider.future);
+
+      // Calculate next page
+      final nextPage = currentState.currentPage + 1;
+      const startIndex = 0;
+      final endIndex = (nextPage * _pageSize).clamp(0, allProjects.length);
+
+      final newProjects = allProjects.sublist(startIndex, endIndex);
+      final hasMore = endIndex < allProjects.length;
+
+      state = AsyncData(PaginatedProjectsState(
+        projects: newProjects,
+        isLoadingMore: false,
+        hasMore: hasMore,
+        currentPage: nextPage,
+      ));
+    } catch (e) {
+      // Reset loading state on error
+      state = AsyncData(currentState.copyWith(isLoadingMore: false));
+    }
+  }
+}

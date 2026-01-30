@@ -58,8 +58,8 @@ void main() {
     }) {
       return ProviderScope(
         overrides: [
-          projectsNotifierProvider.overrideWith(() {
-            return _MockProjectsNotifier(
+          paginatedProjectsNotifierProvider.overrideWith(() {
+            return _MockPaginatedNotifier(
               projects: projects ?? testProjects,
               errorMessage: errorMessage,
             );
@@ -76,8 +76,8 @@ void main() {
     Widget createLoadingTestWidget() {
       return ProviderScope(
         overrides: [
-          projectsNotifierProvider.overrideWith(() {
-            return _LoadingProjectsNotifier();
+          paginatedProjectsNotifierProvider.overrideWith(() {
+            return _LoadingPaginatedNotifier();
           }),
         ],
         child: MaterialApp(
@@ -387,33 +387,21 @@ void main() {
         required User user,
         required List<Project> projects,
       }) {
+        // Apply the filtering logic based on user role
+        List<Project> filteredProjects;
+        if (user.role == UserRole.admin || user.role == UserRole.manager) {
+          filteredProjects = projects;
+        } else {
+          filteredProjects = projects.where((project) {
+            return project.teamMembers.any((member) => member.id == user.id);
+          }).toList();
+        }
+
         return ProviderScope(
           overrides: [
             currentUserProvider.overrideWithValue(user),
-            projectsNotifierProvider.overrideWith(() {
-              return _MockProjectsNotifier(projects: projects);
-            }),
-            // Override userVisibleProjects to apply the filtering logic
-            userVisibleProjectsProvider.overrideWith((ref) async {
-              final allProjects =
-                  await ref.watch(projectsNotifierProvider.future);
-              final currentUser = ref.watch(currentUserProvider);
-
-              if (currentUser == null) {
-                return [];
-              }
-
-              // Admins and managers can see all projects
-              if (currentUser.role == UserRole.admin ||
-                  currentUser.role == UserRole.manager) {
-                return allProjects;
-              }
-
-              // Field workers only see assigned projects
-              return allProjects.where((project) {
-                return project.teamMembers
-                    .any((member) => member.id == currentUser.id);
-              }).toList();
+            paginatedProjectsNotifierProvider.overrideWith(() {
+              return _MockPaginatedNotifier(projects: filteredProjects);
             }),
           ],
           child: MaterialApp(
@@ -463,32 +451,37 @@ void main() {
   });
 }
 
-/// Mock ProjectsNotifier for testing
-class _MockProjectsNotifier extends ProjectsNotifier {
+/// Mock PaginatedProjectsNotifier for testing
+class _MockPaginatedNotifier extends PaginatedProjectsNotifier {
   final List<Project> projects;
   final String? errorMessage;
 
-  _MockProjectsNotifier({
+  _MockPaginatedNotifier({
     required this.projects,
     this.errorMessage,
   });
 
   @override
-  Future<List<Project>> build() async {
+  Future<PaginatedProjectsState> build() async {
     if (errorMessage != null) {
       throw Exception(errorMessage);
     }
-    return projects;
+    return PaginatedProjectsState(
+      projects: projects,
+      hasMore: false,
+      currentPage: 1,
+      isLoadingMore: false,
+    );
   }
 }
 
 /// Loading state notifier that stays in loading state
-class _LoadingProjectsNotifier extends ProjectsNotifier {
+class _LoadingPaginatedNotifier extends PaginatedProjectsNotifier {
   @override
-  Future<List<Project>> build() async {
+  Future<PaginatedProjectsState> build() async {
     // Use a short delay that will show loading state on first pump
     // but complete quickly to avoid timer issues
     await Future.delayed(const Duration(milliseconds: 100));
-    return [];
+    return const PaginatedProjectsState();
   }
 }

@@ -304,7 +304,7 @@
       "Verify next batch of projects loads",
       "Verify scroll continues seamlessly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",

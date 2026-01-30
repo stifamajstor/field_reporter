@@ -26,13 +26,29 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   bool _isSearching = false;
   bool _isMapView = false;
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
   Set<ProjectStatus> _selectedStatuses = {};
 
   @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      ref.read(paginatedProjectsNotifierProvider.notifier).loadMore();
+    }
   }
 
   void _toggleSearch() {
@@ -131,7 +147,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final projectsAsync = ref.watch(userVisibleProjectsProvider);
+    final paginatedAsync = ref.watch(paginatedProjectsNotifierProvider);
     final connectivityService = ref.watch(connectivityServiceProvider);
     final isOnline = connectivityService.isOnline;
     final isDark = context.isDarkMode;
@@ -192,17 +208,18 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
           color: isDark ? AppColors.darkBackground : AppColors.white,
         ),
       ),
-      body: projectsAsync.when(
+      body: paginatedAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(),
         ),
         error: (error, stack) => Center(
           child: ErrorState(
             message: error.toString().replaceFirst('Exception: ', ''),
-            onRetry: () => ref.invalidate(userVisibleProjectsProvider),
+            onRetry: () => ref.invalidate(paginatedProjectsNotifierProvider),
           ),
         ),
-        data: (projects) {
+        data: (paginatedState) {
+          final projects = paginatedState.projects;
           final filteredProjects = _filterProjects(projects);
 
           if (projects.isEmpty) {
@@ -242,19 +259,37 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
             );
           }
 
+          // Calculate item count including loading indicator
+          final itemCount = sortedProjects.length +
+              (paginatedState.hasMore || paginatedState.isLoadingMore ? 1 : 0);
+
           return RefreshIndicator(
             onRefresh: () async {
-              ref.invalidate(userVisibleProjectsProvider);
-              await ref.read(userVisibleProjectsProvider.future);
+              ref.invalidate(paginatedProjectsNotifierProvider);
+              await ref.read(paginatedProjectsNotifierProvider.future);
             },
             child: ListView.separated(
+              controller: _scrollController,
               padding: AppSpacing.listPadding.copyWith(
                 top: AppSpacing.md,
                 bottom: AppSpacing.md,
               ),
-              itemCount: sortedProjects.length,
+              itemCount: itemCount,
               separatorBuilder: (context, index) => AppSpacing.verticalSm,
               itemBuilder: (context, index) {
+                // Show loading indicator at the end
+                if (index >= sortedProjects.length) {
+                  return Center(
+                    key: const Key('pagination_loading'),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: paginatedState.isLoadingMore
+                          ? const CircularProgressIndicator()
+                          : const SizedBox.shrink(),
+                    ),
+                  );
+                }
+
                 final project = sortedProjects[index];
                 return ProjectCard(
                   project: project,
