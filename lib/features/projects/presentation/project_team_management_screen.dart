@@ -120,10 +120,50 @@ class _ProjectTeamManagementScreenState
   }
 
   Future<void> _removeMember(Project project, String memberId) async {
-    HapticFeedback.lightImpact();
-    await ref
-        .read(projectsNotifierProvider.notifier)
-        .removeTeamMember(project.id, memberId);
+    final member = project.teamMembers.firstWhere((m) => m.id == memberId);
+    final confirmed = await _showRemoveConfirmationDialog(context, member.name);
+    if (confirmed == true) {
+      HapticFeedback.mediumImpact();
+      await ref
+          .read(projectsNotifierProvider.notifier)
+          .removeTeamMember(project.id, memberId);
+    }
+  }
+
+  Future<bool?> _showRemoveConfirmationDialog(
+    BuildContext context,
+    String memberName,
+  ) {
+    final isDark = context.isDarkMode;
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove Team Member'),
+        content: Text(
+            'Are you sure you want to remove $memberName from this project?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color:
+                    isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Remove',
+              style: TextStyle(
+                color: isDark ? AppColors.darkRose : AppColors.rose500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   String _roleToString(UserRole role) {
@@ -180,27 +220,70 @@ class _CurrentTeamSection extends StatelessWidget {
             ),
           )
         else
-          Container(
-            padding: AppSpacing.cardInsets,
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurface : AppColors.white,
-              borderRadius: AppSpacing.borderRadiusLg,
-              border: isDark ? null : Border.all(color: AppColors.slate200),
-            ),
-            child: Column(
-              children: project.teamMembers.asMap().entries.map((entry) {
-                final index = entry.key;
-                final member = entry.value;
-                return _TeamMemberTile(
-                  member: member,
-                  isDark: isDark,
-                  isLast: index == project.teamMembers.length - 1,
-                  onRemove: () => onRemoveMember(member.id),
-                );
-              }).toList(),
+          ClipRRect(
+            borderRadius: AppSpacing.borderRadiusLg,
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : AppColors.white,
+                borderRadius: AppSpacing.borderRadiusLg,
+                border: isDark ? null : Border.all(color: AppColors.slate200),
+              ),
+              child: Column(
+                children: project.teamMembers.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final member = entry.value;
+                  return _DismissibleTeamMemberTile(
+                    member: member,
+                    isDark: isDark,
+                    isLast: index == project.teamMembers.length - 1,
+                    onRemove: () => onRemoveMember(member.id),
+                  );
+                }).toList(),
+              ),
             ),
           ),
       ],
+    );
+  }
+}
+
+class _DismissibleTeamMemberTile extends StatelessWidget {
+  const _DismissibleTeamMemberTile({
+    required this.member,
+    required this.isDark,
+    required this.isLast,
+    required this.onRemove,
+  });
+
+  final TeamMember member;
+  final bool isDark;
+  final bool isLast;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dismissible(
+      key: ValueKey(member.id),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) async {
+        onRemove();
+        return false; // Don't auto-dismiss, let the confirmation dialog handle it
+      },
+      background: Container(
+        color: isDark ? AppColors.darkRose : AppColors.rose500,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: AppSpacing.md),
+        child: const Icon(
+          Icons.delete,
+          color: Colors.white,
+        ),
+      ),
+      child: _TeamMemberTile(
+        member: member,
+        isDark: isDark,
+        isLast: isLast,
+        onRemove: onRemove,
+      ),
     );
   }
 }
@@ -220,8 +303,14 @@ class _TeamMemberTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.sm),
+    return Container(
+      color: isDark ? AppColors.darkSurface : AppColors.white,
+      padding: EdgeInsets.only(
+        left: AppSpacing.md,
+        right: AppSpacing.xs,
+        top: AppSpacing.sm,
+        bottom: isLast ? AppSpacing.sm : 0,
+      ),
       child: Row(
         children: [
           CircleAvatar(

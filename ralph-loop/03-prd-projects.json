@@ -208,7 +208,7 @@
       "Confirm removal",
       "Verify user is removed from team list"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
