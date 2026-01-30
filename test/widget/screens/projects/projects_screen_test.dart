@@ -190,6 +190,129 @@ void main() {
       // Verify semantic label contains relevant info
       expect(semantics.label, contains('Construction Site A'));
     });
+
+    group('search and filter', () {
+      testWidgets('tap search icon shows search input', (tester) async {
+        await tester.pumpWidget(createTestWidget());
+        await tester.pumpAndSettle();
+
+        // Verify search icon exists in app bar
+        expect(find.byIcon(Icons.search), findsOneWidget);
+
+        // Tap search icon
+        await tester.tap(find.byIcon(Icons.search));
+        await tester.pumpAndSettle();
+
+        // Verify search input appears
+        expect(find.byType(TextField), findsOneWidget);
+        expect(find.byKey(const Key('project_search_field')), findsOneWidget);
+      });
+
+      testWidgets('typing in search filters list to matching projects',
+          (tester) async {
+        await tester.pumpWidget(createTestWidget());
+        await tester.pumpAndSettle();
+
+        // Tap search icon
+        await tester.tap(find.byIcon(Icons.search));
+        await tester.pumpAndSettle();
+
+        // Type project name
+        await tester.enterText(
+            find.byKey(const Key('project_search_field')), 'Construction');
+        await tester.pumpAndSettle();
+
+        // Verify list filters to matching projects
+        expect(find.text('Construction Site A'), findsOneWidget);
+        expect(find.text('Office Building B'), findsNothing);
+        expect(find.text('Warehouse C'), findsNothing);
+      });
+
+      testWidgets('clearing search shows all projects', (tester) async {
+        await tester.pumpWidget(createTestWidget());
+        await tester.pumpAndSettle();
+
+        // Tap search icon
+        await tester.tap(find.byIcon(Icons.search));
+        await tester.pumpAndSettle();
+
+        // Type search query
+        await tester.enterText(
+            find.byKey(const Key('project_search_field')), 'Construction');
+        await tester.pumpAndSettle();
+
+        // Verify filtered
+        expect(find.byType(ProjectCard), findsOneWidget);
+
+        // Clear search using the clear button in the text field (first close icon)
+        await tester.tap(find.byIcon(Icons.close).first);
+        await tester.pumpAndSettle();
+
+        // Verify all projects shown again
+        expect(find.byType(ProjectCard), findsNWidgets(3));
+      });
+
+      testWidgets('tap filter icon shows filter options', (tester) async {
+        await tester.pumpWidget(createTestWidget());
+        await tester.pumpAndSettle();
+
+        // Verify filter icon exists
+        expect(find.byIcon(Icons.filter_list), findsOneWidget);
+
+        // Tap filter icon
+        await tester.tap(find.byIcon(Icons.filter_list));
+        await tester.pumpAndSettle();
+
+        // Verify filter options appear (status, date range)
+        expect(find.text('Filter Projects'), findsOneWidget);
+        expect(find.text('Status'), findsOneWidget);
+        expect(find.text('Active'), findsOneWidget);
+        expect(find.text('Completed'), findsOneWidget);
+        expect(find.text('Archived'), findsOneWidget);
+      });
+
+      testWidgets('applying status filter shows filtered results',
+          (tester) async {
+        await tester.pumpWidget(createTestWidget());
+        await tester.pumpAndSettle();
+
+        // Tap filter icon
+        await tester.tap(find.byIcon(Icons.filter_list));
+        await tester.pumpAndSettle();
+
+        // Select "Active" filter
+        await tester.tap(find.text('Active').last);
+        await tester.pumpAndSettle();
+
+        // Apply filter
+        await tester.tap(find.text('Apply'));
+        await tester.pumpAndSettle();
+
+        // Verify only active projects shown
+        expect(find.text('Construction Site A'), findsOneWidget);
+        expect(find.text('Office Building B'), findsNothing);
+        expect(find.text('Warehouse C'), findsNothing);
+      });
+
+      testWidgets('search matches by name, address, or description',
+          (tester) async {
+        await tester.pumpWidget(createTestWidget());
+        await tester.pumpAndSettle();
+
+        // Tap search icon
+        await tester.tap(find.byIcon(Icons.search));
+        await tester.pumpAndSettle();
+
+        // Search by address
+        await tester.enterText(
+            find.byKey(const Key('project_search_field')), 'Boston');
+        await tester.pumpAndSettle();
+
+        // Verify Office Building B matches (has Boston in address)
+        expect(find.text('Office Building B'), findsOneWidget);
+        expect(find.byType(ProjectCard), findsOneWidget);
+      });
+    });
   });
 }
 

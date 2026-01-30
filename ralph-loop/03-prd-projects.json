@@ -135,7 +135,7 @@
       "Apply filter",
       "Verify list shows filtered results"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
