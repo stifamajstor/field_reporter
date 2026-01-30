@@ -4,6 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/theme.dart';
+import '../../../services/camera_service.dart';
+import '../../entries/domain/entry.dart';
+import '../../entries/presentation/entry_card.dart';
+import '../../entries/providers/entries_provider.dart';
 import '../../projects/domain/project.dart';
 import '../../projects/providers/projects_provider.dart';
 import '../domain/report.dart';
@@ -38,6 +42,13 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
   Project? _project;
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _notesFocusNode = FocusNode();
+
+  // State for entry type selection
+  bool _showEntryTypeOptions = false;
+
+  // State for photo preview
+  String? _capturedPhotoPath;
+  bool _showPhotoPreview = false;
 
   @override
   void initState() {
@@ -105,10 +116,83 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     }
   }
 
+  void _showAddEntryOptions() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _showEntryTypeOptions = true;
+    });
+  }
+
+  Future<void> _handlePhotoCapture() async {
+    setState(() {
+      _showEntryTypeOptions = false;
+    });
+
+    final cameraService = ref.read(cameraServiceProvider);
+
+    // Open camera and capture photo
+    await cameraService.openCamera();
+    final photoPath = await cameraService.capturePhoto();
+
+    if (photoPath != null) {
+      setState(() {
+        _capturedPhotoPath = photoPath;
+        _showPhotoPreview = true;
+      });
+    }
+  }
+
+  Future<void> _confirmPhotoEntry() async {
+    if (_capturedPhotoPath == null) return;
+
+    HapticFeedback.lightImpact();
+
+    // Get current entries to determine sort order
+    final entriesNotifier = ref.read(entriesNotifierProvider.notifier);
+    final currentEntries = ref.read(entriesNotifierProvider).valueOrNull ?? [];
+    final reportEntries =
+        currentEntries.where((e) => e.reportId == _report.id).toList();
+
+    // Create the entry
+    final entry = Entry(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      reportId: _report.id,
+      type: EntryType.photo,
+      mediaPath: _capturedPhotoPath,
+      sortOrder: reportEntries.length,
+      capturedAt: DateTime.now(),
+      createdAt: DateTime.now(),
+    );
+
+    await entriesNotifier.addEntry(entry);
+
+    // Update report entry count
+    final updatedReport = _report.copyWith(
+      entryCount: _report.entryCount + 1,
+      updatedAt: DateTime.now(),
+    );
+    _report = updatedReport;
+    ref.read(allReportsNotifierProvider.notifier).updateReport(updatedReport);
+
+    setState(() {
+      _capturedPhotoPath = null;
+      _showPhotoPreview = false;
+    });
+  }
+
+  void _cancelPhotoPreview() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _capturedPhotoPath = null;
+      _showPhotoPreview = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
     final projectsAsync = ref.watch(projectsNotifierProvider);
+    final entriesAsync = ref.watch(entriesNotifierProvider);
 
     // Get project details using the report's projectId or widget.projectId
     final projectId = _report.projectId.isNotEmpty
@@ -117,6 +201,13 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
 
     _project =
         projectsAsync.valueOrNull?.where((p) => p.id == projectId).firstOrNull;
+
+    // Get entries for this report
+    final entries = entriesAsync.valueOrNull
+            ?.where((e) => e.reportId == _report.id)
+            .toList() ??
+        [];
+    entries.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
     return Scaffold(
       appBar: AppBar(
@@ -137,37 +228,62 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: AppSpacing.screenPadding,
+      body: Stack(
         children: [
-          // Project info section
-          if (_project != null) ...[
-            _ProjectInfoCard(project: _project!, isDark: isDark),
-            AppSpacing.verticalMd,
-          ],
+          ListView(
+            padding: AppSpacing.screenPadding,
+            children: [
+              // Project info section
+              if (_project != null) ...[
+                _ProjectInfoCard(project: _project!, isDark: isDark),
+                AppSpacing.verticalMd,
+              ],
 
-          // Status indicator
-          _StatusBadge(status: _report.status, isDark: isDark),
-          AppSpacing.verticalMd,
+              // Status indicator
+              _StatusBadge(status: _report.status, isDark: isDark),
+              AppSpacing.verticalMd,
 
-          // Report title field
-          _ReportTitleField(
-            isDark: isDark,
-            controller: _titleController,
-            focusNode: _titleFocusNode,
+              // Report title field
+              _ReportTitleField(
+                isDark: isDark,
+                controller: _titleController,
+                focusNode: _titleFocusNode,
+              ),
+              AppSpacing.verticalLg,
+
+              // Report notes field
+              _ReportNotesField(
+                isDark: isDark,
+                controller: _notesController,
+                focusNode: _notesFocusNode,
+              ),
+              AppSpacing.verticalLg,
+
+              // Entries section
+              _EntriesSection(
+                isDark: isDark,
+                entries: entries,
+                onAddEntry: _showAddEntryOptions,
+              ),
+            ],
           ),
-          AppSpacing.verticalLg,
 
-          // Report notes field
-          _ReportNotesField(
-            isDark: isDark,
-            controller: _notesController,
-            focusNode: _notesFocusNode,
-          ),
-          AppSpacing.verticalLg,
+          // Entry type options overlay
+          if (_showEntryTypeOptions)
+            _EntryTypeOptionsOverlay(
+              isDark: isDark,
+              onClose: () => setState(() => _showEntryTypeOptions = false),
+              onPhotoSelected: _handlePhotoCapture,
+            ),
 
-          // Entries section
-          _EntriesSection(isDark: isDark),
+          // Photo preview overlay
+          if (_showPhotoPreview && _capturedPhotoPath != null)
+            _PhotoPreviewOverlay(
+              isDark: isDark,
+              photoPath: _capturedPhotoPath!,
+              onConfirm: _confirmPhotoEntry,
+              onCancel: _cancelPhotoPreview,
+            ),
         ],
       ),
     );
@@ -397,9 +513,15 @@ class _ReportNotesField extends StatelessWidget {
 }
 
 class _EntriesSection extends StatelessWidget {
-  const _EntriesSection({required this.isDark});
+  const _EntriesSection({
+    required this.isDark,
+    required this.entries,
+    required this.onAddEntry,
+  });
 
   final bool isDark;
+  final List<Entry> entries;
+  final VoidCallback onAddEntry;
 
   @override
   Widget build(BuildContext context) {
@@ -413,41 +535,292 @@ class _EntriesSection extends StatelessWidget {
           ),
         ),
         AppSpacing.verticalSm,
-        // Empty state with Add Entry button
-        Container(
-          padding: AppSpacing.cardInsets,
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : AppColors.white,
-            borderRadius: AppSpacing.borderRadiusLg,
-            border: isDark ? null : Border.all(color: AppColors.slate200),
+
+        // Show entries if we have them
+        if (entries.isNotEmpty) ...[
+          ...entries.map(
+            (entry) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: EntryCard(entry: entry),
+            ),
           ),
-          child: Column(
-            children: [
-              Icon(
-                Icons.photo_camera_outlined,
-                size: 48,
-                color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
-              ),
-              AppSpacing.verticalSm,
-              Text(
-                'No entries yet',
-                style: AppTypography.body2.copyWith(
-                  color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+          AppSpacing.verticalSm,
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: onAddEntry,
+              icon: const Icon(Icons.add),
+              label: const Text('Add Entry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    isDark ? AppColors.darkOrange : AppColors.orange500,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.md,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              AppSpacing.verticalMd,
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    // Add entry (placeholder)
+            ),
+          ),
+        ] else ...[
+          // Empty state with Add Entry button
+          Container(
+            padding: AppSpacing.cardInsets,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : AppColors.white,
+              borderRadius: AppSpacing.borderRadiusLg,
+              border: isDark ? null : Border.all(color: AppColors.slate200),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.photo_camera_outlined,
+                  size: 48,
+                  color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+                ),
+                AppSpacing.verticalSm,
+                Text(
+                  'No entries yet',
+                  style: AppTypography.body2.copyWith(
+                    color:
+                        isDark ? AppColors.darkTextMuted : AppColors.slate400,
+                  ),
+                ),
+                AppSpacing.verticalMd,
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: onAddEntry,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Entry'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          isDark ? AppColors.darkOrange : AppColors.orange500,
+                      foregroundColor: AppColors.white,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.md,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _EntryTypeOptionsOverlay extends StatelessWidget {
+  const _EntryTypeOptionsOverlay({
+    required this.isDark,
+    required this.onClose,
+    required this.onPhotoSelected,
+  });
+
+  final bool isDark;
+  final VoidCallback onClose;
+  final VoidCallback onPhotoSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onClose,
+      child: Container(
+        color: Colors.black54,
+        child: Center(
+          child: Container(
+            margin: AppSpacing.screenPadding,
+            padding: AppSpacing.cardInsets,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : AppColors.white,
+              borderRadius: AppSpacing.borderRadiusLg,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Add Entry',
+                  style: AppTypography.headline3.copyWith(
+                    color:
+                        isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                AppSpacing.verticalMd,
+                _EntryTypeOption(
+                  icon: Icons.photo_camera,
+                  label: 'Photo',
+                  isDark: isDark,
+                  onTap: onPhotoSelected,
+                ),
+                _EntryTypeOption(
+                  icon: Icons.videocam,
+                  label: 'Video',
+                  isDark: isDark,
+                  onTap: () {
+                    // TODO: Implement video capture
                   },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Entry'),
+                ),
+                _EntryTypeOption(
+                  icon: Icons.mic,
+                  label: 'Voice Memo',
+                  isDark: isDark,
+                  onTap: () {
+                    // TODO: Implement voice memo
+                  },
+                ),
+                _EntryTypeOption(
+                  icon: Icons.note,
+                  label: 'Note',
+                  isDark: isDark,
+                  onTap: () {
+                    // TODO: Implement note
+                  },
+                ),
+                _EntryTypeOption(
+                  icon: Icons.qr_code_scanner,
+                  label: 'Scan',
+                  isDark: isDark,
+                  onTap: () {
+                    // TODO: Implement scan
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EntryTypeOption extends StatelessWidget {
+  const _EntryTypeOption({
+    required this.icon,
+    required this.label,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isDark ? AppColors.darkOrange : AppColors.orange500,
+            ),
+            AppSpacing.horizontalMd,
+            Text(
+              label,
+              style: AppTypography.body1.copyWith(
+                color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PhotoPreviewOverlay extends StatelessWidget {
+  const _PhotoPreviewOverlay({
+    required this.isDark,
+    required this.photoPath,
+    required this.onConfirm,
+    required this.onCancel,
+  });
+
+  final bool isDark;
+  final String photoPath;
+  final VoidCallback onConfirm;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black87,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Top bar with cancel
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: onCancel,
+                    child: Text(
+                      'Retake',
+                      style: AppTypography.button.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'Photo Preview',
+                    style: AppTypography.headline3.copyWith(
+                      color: AppColors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 60), // Balance the layout
+                ],
+              ),
+            ),
+
+            // Photo preview
+            Expanded(
+              child: Container(
+                margin: AppSpacing.screenPadding,
+                decoration: BoxDecoration(
+                  color: AppColors.slate900,
+                  borderRadius: AppSpacing.borderRadiusLg,
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.photo,
+                    size: 100,
+                    color: AppColors.slate400,
+                  ),
+                ),
+              ),
+            ),
+
+            // Bottom bar with confirm
+            Padding(
+              padding: AppSpacing.screenPadding,
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: onConfirm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        isDark ? AppColors.darkOrange : AppColors.orange500,
+                    backgroundColor: AppColors.orange500,
                     foregroundColor: AppColors.white,
                     padding: const EdgeInsets.symmetric(
                       vertical: AppSpacing.md,
@@ -456,12 +829,13 @@ class _EntriesSection extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
+                  child: const Text('Use Photo'),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
