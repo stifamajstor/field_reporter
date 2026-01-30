@@ -11,6 +11,8 @@ class Project {
     this.longitude,
     this.address,
     this.status = ProjectStatus.active,
+    this.reportCount = 0,
+    this.lastActivityAt,
   });
 
   /// Unique identifier of the project.
@@ -34,6 +36,12 @@ class Project {
   /// Current status of the project.
   final ProjectStatus status;
 
+  /// Number of reports associated with this project.
+  final int reportCount;
+
+  /// Timestamp of the most recent activity on this project.
+  final DateTime? lastActivityAt;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -45,7 +53,9 @@ class Project {
           latitude == other.latitude &&
           longitude == other.longitude &&
           address == other.address &&
-          status == other.status;
+          status == other.status &&
+          reportCount == other.reportCount &&
+          lastActivityAt == other.lastActivityAt;
 
   @override
   int get hashCode =>
@@ -55,7 +65,9 @@ class Project {
       latitude.hashCode ^
       longitude.hashCode ^
       address.hashCode ^
-      status.hashCode;
+      status.hashCode ^
+      reportCount.hashCode ^
+      lastActivityAt.hashCode;
 }
 
 /// Status of a project.

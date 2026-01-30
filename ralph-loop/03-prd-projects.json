@@ -10,7 +10,7 @@
       "Verify each project shows status indicator",
       "Verify projects are sorted by most recent activity"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
