@@ -87,7 +87,7 @@
       "Verify list of reports for this project",
       "Verify team members assigned to project"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

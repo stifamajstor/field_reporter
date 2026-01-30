@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/theme.dart';
 import '../../../widgets/layout/empty_state.dart';
+import '../domain/project.dart';
 import '../providers/projects_provider.dart';
 import 'create_project_screen.dart';
+import 'project_detail_screen.dart';
 import 'widgets/project_card.dart';
 
 /// Screen displaying the list of all projects.
@@ -18,6 +20,16 @@ class ProjectsScreen extends ConsumerWidget {
       MaterialPageRoute(
         builder: (_) => const CreateProjectScreen(),
         settings: const RouteSettings(name: '/projects/create'),
+      ),
+    );
+  }
+
+  void _navigateToProjectDetail(BuildContext context, Project project) {
+    HapticFeedback.lightImpact();
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ProjectDetailScreen(projectId: project.id),
+        settings: RouteSettings(name: '/projects/${project.id}'),
       ),
     );
   }
@@ -84,9 +96,7 @@ class ProjectsScreen extends ConsumerWidget {
                 final project = sortedProjects[index];
                 return ProjectCard(
                   project: project,
-                  onTap: () {
-                    // TODO: Navigate to project detail
-                  },
+                  onTap: () => _navigateToProjectDetail(context, project),
                 );
               },
             ),

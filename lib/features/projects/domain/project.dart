@@ -1,5 +1,35 @@
 import 'package:flutter/foundation.dart';
 
+/// A team member assigned to a project.
+@immutable
+class TeamMember {
+  const TeamMember({
+    required this.id,
+    required this.name,
+    this.avatarUrl,
+    this.role,
+  });
+
+  final String id;
+  final String name;
+  final String? avatarUrl;
+  final String? role;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TeamMember &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          avatarUrl == other.avatarUrl &&
+          role == other.role;
+
+  @override
+  int get hashCode =>
+      id.hashCode ^ name.hashCode ^ avatarUrl.hashCode ^ role.hashCode;
+}
+
 /// A project in the Field Reporter app.
 @immutable
 class Project {
@@ -13,6 +43,7 @@ class Project {
     this.status = ProjectStatus.active,
     this.reportCount = 0,
     this.lastActivityAt,
+    this.teamMembers = const [],
   });
 
   /// Unique identifier of the project.
@@ -42,6 +73,9 @@ class Project {
   /// Timestamp of the most recent activity on this project.
   final DateTime? lastActivityAt;
 
+  /// Team members assigned to this project.
+  final List<TeamMember> teamMembers;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -55,7 +89,8 @@ class Project {
           address == other.address &&
           status == other.status &&
           reportCount == other.reportCount &&
-          lastActivityAt == other.lastActivityAt;
+          lastActivityAt == other.lastActivityAt &&
+          listEquals(teamMembers, other.teamMembers);
 
   @override
   int get hashCode =>
@@ -67,7 +102,8 @@ class Project {
       address.hashCode ^
       status.hashCode ^
       reportCount.hashCode ^
-      lastActivityAt.hashCode;
+      lastActivityAt.hashCode ^
+      teamMembers.hashCode;
 }
 
 /// Status of a project.
