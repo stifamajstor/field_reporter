@@ -342,7 +342,7 @@
       "Choose save locally",
       "Verify project saved with pending sync status"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "error-handling",
