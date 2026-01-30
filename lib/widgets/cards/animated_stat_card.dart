@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../core/theme/app_animations.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_typography.dart';
+import 'stat_card.dart';
 
 /// An animated stat card that displays a statistic with fade/slide entrance
 /// and count-up number animation.
@@ -180,13 +177,11 @@ class _AnimatedStatCardState extends State<AnimatedStatCard>
 
   @override
   Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
     final reduceMotion = MediaQuery.of(context).disableAnimations;
 
     // If reduced motion, skip animations entirely
     if (reduceMotion) {
-      return _buildCard(isDark, widget.value.toString());
+      return _buildCard(widget.value.toString());
     }
 
     return FadeTransition(
@@ -196,75 +191,19 @@ class _AnimatedStatCardState extends State<AnimatedStatCard>
         child: AnimatedBuilder(
           animation: _countAnimation,
           builder: (context, child) {
-            return _buildCard(isDark, _countAnimation.value.toString());
+            return _buildCard(_countAnimation.value.toString());
           },
         ),
       ),
     );
   }
 
-  Widget _buildCard(bool isDark, String displayValue) {
-    return Semantics(
-      label: '${widget.title}, $displayValue',
-      button: widget.onTap != null,
-      child: GestureDetector(
-        onTap: widget.onTap != null
-            ? () {
-                HapticFeedback.lightImpact();
-                widget.onTap!();
-              }
-            : null,
-        child: Container(
-          padding: AppSpacing.cardInsets,
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : AppColors.white,
-            borderRadius: AppSpacing.borderRadiusLg,
-            border:
-                isDark ? null : Border.all(color: AppColors.slate200, width: 1),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (widget.icon != null) ...[
-                Icon(
-                  widget.icon,
-                  size: AppSpacing.iconSize,
-                  color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
-                ),
-                AppSpacing.verticalSm,
-              ],
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    displayValue,
-                    style: AppTypography.headline2.copyWith(
-                      color: isDark
-                          ? AppColors.darkTextPrimary
-                          : AppColors.slate900,
-                    ),
-                  ),
-                ),
-              ),
-              AppSpacing.verticalXs,
-              Flexible(
-                child: Text(
-                  widget.title,
-                  style: AppTypography.caption.copyWith(
-                    color: isDark
-                        ? AppColors.darkTextSecondary
-                        : AppColors.slate500,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+  Widget _buildCard(String displayValue) {
+    return StatCard(
+      title: widget.title,
+      value: displayValue,
+      icon: widget.icon,
+      onTap: widget.onTap,
     );
   }
 }
