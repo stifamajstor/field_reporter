@@ -40,7 +40,7 @@
       "Enter report notes",
       "Verify changes are auto-saved"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
