@@ -48,11 +48,25 @@ class _CreateProjectScreenState extends ConsumerState<CreateProjectScreen> {
       });
       return;
     }
+
+    // Check for duplicate project name
+    final existingProjects =
+        ref.read(projectsNotifierProvider).valueOrNull ?? [];
+    final isDuplicate = existingProjects.any(
+      (p) => p.name.toLowerCase().trim() == name.toLowerCase(),
+    );
+    if (isDuplicate) {
+      setState(() {
+        _nameError = 'A project with this name already exists';
+      });
+      return;
+    }
+
     _createProject();
   }
 
   void _clearNameError() {
-    if (_nameError != null && _nameController.text.trim().isNotEmpty) {
+    if (_nameError != null) {
       setState(() {
         _nameError = null;
       });

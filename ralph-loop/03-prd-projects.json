@@ -357,7 +357,7 @@
       "Tap 'Create'",
       "Verify project creates successfully"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "accessibility",

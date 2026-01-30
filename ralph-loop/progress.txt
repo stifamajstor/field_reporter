@@ -71,3 +71,4 @@
 [2026-01-31 00:55] | projects | Empty state shown when no projects exist | PASS | test/widget/screens/projects/empty_state_test.dart
 [2026-01-31 01:00] | projects | Project cards show visual status indicators | PASS | test/widget/screens/projects/status_indicators_test.dart
 [2026-01-31 01:05] | projects | Project creation handles network error | PASS | test/widget/screens/projects/network_error_handling_test.dart
+[2026-01-31 01:10] | projects | Duplicate project name shows appropriate error | PASS | lib/features/projects/presentation/create_project_screen.dart, test/widget/screens/projects/duplicate_project_name_test.dart
