@@ -327,7 +327,7 @@
       "Verify completed projects show different visual treatment",
       "Verify projects with pending uploads show sync indicator"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "error-handling",

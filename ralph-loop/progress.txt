@@ -69,3 +69,4 @@
 [2026-01-31 00:22] | projects | Project list supports pull-to-refresh | PASS | test/widget/screens/projects/pull_to_refresh_test.dart
 [2026-01-31 00:45] | projects | Project list supports infinite scroll pagination | PASS | lib/features/projects/presentation/projects_screen.dart, lib/features/projects/providers/projects_provider.dart, test/widget/screens/projects/infinite_scroll_pagination_test.dart
 [2026-01-31 00:55] | projects | Empty state shown when no projects exist | PASS | test/widget/screens/projects/empty_state_test.dart
+[2026-01-31 01:00] | projects | Project cards show visual status indicators | PASS | test/widget/screens/projects/status_indicators_test.dart
