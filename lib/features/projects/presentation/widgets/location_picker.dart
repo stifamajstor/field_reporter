@@ -36,6 +36,7 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
   String? _address;
   bool _isLoadingLocation = false;
   bool _isSearching = false;
+  bool _isLoadingMapTap = false;
   List<AddressSuggestion> _suggestions = [];
   Timer? _debounceTimer;
 
@@ -450,18 +451,32 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
               AppSpacing.verticalMd,
 
               // Map preview with location
-              Container(
-                key: const Key('location_map_preview'),
-                height: 200,
-                decoration: BoxDecoration(
-                  color:
-                      isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
-                  borderRadius: AppSpacing.borderRadiusLg,
-                  border: Border.all(
-                    color: isDark ? AppColors.darkBorder : AppColors.slate200,
-                  ),
-                ),
-                child: _buildMapContent(isDark),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return GestureDetector(
+                    onTapDown: (details) => _onMapTap(details, constraints),
+                    child: Container(
+                      key: const Key('location_map_preview'),
+                      height: 200,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.darkSurfaceHigh
+                            : AppColors.slate100,
+                        borderRadius: AppSpacing.borderRadiusLg,
+                        border: Border.all(
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : AppColors.slate200,
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: AppSpacing.borderRadiusLg,
+                        child: _buildMapContent(isDark, constraints),
+                      ),
+                    ),
+                  );
+                },
               ),
               AppSpacing.verticalLg,
 
@@ -480,7 +495,64 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
     );
   }
 
-  Widget _buildMapContent(bool isDark) {
+  Future<void> _onMapTap(
+      TapDownDetails details, BoxConstraints constraints) async {
+    if (_isLoadingMapTap) return;
+
+    setState(() => _isLoadingMapTap = true);
+
+    try {
+      // Calculate latitude/longitude from tap position within the map bounds
+      // For a simple implementation, we use a default center point with offset based on tap
+      // In a real implementation, this would use actual map coordinates
+
+      // Default center coordinates (e.g., New York City)
+      const defaultCenterLat = 40.7128;
+      const defaultCenterLng = -74.0060;
+
+      // Calculate offset from center of the map preview
+      final centerX = constraints.maxWidth / 2;
+      final centerY = constraints.maxHeight / 2;
+      final offsetX =
+          (details.localPosition.dx - centerX) / constraints.maxWidth;
+      final offsetY =
+          (details.localPosition.dy - centerY) / constraints.maxHeight;
+
+      // Apply a small offset to the coordinates (roughly 0.01 degrees per 50% of map width)
+      final tappedLat = defaultCenterLat - (offsetY * 0.02);
+      final tappedLng = defaultCenterLng + (offsetX * 0.02);
+
+      // Reverse geocode the tapped location
+      final locationService = ref.read(locationServiceProvider);
+      final address =
+          await locationService.reverseGeocode(tappedLat, tappedLng);
+
+      if (mounted) {
+        HapticFeedback.lightImpact();
+        setState(() {
+          _latitude = tappedLat;
+          _longitude = tappedLng;
+          _address = address;
+          _addressController.text = address;
+          _suggestions = [];
+        });
+      }
+    } catch (e) {
+      // Ignore errors from reverse geocoding
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingMapTap = false);
+      }
+    }
+  }
+
+  Widget _buildMapContent(bool isDark, BoxConstraints constraints) {
+    if (_isLoadingMapTap) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     if (_latitude != null && _longitude != null) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,

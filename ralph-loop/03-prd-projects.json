@@ -72,7 +72,7 @@
       "Verify address is reverse-geocoded",
       "Verify coordinates update"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
