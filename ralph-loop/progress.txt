@@ -73,3 +73,4 @@
 [2026-01-31 01:05] | projects | Project creation handles network error | PASS | test/widget/screens/projects/network_error_handling_test.dart
 [2026-01-31 01:10] | projects | Duplicate project name shows appropriate error | PASS | lib/features/projects/presentation/create_project_screen.dart, test/widget/screens/projects/duplicate_project_name_test.dart
 [2026-01-31 01:20] | projects | Projects screen is accessible with screen reader | PASS | lib/features/projects/presentation/projects_screen.dart, test/widget/screens/projects/projects_screen_accessibility_test.dart
+[2026-01-31 01:35] | reports | User can view list of all reports | PASS | lib/features/reports/presentation/reports_screen.dart, lib/features/reports/providers/reports_provider.dart, test/widget/screens/reports/reports_screen_test.dart

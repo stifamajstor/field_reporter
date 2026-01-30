@@ -10,7 +10,7 @@
       "Verify entry count is shown for each report",
       "Verify reports sorted by most recent first"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
