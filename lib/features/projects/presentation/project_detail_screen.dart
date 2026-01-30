@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/theme.dart';
@@ -14,6 +15,27 @@ class ProjectDetailScreen extends ConsumerWidget {
 
   final String projectId;
 
+  Future<void> _showDeleteConfirmation(
+    BuildContext context,
+    WidgetRef ref,
+    Project project,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => _DeleteProjectDialog(project: project),
+    );
+
+    if (confirmed == true && context.mounted) {
+      HapticFeedback.mediumImpact();
+      await ref
+          .read(projectsNotifierProvider.notifier)
+          .deleteProject(projectId);
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = context.isDarkMode;
@@ -27,6 +49,44 @@ class ProjectDetailScreen extends ConsumerWidget {
             icon: const Icon(Icons.edit),
             onPressed: () {
               Navigator.of(context).pushNamed('/projects/$projectId/edit');
+            },
+          ),
+          Builder(
+            builder: (context) {
+              final project = projectsAsync.valueOrNull
+                  ?.where((p) => p.id == projectId)
+                  .firstOrNull;
+              return PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) {
+                  if (value == 'delete' && project != null) {
+                    _showDeleteConfirmation(context, ref, project);
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem<String>(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.delete_outline,
+                          color:
+                              isDark ? AppColors.darkRose : AppColors.rose500,
+                          size: 20,
+                        ),
+                        AppSpacing.horizontalSm,
+                        Text(
+                          'Delete Project',
+                          style: AppTypography.body2.copyWith(
+                            color:
+                                isDark ? AppColors.darkRose : AppColors.rose500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
             },
           ),
         ],
@@ -373,6 +433,87 @@ class _TeamSection extends StatelessWidget {
                     ),
                   ),
                 ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DeleteProjectDialog extends StatelessWidget {
+  const _DeleteProjectDialog({required this.project});
+
+  final Project project;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return AlertDialog(
+      title: Text(
+        'Delete Project?',
+        style: AppTypography.headline3.copyWith(
+          color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'This action cannot be undone.',
+            style: AppTypography.body1.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+            ),
+          ),
+          if (project.reportCount > 0) ...[
+            AppSpacing.verticalSm,
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkAmberSubtle : AppColors.amber50,
+                borderRadius: AppSpacing.borderRadiusMd,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: 20,
+                    color: isDark ? AppColors.darkAmber : AppColors.amber500,
+                  ),
+                  AppSpacing.horizontalSm,
+                  Expanded(
+                    child: Text(
+                      'This project has ${project.reportCount} reports that will also be deleted.',
+                      style: AppTypography.body2.copyWith(
+                        color:
+                            isDark ? AppColors.darkAmber : AppColors.amber500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(
+            'Cancel',
+            style: AppTypography.button.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(
+            'Delete',
+            style: AppTypography.button.copyWith(
+              color: isDark ? AppColors.darkRose : AppColors.rose500,
+            ),
+          ),
         ),
       ],
     );

@@ -118,7 +118,7 @@
       "Verify navigation back to Projects list",
       "Verify deleted project no longer appears"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

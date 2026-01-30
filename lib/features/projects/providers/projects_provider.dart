@@ -75,4 +75,13 @@ class ProjectsNotifier extends _$ProjectsNotifier {
     state = AsyncData(updatedProjects);
     return project;
   }
+
+  /// Deletes a project by ID.
+  Future<void> deleteProject(String projectId) async {
+    // Delete from local storage (to be implemented with actual repository)
+    final currentProjects = state.valueOrNull ?? [];
+    final updatedProjects =
+        currentProjects.where((p) => p.id != projectId).toList();
+    state = AsyncData(updatedProjects);
+  }
 }

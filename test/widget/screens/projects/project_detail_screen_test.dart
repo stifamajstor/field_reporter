@@ -164,6 +164,164 @@ void main() {
       // Verify location icon is present
       expect(find.byIcon(Icons.location_on_outlined), findsOneWidget);
     });
+
+    group('Delete Project', () {
+      testWidgets('can delete a project via more options menu', (tester) async {
+        final deletedProjects = <String>[];
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              projectsNotifierProvider.overrideWith(() {
+                return _MockProjectsNotifierWithDelete(
+                  projects: testProjects,
+                  onDelete: (id) => deletedProjects.add(id),
+                );
+              }),
+            ],
+            child: MaterialApp(
+              theme: AppTheme.light,
+              darkTheme: AppTheme.dark,
+              home: const ProjectsScreen(),
+              onGenerateRoute: (settings) {
+                if (settings.name == '/projects') {
+                  return MaterialPageRoute(
+                    builder: (_) => const ProjectsScreen(),
+                  );
+                }
+                return null;
+              },
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Navigate to Project Detail screen
+        await tester.tap(find.text('Construction Site Alpha'));
+        await tester.pumpAndSettle();
+
+        // Verify we're on the detail screen
+        expect(find.byType(ProjectDetailScreen), findsOneWidget);
+
+        // Tap more options menu (three dots)
+        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.pumpAndSettle();
+
+        // Select 'Delete Project'
+        await tester.tap(find.text('Delete Project'));
+        await tester.pumpAndSettle();
+
+        // Verify confirmation dialog appears
+        expect(find.text('Delete Project?'), findsOneWidget);
+
+        // Verify warning about associated reports in dialog
+        expect(
+          find.textContaining('will also be deleted'),
+          findsOneWidget,
+        );
+
+        // Confirm deletion
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+
+        // Verify project is deleted
+        expect(deletedProjects, contains('proj-1'));
+
+        // Verify navigation back to Projects list
+        expect(find.byType(ProjectsScreen), findsOneWidget);
+
+        // Verify deleted project no longer appears
+        expect(find.text('Construction Site Alpha'), findsNothing);
+      });
+
+      testWidgets('can cancel project deletion', (tester) async {
+        final deletedProjects = <String>[];
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              projectsNotifierProvider.overrideWith(() {
+                return _MockProjectsNotifierWithDelete(
+                  projects: testProjects,
+                  onDelete: (id) => deletedProjects.add(id),
+                );
+              }),
+            ],
+            child: MaterialApp(
+              theme: AppTheme.light,
+              darkTheme: AppTheme.dark,
+              home: const ProjectDetailScreen(projectId: 'proj-1'),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Tap more options menu
+        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.pumpAndSettle();
+
+        // Select 'Delete Project'
+        await tester.tap(find.text('Delete Project'));
+        await tester.pumpAndSettle();
+
+        // Verify confirmation dialog appears
+        expect(find.text('Delete Project?'), findsOneWidget);
+
+        // Cancel deletion
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+
+        // Verify project is NOT deleted
+        expect(deletedProjects, isEmpty);
+
+        // Verify we're still on the detail screen
+        expect(find.byType(ProjectDetailScreen), findsOneWidget);
+      });
+
+      testWidgets('shows warning for project with no reports', (tester) async {
+        final projectWithNoReports = [
+          Project(
+            id: 'proj-empty',
+            name: 'Empty Project',
+            description: 'No reports',
+            status: ProjectStatus.active,
+            reportCount: 0,
+            lastActivityAt: DateTime(2026, 1, 30),
+          ),
+        ];
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              projectsNotifierProvider.overrideWith(() {
+                return _MockProjectsNotifierWithDelete(
+                  projects: projectWithNoReports,
+                  onDelete: (_) {},
+                );
+              }),
+            ],
+            child: MaterialApp(
+              theme: AppTheme.light,
+              darkTheme: AppTheme.dark,
+              home: const ProjectDetailScreen(projectId: 'proj-empty'),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Tap more options menu
+        await tester.tap(find.byIcon(Icons.more_vert));
+        await tester.pumpAndSettle();
+
+        // Select 'Delete Project'
+        await tester.tap(find.text('Delete Project'));
+        await tester.pumpAndSettle();
+
+        // Verify confirmation dialog appears with appropriate message
+        expect(find.text('Delete Project?'), findsOneWidget);
+        expect(find.textContaining('cannot be undone'), findsOneWidget);
+      });
+    });
   });
 }
 
@@ -176,5 +334,28 @@ class _MockProjectsNotifier extends ProjectsNotifier {
   @override
   Future<List<Project>> build() async {
     return projects;
+  }
+}
+
+/// Mock ProjectsNotifier that supports delete operations
+class _MockProjectsNotifierWithDelete extends ProjectsNotifier {
+  List<Project> _projects;
+  final void Function(String) onDelete;
+
+  _MockProjectsNotifierWithDelete({
+    required List<Project> projects,
+    required this.onDelete,
+  }) : _projects = List.from(projects);
+
+  @override
+  Future<List<Project>> build() async {
+    return _projects;
+  }
+
+  @override
+  Future<void> deleteProject(String projectId) async {
+    onDelete(projectId);
+    _projects = _projects.where((p) => p.id != projectId).toList();
+    state = AsyncData(_projects);
   }
 }
