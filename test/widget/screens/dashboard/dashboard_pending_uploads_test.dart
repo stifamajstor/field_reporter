@@ -66,9 +66,12 @@ void main() {
             () => _TestPendingUploadsNotifier(testPendingUploads),
           ),
         ],
-        child: MaterialApp(
-          home: const DashboardScreen(),
-          routes: routes ?? {},
+        child: MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: MaterialApp(
+            home: const DashboardScreen(),
+            routes: routes ?? {},
+          ),
         ),
       );
     }
@@ -176,7 +179,9 @@ void main() {
           isUploading: true,
         ),
       );
-      await tester.pumpAndSettle();
+      // Use pump with duration instead of pumpAndSettle to avoid timeout from
+      // animations that run indefinitely (like FAB visibility controller)
+      await tester.pump(const Duration(seconds: 1));
 
       // Verify: Progress indicator is visible for active upload
       expect(

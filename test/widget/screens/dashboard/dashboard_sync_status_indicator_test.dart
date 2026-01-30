@@ -18,6 +18,7 @@ void main() {
       SyncStatus syncStatus = const SyncStatus.synced(),
       List<PendingUpload> pendingUploads = const [],
       Map<String, WidgetBuilder>? routes,
+      bool disableAnimations = true,
     }) {
       return ProviderScope(
         overrides: [
@@ -34,15 +35,18 @@ void main() {
             () => _TestSyncStatusNotifier(syncStatus),
           ),
         ],
-        child: MaterialApp(
-          theme: AppTheme.light,
-          home: const DashboardScreen(),
-          routes: routes ??
-              {
-                '/sync': (context) => const Scaffold(
-                      body: Center(child: Text('Sync Status Screen')),
-                    ),
-              },
+        child: MediaQuery(
+          data: MediaQueryData(disableAnimations: disableAnimations),
+          child: MaterialApp(
+            theme: AppTheme.light,
+            home: const DashboardScreen(),
+            routes: routes ??
+                {
+                  '/sync': (context) => const Scaffold(
+                        body: Center(child: Text('Sync Status Screen')),
+                      ),
+                },
+          ),
         ),
       );
     }
@@ -136,7 +140,9 @@ void main() {
           ),
         ],
       ));
-      await tester.pump();
+      // Pump enough time to clear the AnimatedStatCard internal timer (100ms)
+      // but not too much to complete all animations
+      await tester.pump(const Duration(milliseconds: 200));
 
       // Verify sync icon with animation
       final indicator = find.byKey(const Key('sync_status_indicator'));
