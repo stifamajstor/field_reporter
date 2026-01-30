@@ -102,13 +102,15 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
 }
 
 /// A skeleton placeholder for stat cards.
+///
+/// Uses flexible layout to adapt to different card sizes.
 class StatCardSkeleton extends StatelessWidget {
   const StatCardSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
             ? AppColors.darkSurface
@@ -121,15 +123,22 @@ class StatCardSkeleton extends StatelessWidget {
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Icon skeleton
-          SkeletonLoader(width: 32, height: 32, borderRadius: 8),
-          SizedBox(height: 12),
-          // Value skeleton
-          SkeletonLoader(width: 48, height: 28, borderRadius: 4),
+          Flexible(
+            child: SkeletonLoader(width: 24, height: 24, borderRadius: 6),
+          ),
           SizedBox(height: 8),
+          // Value skeleton
+          Flexible(
+            child: SkeletonLoader(width: 40, height: 20, borderRadius: 4),
+          ),
+          SizedBox(height: 4),
           // Title skeleton
-          SkeletonLoader(width: 80, height: 14, borderRadius: 4),
+          Flexible(
+            child: SkeletonLoader(width: 60, height: 12, borderRadius: 4),
+          ),
         ],
       ),
     );
