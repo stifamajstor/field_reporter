@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:field_reporter/core/theme/theme.dart';
+import 'package:field_reporter/features/auth/domain/user.dart';
+import 'package:field_reporter/features/auth/providers/user_provider.dart';
 import 'package:field_reporter/features/projects/domain/project.dart';
 import 'package:field_reporter/features/projects/presentation/projects_screen.dart';
 import 'package:field_reporter/features/projects/presentation/widgets/project_card.dart';
@@ -311,6 +313,151 @@ void main() {
         // Verify Office Building B matches (has Boston in address)
         expect(find.text('Office Building B'), findsOneWidget);
         expect(find.byType(ProjectCard), findsOneWidget);
+      });
+    });
+
+    group('field worker project visibility', () {
+      late List<Project> projectsWithTeamMembers;
+      late User fieldWorkerUser;
+      late User adminUser;
+
+      setUp(() {
+        fieldWorkerUser = const User(
+          id: 'field-worker-1',
+          email: 'fieldworker@test.com',
+          firstName: 'Field',
+          lastName: 'Worker',
+          role: UserRole.fieldWorker,
+        );
+
+        adminUser = const User(
+          id: 'admin-1',
+          email: 'admin@test.com',
+          firstName: 'Admin',
+          lastName: 'User',
+          role: UserRole.admin,
+        );
+
+        projectsWithTeamMembers = [
+          Project(
+            id: 'proj-assigned-1',
+            name: 'Assigned Project A',
+            description: 'Project assigned to field worker',
+            status: ProjectStatus.active,
+            teamMembers: [
+              TeamMember(
+                id: fieldWorkerUser.id,
+                name: fieldWorkerUser.fullName,
+              ),
+            ],
+          ),
+          Project(
+            id: 'proj-assigned-2',
+            name: 'Assigned Project B',
+            description: 'Another assigned project',
+            status: ProjectStatus.active,
+            teamMembers: [
+              TeamMember(
+                id: fieldWorkerUser.id,
+                name: fieldWorkerUser.fullName,
+              ),
+              const TeamMember(id: 'other-user', name: 'Other User'),
+            ],
+          ),
+          const Project(
+            id: 'proj-not-assigned',
+            name: 'Unassigned Project',
+            description: 'Project not assigned to field worker',
+            status: ProjectStatus.active,
+            teamMembers: [
+              TeamMember(id: 'other-user', name: 'Other User'),
+            ],
+          ),
+          const Project(
+            id: 'proj-no-members',
+            name: 'Project Without Members',
+            description: 'Project with no team members',
+            status: ProjectStatus.active,
+            teamMembers: [],
+          ),
+        ];
+      });
+
+      Widget createFieldWorkerTestWidget({
+        required User user,
+        required List<Project> projects,
+      }) {
+        return ProviderScope(
+          overrides: [
+            currentUserProvider.overrideWithValue(user),
+            projectsNotifierProvider.overrideWith(() {
+              return _MockProjectsNotifier(projects: projects);
+            }),
+            // Override userVisibleProjects to apply the filtering logic
+            userVisibleProjectsProvider.overrideWith((ref) async {
+              final allProjects =
+                  await ref.watch(projectsNotifierProvider.future);
+              final currentUser = ref.watch(currentUserProvider);
+
+              if (currentUser == null) {
+                return [];
+              }
+
+              // Admins and managers can see all projects
+              if (currentUser.role == UserRole.admin ||
+                  currentUser.role == UserRole.manager) {
+                return allProjects;
+              }
+
+              // Field workers only see assigned projects
+              return allProjects.where((project) {
+                return project.teamMembers
+                    .any((member) => member.id == currentUser.id);
+              }).toList();
+            }),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            home: const ProjectsScreen(),
+          ),
+        );
+      }
+
+      testWidgets('field worker only sees assigned projects', (tester) async {
+        await tester.pumpWidget(createFieldWorkerTestWidget(
+          user: fieldWorkerUser,
+          projects: projectsWithTeamMembers,
+        ));
+        await tester.pumpAndSettle();
+
+        // Verify only assigned projects are visible
+        expect(find.text('Assigned Project A'), findsOneWidget);
+        expect(find.text('Assigned Project B'), findsOneWidget);
+
+        // Verify unassigned projects are NOT shown
+        expect(find.text('Unassigned Project'), findsNothing);
+        expect(find.text('Project Without Members'), findsNothing);
+
+        // Verify correct number of project cards
+        expect(find.byType(ProjectCard), findsNWidgets(2));
+      });
+
+      testWidgets('admin user sees all projects', (tester) async {
+        await tester.pumpWidget(createFieldWorkerTestWidget(
+          user: adminUser,
+          projects: projectsWithTeamMembers,
+        ));
+        await tester.pumpAndSettle();
+
+        // Admin should see all projects
+        expect(find.text('Assigned Project A'), findsOneWidget);
+        expect(find.text('Assigned Project B'), findsOneWidget);
+        expect(find.text('Unassigned Project'), findsOneWidget);
+        expect(find.text('Project Without Members'), findsOneWidget);
+
+        // Verify all project cards are shown
+        expect(find.byType(ProjectCard), findsNWidgets(4));
       });
     });
   });

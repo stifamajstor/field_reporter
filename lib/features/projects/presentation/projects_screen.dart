@@ -129,7 +129,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final projectsAsync = ref.watch(projectsNotifierProvider);
+    final projectsAsync = ref.watch(userVisibleProjectsProvider);
     final isDark = context.isDarkMode;
 
     return Scaffold(
@@ -194,7 +194,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
         error: (error, stack) => Center(
           child: ErrorState(
             message: error.toString().replaceFirst('Exception: ', ''),
-            onRetry: () => ref.invalidate(projectsNotifierProvider),
+            onRetry: () => ref.invalidate(userVisibleProjectsProvider),
           ),
         ),
         data: (projects) {
@@ -238,8 +238,10 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () =>
-                ref.read(projectsNotifierProvider.notifier).refresh(),
+            onRefresh: () async {
+              ref.invalidate(userVisibleProjectsProvider);
+              await ref.read(userVisibleProjectsProvider.future);
+            },
             child: ListView.separated(
               padding: AppSpacing.listPadding.copyWith(
                 top: AppSpacing.md,

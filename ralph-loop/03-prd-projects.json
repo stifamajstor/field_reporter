@@ -219,7 +219,7 @@
       "Verify only projects user is assigned to are visible",
       "Verify projects user is not assigned to are not shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "offline",

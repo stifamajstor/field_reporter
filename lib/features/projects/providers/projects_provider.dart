@@ -1,5 +1,8 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../auth/domain/user.dart';
+import '../../auth/providers/user_provider.dart';
 import '../domain/project.dart';
 
 part 'projects_provider.g.dart';
@@ -12,7 +15,7 @@ class ProjectsNotifier extends _$ProjectsNotifier {
     // Simulate loading projects from local database/API
     await Future.delayed(const Duration(milliseconds: 100));
 
-    // Return mock data for now - will be replaced with actual repository calls
+    // Return all projects - filtering is done by userVisibleProjectsProvider
     return [
       Project(
         id: 'proj-1',
@@ -112,4 +115,27 @@ class ProjectsNotifier extends _$ProjectsNotifier {
     }).toList();
     state = AsyncData(updatedProjects);
   }
+}
+
+/// Provider that returns projects visible to the current user.
+/// Field workers only see projects they are assigned to.
+/// Admins and managers see all projects.
+@riverpod
+FutureOr<List<Project>> userVisibleProjects(Ref ref) async {
+  final allProjects = await ref.watch(projectsNotifierProvider.future);
+  final user = ref.watch(currentUserProvider);
+
+  if (user == null) {
+    return [];
+  }
+
+  // Admins and managers can see all projects
+  if (user.role == UserRole.admin || user.role == UserRole.manager) {
+    return allProjects;
+  }
+
+  // Field workers only see projects they are assigned to
+  return allProjects.where((project) {
+    return project.teamMembers.any((member) => member.id == user.id);
+  }).toList();
 }
