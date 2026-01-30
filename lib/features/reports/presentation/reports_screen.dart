@@ -27,7 +27,7 @@ class ReportsScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           HapticFeedback.lightImpact();
-          // TODO: Navigate to create report flow
+          Navigator.of(context).pushNamed('/reports/select-project');
         },
         backgroundColor: isDark ? AppColors.darkOrange : AppColors.orange500,
         tooltip: 'Create new report',

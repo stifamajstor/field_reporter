@@ -24,7 +24,7 @@
       "Verify report has auto-generated title with date",
       "Verify report status is 'Draft'"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/theme.dart';
 import '../../projects/domain/project.dart';
@@ -13,6 +14,7 @@ class ReportEditorScreen extends ConsumerStatefulWidget {
     super.key,
     this.projectId,
     this.reportId,
+    this.report,
   });
 
   /// The project ID this report belongs to (for new reports).
@@ -21,29 +23,46 @@ class ReportEditorScreen extends ConsumerStatefulWidget {
   /// The report ID to edit (null for new reports).
   final String? reportId;
 
+  /// The report to edit (if provided, uses this instead of creating new).
+  final Report? report;
+
   @override
   ConsumerState<ReportEditorScreen> createState() => _ReportEditorScreenState();
 }
 
 class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
   late Report _report;
+  late TextEditingController _titleController;
   Project? _project;
 
   @override
   void initState() {
     super.initState();
     _initReport();
+    _titleController = TextEditingController(text: _report.title);
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
   }
 
   void _initReport() {
-    // Create a new draft report
-    _report = Report(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      projectId: widget.projectId ?? '',
-      title: 'New Report',
-      status: ReportStatus.draft,
-      createdAt: DateTime.now(),
-    );
+    if (widget.report != null) {
+      // Use provided report
+      _report = widget.report!;
+    } else {
+      // Create a new draft report with auto-generated title
+      final today = DateFormat('MMM d, yyyy').format(DateTime.now());
+      _report = Report(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        projectId: widget.projectId ?? '',
+        title: 'Report - $today',
+        status: ReportStatus.draft,
+        createdAt: DateTime.now(),
+      );
+    }
   }
 
   @override
@@ -51,10 +70,13 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     final isDark = context.isDarkMode;
     final projectsAsync = ref.watch(projectsNotifierProvider);
 
-    // Get project details
-    _project = projectsAsync.valueOrNull
-        ?.where((p) => p.id == widget.projectId)
-        .firstOrNull;
+    // Get project details using the report's projectId or widget.projectId
+    final projectId = _report.projectId.isNotEmpty
+        ? _report.projectId
+        : widget.projectId ?? '';
+
+    _project =
+        projectsAsync.valueOrNull?.where((p) => p.id == projectId).firstOrNull;
 
     return Scaffold(
       appBar: AppBar(
@@ -89,7 +111,10 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
           AppSpacing.verticalMd,
 
           // Report title field
-          _ReportTitleField(isDark: isDark),
+          _ReportTitleField(
+            isDark: isDark,
+            controller: _titleController,
+          ),
           AppSpacing.verticalLg,
 
           // Entries section
@@ -204,9 +229,13 @@ class _StatusBadge extends StatelessWidget {
 }
 
 class _ReportTitleField extends StatelessWidget {
-  const _ReportTitleField({required this.isDark});
+  const _ReportTitleField({
+    required this.isDark,
+    required this.controller,
+  });
 
   final bool isDark;
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -221,6 +250,7 @@ class _ReportTitleField extends StatelessWidget {
         ),
         AppSpacing.verticalXs,
         TextField(
+          controller: controller,
           decoration: InputDecoration(
             hintText: 'Enter report title',
             hintStyle: AppTypography.body1.copyWith(
