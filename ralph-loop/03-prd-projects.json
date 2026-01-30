@@ -277,7 +277,7 @@
       "Verify input stops accepting characters at limit",
       "Or verify validation error for exceeding limit"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",

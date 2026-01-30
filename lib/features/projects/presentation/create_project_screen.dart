@@ -145,10 +145,12 @@ class _CreateProjectScreenState extends ConsumerState<CreateProjectScreen> {
             // Project Name Field
             TextFormField(
               controller: _nameController,
+              maxLength: 100,
               decoration: InputDecoration(
                 labelText: 'Project Name',
                 hintText: 'Enter project name',
                 errorText: _nameError,
+                counterText: '${_nameController.text.length}/100',
                 filled: true,
                 fillColor: isDark ? AppColors.darkSurface : AppColors.slate100,
                 border: OutlineInputBorder(
