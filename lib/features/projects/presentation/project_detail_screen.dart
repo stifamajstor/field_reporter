@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/theme.dart';
+import '../../reports/domain/report.dart';
+import '../../reports/providers/reports_provider.dart';
 import '../domain/project.dart';
 import '../providers/projects_provider.dart';
 
@@ -244,7 +247,7 @@ class _LocationSection extends StatelessWidget {
   }
 }
 
-class _ReportsSection extends StatelessWidget {
+class _ReportsSection extends ConsumerWidget {
   const _ReportsSection({
     required this.project,
     required this.isDark,
@@ -254,7 +257,9 @@ class _ReportsSection extends StatelessWidget {
   final bool isDark;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reportsAsync = ref.watch(projectReportsNotifierProvider(project.id));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -297,7 +302,7 @@ class _ReportsSection extends StatelessWidget {
           ),
         ),
         AppSpacing.verticalSm,
-        // Reports list placeholder
+        // Reports list
         Container(
           key: const Key('project_reports_list'),
           padding: AppSpacing.cardInsets,
@@ -306,55 +311,180 @@ class _ReportsSection extends StatelessWidget {
             borderRadius: AppSpacing.borderRadiusLg,
             border: isDark ? null : Border.all(color: AppColors.slate200),
           ),
-          child: project.reportCount > 0
-              ? Column(
-                  children: List.generate(
-                    project.reportCount > 3 ? 3 : project.reportCount,
-                    (index) => Padding(
-                      padding: EdgeInsets.only(
-                        bottom: index < 2 ? AppSpacing.sm : 0,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.description_outlined,
-                            size: 20,
-                            color: isDark
-                                ? AppColors.darkTextMuted
-                                : AppColors.slate400,
-                          ),
-                          AppSpacing.horizontalSm,
-                          Expanded(
-                            child: Text(
-                              'Report ${index + 1}',
-                              style: AppTypography.body2.copyWith(
-                                color: isDark
-                                    ? AppColors.darkTextSecondary
-                                    : AppColors.slate700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-              : Center(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                    child: Text(
-                      'No reports yet',
-                      style: AppTypography.body2.copyWith(
-                        color: isDark
-                            ? AppColors.darkTextMuted
-                            : AppColors.slate400,
-                      ),
-                    ),
+          child: reportsAsync.when(
+            loading: () => const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+            error: (error, _) => Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                child: Text(
+                  'Error loading reports',
+                  style: AppTypography.body2.copyWith(
+                    color: isDark ? AppColors.darkRose : AppColors.rose500,
                   ),
                 ),
+              ),
+            ),
+            data: (reports) => reports.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                      child: Text(
+                        'No reports yet',
+                        style: AppTypography.body2.copyWith(
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : AppColors.slate400,
+                        ),
+                      ),
+                    ),
+                  )
+                : Column(
+                    children: reports.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final report = entry.value;
+                      return _ReportListItem(
+                        key: Key('project_report_item_$index'),
+                        report: report,
+                        isDark: isDark,
+                        isLast: index == reports.length - 1,
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          Navigator.of(context).pushNamed(
+                            '/reports/${report.id}',
+                          );
+                        },
+                      );
+                    }).toList(),
+                  ),
+          ),
         ),
       ],
+    );
+  }
+}
+
+class _ReportListItem extends StatelessWidget {
+  const _ReportListItem({
+    super.key,
+    required this.report,
+    required this.isDark,
+    required this.isLast,
+    required this.onTap,
+  });
+
+  final Report report;
+  final bool isDark;
+  final bool isLast;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.sm),
+        child: Row(
+          children: [
+            // Report icon
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
+                borderRadius: AppSpacing.borderRadiusMd,
+              ),
+              child: Icon(
+                Icons.description_outlined,
+                size: 20,
+                color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+              ),
+            ),
+            AppSpacing.horizontalSm,
+            // Report details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    report.title,
+                    style: AppTypography.body1.copyWith(
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.slate900,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    DateFormat('MMM d, yyyy').format(report.createdAt),
+                    style: AppTypography.mono.copyWith(
+                      color:
+                          isDark ? AppColors.darkTextMuted : AppColors.slate400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Status badge
+            _ReportStatusBadge(status: report.status, isDark: isDark),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReportStatusBadge extends StatelessWidget {
+  const _ReportStatusBadge({
+    required this.status,
+    required this.isDark,
+  });
+
+  final ReportStatus status;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final (backgroundColor, textColor, label) = switch (status) {
+      ReportStatus.draft => (
+          isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
+          isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+          'DRAFT',
+        ),
+      ReportStatus.processing => (
+          isDark ? AppColors.darkAmberSubtle : AppColors.amber50,
+          isDark ? AppColors.darkAmber : AppColors.amber500,
+          'PROCESSING',
+        ),
+      ReportStatus.complete => (
+          isDark ? AppColors.darkEmeraldSubtle : AppColors.emerald50,
+          isDark ? AppColors.darkEmerald : AppColors.emerald500,
+          'COMPLETE',
+        ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: AppSpacing.borderRadiusSm,
+      ),
+      child: Text(
+        label,
+        style: AppTypography.overline.copyWith(color: textColor),
+      ),
     );
   }
 }

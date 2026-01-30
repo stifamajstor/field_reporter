@@ -177,7 +177,7 @@
       "Tap on a report",
       "Verify navigation to Report Detail"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
