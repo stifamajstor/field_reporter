@@ -28,7 +28,7 @@
       "Verify project is created",
       "Verify navigation to new project detail"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

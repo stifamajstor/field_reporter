@@ -55,4 +55,13 @@ class ProjectsNotifier extends _$ProjectsNotifier {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => build());
   }
+
+  /// Creates a new project.
+  Future<Project> createProject(Project project) async {
+    // Save to local storage (to be implemented with actual repository)
+    // For now, add to the current list
+    final currentProjects = state.valueOrNull ?? [];
+    state = AsyncData([project, ...currentProjects]);
+    return project;
+  }
 }
