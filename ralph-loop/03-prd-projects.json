@@ -316,7 +316,7 @@
       "Verify message explaining no projects exist",
       "Verify 'Create First Project' button is prominent"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
