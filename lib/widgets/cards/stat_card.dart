@@ -35,59 +35,63 @@ class StatCard extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTap: onTap != null
-          ? () {
-              HapticFeedback.lightImpact();
-              onTap!();
-            }
-          : null,
-      child: Container(
-        padding: AppSpacing.cardInsets,
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurface : AppColors.white,
-          borderRadius: AppSpacing.borderRadiusLg,
-          border:
-              isDark ? null : Border.all(color: AppColors.slate200, width: 1),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: AppSpacing.iconSize,
-                color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
-              ),
-              AppSpacing.verticalSm,
-            ],
-            Flexible(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  value,
-                  style: AppTypography.headline2.copyWith(
-                    color:
-                        isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+    return Semantics(
+      label: '$title, $value',
+      button: onTap != null,
+      child: GestureDetector(
+        onTap: onTap != null
+            ? () {
+                HapticFeedback.lightImpact();
+                onTap!();
+              }
+            : null,
+        child: Container(
+          padding: AppSpacing.cardInsets,
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkSurface : AppColors.white,
+            borderRadius: AppSpacing.borderRadiusLg,
+            border:
+                isDark ? null : Border.all(color: AppColors.slate200, width: 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: AppSpacing.iconSize,
+                  color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+                ),
+                AppSpacing.verticalSm,
+              ],
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    style: AppTypography.headline2.copyWith(
+                      color:
+                          isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+                    ),
                   ),
                 ),
               ),
-            ),
-            AppSpacing.verticalXs,
-            Flexible(
-              child: Text(
-                title,
-                style: AppTypography.caption.copyWith(
-                  color:
-                      isDark ? AppColors.darkTextSecondary : AppColors.slate500,
+              AppSpacing.verticalXs,
+              Flexible(
+                child: Text(
+                  title,
+                  style: AppTypography.caption.copyWith(
+                    color:
+                        isDark ? AppColors.darkTextSecondary : AppColors.slate500,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
