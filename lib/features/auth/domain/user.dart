@@ -1,5 +1,12 @@
 import 'package:flutter/foundation.dart';
 
+/// User roles in the system.
+enum UserRole {
+  admin,
+  manager,
+  fieldWorker,
+}
+
 /// Represents a user in the system.
 @immutable
 class User {
@@ -9,6 +16,7 @@ class User {
     required this.firstName,
     required this.lastName,
     this.avatarUrl,
+    this.role = UserRole.fieldWorker,
   });
 
   /// Unique identifier for the user.
@@ -26,6 +34,9 @@ class User {
   /// Optional URL to the user's avatar image.
   final String? avatarUrl;
 
+  /// User's role in the system.
+  final UserRole role;
+
   /// Returns the user's full name.
   String get fullName => '$firstName $lastName';
 
@@ -36,6 +47,9 @@ class User {
     return '$first$last';
   }
 
+  /// Returns true if user can manage team members.
+  bool get canManageTeam => role == UserRole.admin || role == UserRole.manager;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -45,7 +59,8 @@ class User {
           email == other.email &&
           firstName == other.firstName &&
           lastName == other.lastName &&
-          avatarUrl == other.avatarUrl;
+          avatarUrl == other.avatarUrl &&
+          role == other.role;
 
   @override
   int get hashCode =>
@@ -53,8 +68,10 @@ class User {
       email.hashCode ^
       firstName.hashCode ^
       lastName.hashCode ^
-      avatarUrl.hashCode;
+      avatarUrl.hashCode ^
+      role.hashCode;
 
   @override
-  String toString() => 'User(id: $id, name: $fullName, email: $email)';
+  String toString() =>
+      'User(id: $id, name: $fullName, email: $email, role: $role)';
 }

@@ -194,7 +194,7 @@
       "Verify user is added to project team",
       "Verify user now appears in team list"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

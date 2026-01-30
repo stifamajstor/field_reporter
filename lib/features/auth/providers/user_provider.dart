@@ -10,6 +10,12 @@ part 'user_provider.g.dart';
 /// Returns null if no user is logged in.
 @Riverpod(keepAlive: true)
 User? currentUser(Ref ref) {
-  // Default null - will be overridden when user data is fetched after login
-  return null;
+  // Default mock user for now - will be overridden when user data is fetched after login
+  return const User(
+    id: 'user-default',
+    email: 'user@test.com',
+    firstName: 'Default',
+    lastName: 'User',
+    role: UserRole.admin,
+  );
 }

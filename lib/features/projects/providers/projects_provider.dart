@@ -84,4 +84,32 @@ class ProjectsNotifier extends _$ProjectsNotifier {
         currentProjects.where((p) => p.id != projectId).toList();
     state = AsyncData(updatedProjects);
   }
+
+  /// Adds a team member to a project.
+  Future<void> addTeamMember(String projectId, TeamMember member) async {
+    final currentProjects = state.valueOrNull ?? [];
+    final updatedProjects = currentProjects.map((p) {
+      if (p.id == projectId) {
+        return p.copyWith(
+          teamMembers: [...p.teamMembers, member],
+        );
+      }
+      return p;
+    }).toList();
+    state = AsyncData(updatedProjects);
+  }
+
+  /// Removes a team member from a project.
+  Future<void> removeTeamMember(String projectId, String memberId) async {
+    final currentProjects = state.valueOrNull ?? [];
+    final updatedProjects = currentProjects.map((p) {
+      if (p.id == projectId) {
+        return p.copyWith(
+          teamMembers: p.teamMembers.where((m) => m.id != memberId).toList(),
+        );
+      }
+      return p;
+    }).toList();
+    state = AsyncData(updatedProjects);
+  }
 }

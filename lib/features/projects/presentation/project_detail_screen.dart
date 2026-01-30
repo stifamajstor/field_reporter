@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/theme.dart';
+import '../../auth/providers/user_provider.dart';
 import '../../reports/domain/report.dart';
 import '../../reports/providers/reports_provider.dart';
 import '../domain/project.dart';
@@ -489,7 +490,7 @@ class _ReportStatusBadge extends StatelessWidget {
   }
 }
 
-class _TeamSection extends StatelessWidget {
+class _TeamSection extends ConsumerWidget {
   const _TeamSection({
     required this.project,
     required this.isDark,
@@ -499,15 +500,37 @@ class _TeamSection extends StatelessWidget {
   final bool isDark;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentUser = ref.watch(currentUserProvider);
+    final canManageTeam = currentUser?.canManageTeam ?? false;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Team',
-          style: AppTypography.headline3.copyWith(
-            color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Team',
+              style: AppTypography.headline3.copyWith(
+                color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+              ),
+            ),
+            if (canManageTeam)
+              TextButton(
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  Navigator.of(context)
+                      .pushNamed('/projects/${project.id}/team');
+                },
+                child: Text(
+                  'Manage Team',
+                  style: AppTypography.button.copyWith(
+                    color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                  ),
+                ),
+              ),
+          ],
         ),
         AppSpacing.verticalSm,
         Container(
