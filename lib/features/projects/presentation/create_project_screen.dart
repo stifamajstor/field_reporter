@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/theme/theme.dart';
+import '../../../services/connectivity_service.dart';
 import '../../../widgets/buttons/primary_button.dart';
 import '../domain/project.dart';
 import '../providers/projects_provider.dart';
@@ -55,6 +56,9 @@ class _CreateProjectScreenState extends ConsumerState<CreateProjectScreen> {
     try {
       HapticFeedback.lightImpact();
 
+      // Check connectivity to determine sync status
+      final isOnline = ref.read(connectivityServiceProvider).isOnline;
+
       final project = Project(
         id: const Uuid().v4(),
         name: _nameController.text.trim(),
@@ -67,6 +71,7 @@ class _CreateProjectScreenState extends ConsumerState<CreateProjectScreen> {
         status: ProjectStatus.active,
         reportCount: 0,
         lastActivityAt: DateTime.now(),
+        syncPending: !isOnline,
       );
 
       final createdProject = await ref

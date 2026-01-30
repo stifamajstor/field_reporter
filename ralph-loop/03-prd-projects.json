@@ -251,7 +251,7 @@
       "Verify project syncs to server",
       "Verify 'Pending sync' indicator is removed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "validation",

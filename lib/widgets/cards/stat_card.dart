@@ -72,8 +72,9 @@ class StatCard extends StatelessWidget {
                   child: Text(
                     value,
                     style: AppTypography.headline2.copyWith(
-                      color:
-                          isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.slate900,
                     ),
                   ),
                 ),
@@ -83,8 +84,9 @@ class StatCard extends StatelessWidget {
                 child: Text(
                   title,
                   style: AppTypography.caption.copyWith(
-                    color:
-                        isDark ? AppColors.darkTextSecondary : AppColors.slate500,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.slate500,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,

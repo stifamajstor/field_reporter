@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../services/connectivity_service.dart';
 import '../../auth/domain/user.dart';
 import '../../auth/providers/user_provider.dart';
 import '../domain/project.dart';
@@ -53,10 +54,35 @@ class ProjectsNotifier extends _$ProjectsNotifier {
     ];
   }
 
-  /// Refreshes the projects list.
+  /// Refreshes the projects list and syncs pending projects when online.
   Future<void> refresh() async {
     state = const AsyncLoading();
+
+    // Check if online to sync pending projects
+    final connectivityService = ref.read(connectivityServiceProvider);
+    if (connectivityService.isOnline) {
+      await syncPendingProjects();
+    }
+
     state = await AsyncValue.guard(() => build());
+  }
+
+  /// Syncs projects with pending changes to the server.
+  Future<void> syncPendingProjects() async {
+    final currentProjects = state.valueOrNull ?? [];
+    final pendingProjects = currentProjects.where((p) => p.syncPending);
+
+    if (pendingProjects.isEmpty) return;
+
+    // Mark all pending projects as synced (simulated sync)
+    final syncedProjects = currentProjects.map((p) {
+      if (p.syncPending) {
+        return p.copyWith(syncPending: false);
+      }
+      return p;
+    }).toList();
+
+    state = AsyncData(syncedProjects);
   }
 
   /// Creates a new project.

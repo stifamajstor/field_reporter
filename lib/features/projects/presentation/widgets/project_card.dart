@@ -116,6 +116,29 @@ class ProjectCard extends StatelessWidget {
                   ),
                 ],
               ),
+
+              // Pending sync indicator
+              if (project.syncPending) ...[
+                AppSpacing.verticalSm,
+                Row(
+                  key: const Key('pending_sync_indicator'),
+                  children: [
+                    Icon(
+                      Icons.cloud_upload_outlined,
+                      size: 16,
+                      color: isDark ? AppColors.darkAmber : AppColors.amber500,
+                    ),
+                    AppSpacing.horizontalXs,
+                    Text(
+                      'Pending sync',
+                      style: AppTypography.caption.copyWith(
+                        color:
+                            isDark ? AppColors.darkAmber : AppColors.amber500,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),

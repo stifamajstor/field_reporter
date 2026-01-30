@@ -44,6 +44,7 @@ class Project {
     this.reportCount = 0,
     this.lastActivityAt,
     this.teamMembers = const [],
+    this.syncPending = false,
   });
 
   /// Unique identifier of the project.
@@ -76,6 +77,9 @@ class Project {
   /// Team members assigned to this project.
   final List<TeamMember> teamMembers;
 
+  /// Whether this project has pending changes to sync.
+  final bool syncPending;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -90,7 +94,8 @@ class Project {
           status == other.status &&
           reportCount == other.reportCount &&
           lastActivityAt == other.lastActivityAt &&
-          listEquals(teamMembers, other.teamMembers);
+          listEquals(teamMembers, other.teamMembers) &&
+          syncPending == other.syncPending;
 
   @override
   int get hashCode =>
@@ -103,7 +108,8 @@ class Project {
       status.hashCode ^
       reportCount.hashCode ^
       lastActivityAt.hashCode ^
-      teamMembers.hashCode;
+      teamMembers.hashCode ^
+      syncPending.hashCode;
 
   Project copyWith({
     String? id,
@@ -116,6 +122,7 @@ class Project {
     int? reportCount,
     DateTime? lastActivityAt,
     List<TeamMember>? teamMembers,
+    bool? syncPending,
   }) {
     return Project(
       id: id ?? this.id,
@@ -128,6 +135,7 @@ class Project {
       reportCount: reportCount ?? this.reportCount,
       lastActivityAt: lastActivityAt ?? this.lastActivityAt,
       teamMembers: teamMembers ?? this.teamMembers,
+      syncPending: syncPending ?? this.syncPending,
     );
   }
 }

@@ -51,7 +51,8 @@ void main() {
       );
     }
 
-    testWidgets('Step 1-2: Navigate to Dashboard while online - no stale indicator',
+    testWidgets(
+        'Step 1-2: Navigate to Dashboard while online - no stale indicator',
         (tester) async {
       // Navigate to Dashboard while online
       await tester.pumpWidget(buildTestWidget(isOnline: true));
@@ -78,7 +79,8 @@ void main() {
       expect(find.textContaining('minutes ago'), findsOneWidget);
     });
 
-    testWidgets('Step 6: Visual indicator that data may be stale', (tester) async {
+    testWidgets('Step 6: Visual indicator that data may be stale',
+        (tester) async {
       // Simulate offline with stale data
       final lastUpdated = DateTime.now().subtract(const Duration(minutes: 10));
 
@@ -108,8 +110,10 @@ void main() {
       expect(find.textContaining('Just now'), findsOneWidget);
     });
 
-    testWidgets('Shows "1 minute ago" for data updated 1 minute ago', (tester) async {
-      final lastUpdated = DateTime.now().subtract(const Duration(minutes: 1, seconds: 30));
+    testWidgets('Shows "1 minute ago" for data updated 1 minute ago',
+        (tester) async {
+      final lastUpdated =
+          DateTime.now().subtract(const Duration(minutes: 1, seconds: 30));
 
       await tester.pumpWidget(buildTestWidget(
         isOnline: false,
@@ -120,7 +124,8 @@ void main() {
       expect(find.textContaining('1 minute ago'), findsOneWidget);
     });
 
-    testWidgets('Shows "X hours ago" for data updated hours ago', (tester) async {
+    testWidgets('Shows "X hours ago" for data updated hours ago',
+        (tester) async {
       final lastUpdated = DateTime.now().subtract(const Duration(hours: 2));
 
       await tester.pumpWidget(buildTestWidget(

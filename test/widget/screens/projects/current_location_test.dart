@@ -67,7 +67,8 @@ void main() {
       );
     });
 
-    testWidgets('tapping "Use Current Location" requests permission when denied',
+    testWidgets(
+        'tapping "Use Current Location" requests permission when denied',
         (tester) async {
       var permissionRequested = false;
 
