@@ -290,7 +290,7 @@
       "Verify refresh indicator disappears",
       "Verify updated data is displayed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
