@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/theme.dart';
+import '../../../services/connectivity_service.dart';
+import '../../../widgets/indicators/offline_indicator.dart';
 import '../../../widgets/layout/empty_state.dart';
 import '../domain/project.dart';
 import '../providers/projects_provider.dart';
@@ -130,6 +132,8 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   @override
   Widget build(BuildContext context) {
     final projectsAsync = ref.watch(userVisibleProjectsProvider);
+    final connectivityService = ref.watch(connectivityServiceProvider);
+    final isOnline = connectivityService.isOnline;
     final isDark = context.isDarkMode;
 
     return Scaffold(
@@ -161,6 +165,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
               )
             : const Text('Projects'),
         actions: [
+          if (!isOnline) const OfflineIndicator(),
           IconButton(
             icon: Icon(_isSearching ? Icons.close : Icons.search),
             onPressed: _toggleSearch,

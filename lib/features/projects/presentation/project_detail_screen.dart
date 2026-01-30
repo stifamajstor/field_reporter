@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/theme.dart';
+import '../../../services/connectivity_service.dart';
+import '../../../widgets/indicators/offline_indicator.dart';
 import '../../auth/providers/user_provider.dart';
 import '../../reports/domain/report.dart';
 import '../../reports/providers/reports_provider.dart';
@@ -44,11 +46,14 @@ class ProjectDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = context.isDarkMode;
     final projectsAsync = ref.watch(projectsNotifierProvider);
+    final connectivityService = ref.watch(connectivityServiceProvider);
+    final isOnline = connectivityService.isOnline;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Project Details'),
         actions: [
+          if (!isOnline) const OfflineIndicator(),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {

@@ -234,7 +234,7 @@
       "Verify Project Detail shows cached data",
       "Verify offline indicator is visible"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "offline",
