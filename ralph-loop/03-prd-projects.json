@@ -150,7 +150,7 @@
       "Tap popup",
       "Verify navigation to Project Detail"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

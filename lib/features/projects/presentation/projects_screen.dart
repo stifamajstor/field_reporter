@@ -10,6 +10,7 @@ import 'create_project_screen.dart';
 import 'project_detail_screen.dart';
 import 'widgets/project_card.dart';
 import 'widgets/project_filter_sheet.dart';
+import 'widgets/project_map_view.dart';
 
 /// Screen displaying the list of all projects.
 class ProjectsScreen extends ConsumerStatefulWidget {
@@ -21,6 +22,7 @@ class ProjectsScreen extends ConsumerStatefulWidget {
 
 class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   bool _isSearching = false;
+  bool _isMapView = false;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   Set<ProjectStatus> _selectedStatuses = {};
@@ -53,6 +55,13 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   void _onSearchChanged(String query) {
     setState(() {
       _searchQuery = query.toLowerCase();
+    });
+  }
+
+  void _toggleMapView() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isMapView = !_isMapView;
     });
   }
 
@@ -157,6 +166,10 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
             onPressed: _toggleSearch,
           ),
           IconButton(
+            icon: Icon(_isMapView ? Icons.list : Icons.map_outlined),
+            onPressed: _toggleMapView,
+          ),
+          IconButton(
             icon: Badge(
               isLabelVisible: _selectedStatuses.isNotEmpty,
               label: Text(_selectedStatuses.length.toString()),
@@ -214,6 +227,15 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
               final bTime = b.lastActivityAt ?? DateTime(1970);
               return bTime.compareTo(aTime);
             });
+
+          // Show map view or list view
+          if (_isMapView) {
+            return ProjectMapView(
+              projects: sortedProjects,
+              onProjectTap: (project) =>
+                  _navigateToProjectDetail(context, project),
+            );
+          }
 
           return RefreshIndicator(
             onRefresh: () =>
