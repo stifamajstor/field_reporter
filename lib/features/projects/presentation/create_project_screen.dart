@@ -29,6 +29,7 @@ class _CreateProjectScreenState extends ConsumerState<CreateProjectScreen> {
   String? _address;
 
   bool _isSubmitting = false;
+  String? _nameError;
 
   @override
   void dispose() {
@@ -38,6 +39,25 @@ class _CreateProjectScreenState extends ConsumerState<CreateProjectScreen> {
   }
 
   bool get _isFormValid => _nameController.text.trim().isNotEmpty;
+
+  void _validateAndSubmit() {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      setState(() {
+        _nameError = 'Project name is required';
+      });
+      return;
+    }
+    _createProject();
+  }
+
+  void _clearNameError() {
+    if (_nameError != null && _nameController.text.trim().isNotEmpty) {
+      setState(() {
+        _nameError = null;
+      });
+    }
+  }
 
   void _onLocationSelected(double lat, double lng, String address) {
     setState(() {
@@ -128,6 +148,7 @@ class _CreateProjectScreenState extends ConsumerState<CreateProjectScreen> {
               decoration: InputDecoration(
                 labelText: 'Project Name',
                 hintText: 'Enter project name',
+                errorText: _nameError,
                 filled: true,
                 fillColor: isDark ? AppColors.darkSurface : AppColors.slate100,
                 border: OutlineInputBorder(
@@ -143,7 +164,10 @@ class _CreateProjectScreenState extends ConsumerState<CreateProjectScreen> {
                 ),
               ),
               textInputAction: TextInputAction.next,
-              onChanged: (_) => setState(() {}),
+              onChanged: (_) {
+                setState(() {});
+                _clearNameError();
+              },
             ),
             AppSpacing.verticalMd,
 
@@ -229,7 +253,7 @@ class _CreateProjectScreenState extends ConsumerState<CreateProjectScreen> {
             // Create Button
             PrimaryButton(
               label: 'Create',
-              onPressed: _isFormValid ? _createProject : null,
+              onPressed: _validateAndSubmit,
               isLoading: _isSubmitting,
             ),
           ],

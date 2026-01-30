@@ -265,7 +265,7 @@
       "Tap 'Create' button",
       "Verify project is created successfully"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "validation",
