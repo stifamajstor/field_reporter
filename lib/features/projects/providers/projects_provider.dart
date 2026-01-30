@@ -64,4 +64,15 @@ class ProjectsNotifier extends _$ProjectsNotifier {
     state = AsyncData([project, ...currentProjects]);
     return project;
   }
+
+  /// Updates an existing project.
+  Future<Project> updateProject(Project project) async {
+    // Update in local storage (to be implemented with actual repository)
+    final currentProjects = state.valueOrNull ?? [];
+    final updatedProjects = currentProjects.map((p) {
+      return p.id == project.id ? project : p;
+    }).toList();
+    state = AsyncData(updatedProjects);
+    return project;
+  }
 }

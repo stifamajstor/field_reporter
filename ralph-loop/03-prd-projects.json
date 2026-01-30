@@ -102,7 +102,7 @@
       "Verify changes are saved",
       "Verify updated values displayed on detail screen"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

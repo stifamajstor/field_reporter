@@ -104,6 +104,32 @@ class Project {
       reportCount.hashCode ^
       lastActivityAt.hashCode ^
       teamMembers.hashCode;
+
+  Project copyWith({
+    String? id,
+    String? name,
+    String? description,
+    double? latitude,
+    double? longitude,
+    String? address,
+    ProjectStatus? status,
+    int? reportCount,
+    DateTime? lastActivityAt,
+    List<TeamMember>? teamMembers,
+  }) {
+    return Project(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      address: address ?? this.address,
+      status: status ?? this.status,
+      reportCount: reportCount ?? this.reportCount,
+      lastActivityAt: lastActivityAt ?? this.lastActivityAt,
+      teamMembers: teamMembers ?? this.teamMembers,
+    );
+  }
 }
 
 /// Status of a project.

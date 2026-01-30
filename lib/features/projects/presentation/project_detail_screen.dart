@@ -22,6 +22,14 @@ class ProjectDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Project Details'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              Navigator.of(context).pushNamed('/projects/$projectId/edit');
+            },
+          ),
+        ],
       ),
       body: projectsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
