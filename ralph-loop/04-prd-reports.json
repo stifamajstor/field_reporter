@@ -459,7 +459,7 @@
       "Retry generation",
       "Verify eventual success or clear failure message"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "performance",

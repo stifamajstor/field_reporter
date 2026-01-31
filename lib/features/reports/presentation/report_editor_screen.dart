@@ -57,6 +57,7 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
   bool _isGeneratingPdf = false;
   String? _generatedPdfPath;
   String? _pdfSuccessMessage;
+  String? _pdfErrorMessage;
 
   // State for entry type selection
   bool _showEntryTypeOptions = false;
@@ -219,6 +220,7 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     setState(() {
       _isGeneratingPdf = true;
       _pdfSuccessMessage = null;
+      _pdfErrorMessage = null;
       _generatedPdfPath = null;
     });
 
@@ -242,19 +244,29 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
           _isGeneratingPdf = false;
           _generatedPdfPath = result.filePath;
           _pdfSuccessMessage = 'PDF generated successfully';
+          _pdfErrorMessage = null;
         });
       } else {
         setState(() {
           _isGeneratingPdf = false;
-          _pdfSuccessMessage = result.error ?? 'Failed to generate PDF';
+          _pdfErrorMessage = result.error ?? 'Failed to generate PDF';
+          _pdfSuccessMessage = null;
         });
       }
     } catch (e) {
       setState(() {
         _isGeneratingPdf = false;
-        _pdfSuccessMessage = 'Error generating PDF';
+        _pdfErrorMessage = 'Error generating PDF: ${e.toString()}';
+        _pdfSuccessMessage = null;
       });
     }
+  }
+
+  void _dismissPdfError() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _pdfErrorMessage = null;
+    });
   }
 
   void _previewPdf() {
@@ -922,9 +934,12 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
                       isGenerating: _isGeneratingPdf,
                       generatedPdfPath: _generatedPdfPath,
                       successMessage: _pdfSuccessMessage,
+                      errorMessage: _pdfErrorMessage,
                       onGeneratePdf: _generatePdf,
                       onPreviewPdf: _previewPdf,
                       onSharePdf: _sharePdf,
+                      onRetry: _generatePdf,
+                      onDismissError: _dismissPdfError,
                     ),
                     AppSpacing.verticalLg,
 
@@ -3003,6 +3018,9 @@ class _PdfGenerationSection extends StatelessWidget {
     required this.onGeneratePdf,
     required this.onPreviewPdf,
     required this.onSharePdf,
+    this.errorMessage,
+    this.onRetry,
+    this.onDismissError,
   });
 
   final bool isDark;
@@ -3010,15 +3028,19 @@ class _PdfGenerationSection extends StatelessWidget {
   final bool isGenerating;
   final String? generatedPdfPath;
   final String? successMessage;
+  final String? errorMessage;
   final VoidCallback onGeneratePdf;
   final VoidCallback onPreviewPdf;
   final VoidCallback onSharePdf;
+  final VoidCallback? onRetry;
+  final VoidCallback? onDismissError;
 
   @override
   Widget build(BuildContext context) {
     // Only show for complete reports (or show disabled for draft)
     final isComplete = report.status == ReportStatus.complete;
     final hasPdf = generatedPdfPath != null;
+    final hasError = errorMessage != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -3048,8 +3070,90 @@ class _PdfGenerationSection extends StatelessWidget {
         ),
         AppSpacing.verticalSm,
 
+        // Error message with retry
+        if (hasError) ...[
+          Container(
+            key: const Key('pdf_error_message'),
+            padding: AppSpacing.cardInsets,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkRoseSubtle : AppColors.rose50,
+              borderRadius: AppSpacing.borderRadiusLg,
+              border: Border.all(
+                color: isDark ? AppColors.darkRose : AppColors.rose500,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 20,
+                      color: isDark ? AppColors.darkRose : AppColors.rose500,
+                    ),
+                    AppSpacing.horizontalSm,
+                    Text(
+                      'PDF generation failed',
+                      style: AppTypography.body2.copyWith(
+                        color: isDark ? AppColors.darkRose : AppColors.rose500,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                AppSpacing.verticalSm,
+                Text(
+                  errorMessage!,
+                  style: AppTypography.caption.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.slate700,
+                  ),
+                ),
+                AppSpacing.verticalMd,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: onDismissError,
+                      child: Text(
+                        'Dismiss',
+                        style: AppTypography.button.copyWith(
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.slate700,
+                        ),
+                      ),
+                    ),
+                    AppSpacing.horizontalSm,
+                    ElevatedButton(
+                      key: const Key('pdf_retry_button'),
+                      onPressed: onRetry,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            isDark ? AppColors.darkOrange : AppColors.orange500,
+                        foregroundColor: AppColors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.sm,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          AppSpacing.verticalMd,
+        ],
+
         // Success message
-        if (successMessage != null && hasPdf) ...[
+        if (successMessage != null && hasPdf && !hasError) ...[
           Container(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.md,
@@ -3148,40 +3252,41 @@ class _PdfGenerationSection extends StatelessWidget {
           AppSpacing.verticalMd,
         ],
 
-        // Generate PDF button
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            key: const Key('generate_pdf_button'),
-            onPressed: isComplete && !isGenerating ? onGeneratePdf : null,
-            icon: Icon(
-              Icons.picture_as_pdf,
-              color: isComplete ? AppColors.white : AppColors.slate400,
-            ),
-            label: Text(
-              hasPdf ? 'Regenerate PDF' : 'Generate PDF',
-              style: AppTypography.button.copyWith(
+        // Generate PDF button (hide when showing error with retry)
+        if (!hasError)
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              key: const Key('generate_pdf_button'),
+              onPressed: isComplete && !isGenerating ? onGeneratePdf : null,
+              icon: Icon(
+                Icons.picture_as_pdf,
                 color: isComplete ? AppColors.white : AppColors.slate400,
               ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isComplete
-                  ? (isDark ? AppColors.darkOrange : AppColors.orange500)
-                  : (isDark ? AppColors.darkSurfaceHigh : AppColors.slate100),
-              disabledBackgroundColor:
-                  isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
-              padding: const EdgeInsets.symmetric(
-                vertical: AppSpacing.md,
+              label: Text(
+                hasPdf ? 'Regenerate PDF' : 'Generate PDF',
+                style: AppTypography.button.copyWith(
+                  color: isComplete ? AppColors.white : AppColors.slate400,
+                ),
               ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isComplete
+                    ? (isDark ? AppColors.darkOrange : AppColors.orange500)
+                    : (isDark ? AppColors.darkSurfaceHigh : AppColors.slate100),
+                disabledBackgroundColor:
+                    isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.md,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
-        ),
 
         // Help text for draft reports
-        if (!isComplete)
+        if (!isComplete && !hasError)
           Padding(
             padding: const EdgeInsets.only(top: AppSpacing.sm),
             child: Text(
