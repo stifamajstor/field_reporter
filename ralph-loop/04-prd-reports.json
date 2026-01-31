@@ -268,7 +268,7 @@
       "Verify report becomes read-only",
       "Verify visual indicator of complete status"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

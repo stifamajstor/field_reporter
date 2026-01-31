@@ -652,6 +652,35 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
         .reorderEntries(_report.id, oldIndex, newIndex);
   }
 
+  Future<void> _handleMarkComplete() async {
+    HapticFeedback.lightImpact();
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => _MarkCompleteConfirmationDialog(
+        isDark: context.isDarkMode,
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      HapticFeedback.lightImpact();
+      // Update report status to complete
+      final updatedReport = _report.copyWith(
+        status: ReportStatus.complete,
+        updatedAt: DateTime.now(),
+      );
+      _report = updatedReport;
+      await ref
+          .read(allReportsNotifierProvider.notifier)
+          .updateReport(updatedReport);
+      setState(() {});
+    }
+  }
+
+  /// Returns true if the report is editable (not complete)
+  bool get _isEditable => _report.status != ReportStatus.complete;
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
@@ -712,6 +741,7 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
                 isDark: isDark,
                 controller: _titleController,
                 focusNode: _titleFocusNode,
+                enabled: _isEditable,
               ),
               AppSpacing.verticalLg,
 
@@ -720,6 +750,7 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
                 isDark: isDark,
                 controller: _notesController,
                 focusNode: _notesFocusNode,
+                enabled: _isEditable,
               ),
               AppSpacing.verticalLg,
 
@@ -749,14 +780,24 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
               ),
               AppSpacing.verticalLg,
 
+              // Mark Complete section (only for draft reports)
+              if (_report.status == ReportStatus.draft)
+                _MarkCompleteSection(
+                  isDark: isDark,
+                  onMarkComplete: _handleMarkComplete,
+                ),
+              if (_report.status == ReportStatus.draft) AppSpacing.verticalLg,
+
               // Entries section
               _EntriesSection(
                 isDark: isDark,
                 entries: entries,
-                onAddEntry: _showAddEntryOptions,
-                onDeleteEntry: _handleDeleteEntry,
-                onReorder: (oldIndex, newIndex) =>
-                    _handleReorderEntries(oldIndex, newIndex),
+                onAddEntry: _isEditable ? _showAddEntryOptions : null,
+                onDeleteEntry: _isEditable ? _handleDeleteEntry : null,
+                onReorder: _isEditable
+                    ? (oldIndex, newIndex) =>
+                        _handleReorderEntries(oldIndex, newIndex)
+                    : null,
               ),
             ],
           ),
@@ -938,11 +979,13 @@ class _ReportTitleField extends StatelessWidget {
     required this.isDark,
     required this.controller,
     required this.focusNode,
+    this.enabled = true,
   });
 
   final bool isDark;
   final TextEditingController controller;
   final FocusNode focusNode;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -960,6 +1003,7 @@ class _ReportTitleField extends StatelessWidget {
           key: const Key('report_title_field'),
           controller: controller,
           focusNode: focusNode,
+          enabled: enabled,
           decoration: InputDecoration(
             hintText: 'Enter report title',
             hintStyle: AppTypography.body1.copyWith(
@@ -978,13 +1022,19 @@ class _ReportTitleField extends StatelessWidget {
                 width: 2,
               ),
             ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.md,
               vertical: AppSpacing.md,
             ),
           ),
           style: AppTypography.body1.copyWith(
-            color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+            color: enabled
+                ? (isDark ? AppColors.darkTextPrimary : AppColors.slate900)
+                : (isDark ? AppColors.darkTextMuted : AppColors.slate500),
           ),
         ),
       ],
@@ -997,11 +1047,13 @@ class _ReportNotesField extends StatelessWidget {
     required this.isDark,
     required this.controller,
     required this.focusNode,
+    this.enabled = true,
   });
 
   final bool isDark;
   final TextEditingController controller;
   final FocusNode focusNode;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -1019,6 +1071,7 @@ class _ReportNotesField extends StatelessWidget {
           key: const Key('report_notes_field'),
           controller: controller,
           focusNode: focusNode,
+          enabled: enabled,
           maxLines: 4,
           decoration: InputDecoration(
             hintText: 'Add notes or description...',
@@ -1038,13 +1091,19 @@ class _ReportNotesField extends StatelessWidget {
                 width: 2,
               ),
             ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.md,
               vertical: AppSpacing.md,
             ),
           ),
           style: AppTypography.body1.copyWith(
-            color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+            color: enabled
+                ? (isDark ? AppColors.darkTextPrimary : AppColors.slate900)
+                : (isDark ? AppColors.darkTextMuted : AppColors.slate500),
           ),
         ),
       ],
@@ -1056,16 +1115,16 @@ class _EntriesSection extends StatelessWidget {
   const _EntriesSection({
     required this.isDark,
     required this.entries,
-    required this.onAddEntry,
-    required this.onDeleteEntry,
-    required this.onReorder,
+    this.onAddEntry,
+    this.onDeleteEntry,
+    this.onReorder,
   });
 
   final bool isDark;
   final List<Entry> entries;
-  final VoidCallback onAddEntry;
-  final void Function(Entry) onDeleteEntry;
-  final void Function(int oldIndex, int newIndex) onReorder;
+  final VoidCallback? onAddEntry;
+  final void Function(Entry)? onDeleteEntry;
+  final void Function(int oldIndex, int newIndex)? onReorder;
 
   @override
   Widget build(BuildContext context) {
@@ -1086,15 +1145,17 @@ class _EntriesSection extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: entries.length,
-            onReorder: (oldIndex, newIndex) {
-              HapticFeedback.mediumImpact();
-              // ReorderableListView passes newIndex as if the item was already removed
-              // So we need to adjust it
-              if (newIndex > oldIndex) {
-                newIndex -= 1;
-              }
-              onReorder(oldIndex, newIndex);
-            },
+            onReorder: onReorder != null
+                ? (oldIndex, newIndex) {
+                    HapticFeedback.mediumImpact();
+                    // ReorderableListView passes newIndex as if the item was already removed
+                    // So we need to adjust it
+                    if (newIndex > oldIndex) {
+                      newIndex -= 1;
+                    }
+                    onReorder!(oldIndex, newIndex);
+                  }
+                : (_, __) {},
             proxyDecorator: (child, index, animation) {
               return AnimatedBuilder(
                 animation: animation,
@@ -1125,31 +1186,35 @@ class _EntriesSection extends StatelessWidget {
                   key: Key('entry_card_${entry.id}'),
                   entry: entry,
                   isDark: isDark,
-                  onDelete: () => onDeleteEntry(entry),
+                  onDelete: onDeleteEntry != null
+                      ? () => onDeleteEntry!(entry)
+                      : null,
                 ),
               );
             },
           ),
-          AppSpacing.verticalSm,
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: onAddEntry,
-              icon: const Icon(Icons.add),
-              label: const Text('Add Entry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    isDark ? AppColors.darkOrange : AppColors.orange500,
-                foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppSpacing.md,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          if (onAddEntry != null) ...[
+            AppSpacing.verticalSm,
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: onAddEntry,
+                icon: const Icon(Icons.add),
+                label: const Text('Add Entry'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      isDark ? AppColors.darkOrange : AppColors.orange500,
+                  foregroundColor: AppColors.white,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppSpacing.md,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ] else ...[
           // Empty state with Add Entry button
           Container(
@@ -1174,26 +1239,28 @@ class _EntriesSection extends StatelessWidget {
                         isDark ? AppColors.darkTextMuted : AppColors.slate400,
                   ),
                 ),
-                AppSpacing.verticalMd,
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: onAddEntry,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Entry'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isDark ? AppColors.darkOrange : AppColors.orange500,
-                      foregroundColor: AppColors.white,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.md,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                if (onAddEntry != null) ...[
+                  AppSpacing.verticalMd,
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: onAddEntry,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Entry'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            isDark ? AppColors.darkOrange : AppColors.orange500,
+                        foregroundColor: AppColors.white,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.md,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -1208,12 +1275,12 @@ class _SwipeableEntryCard extends StatefulWidget {
     super.key,
     required this.entry,
     required this.isDark,
-    required this.onDelete,
+    this.onDelete,
   });
 
   final Entry entry;
   final bool isDark;
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete;
 
   @override
   State<_SwipeableEntryCard> createState() => _SwipeableEntryCardState();
@@ -2681,6 +2748,132 @@ class _PdfGenerationSection extends StatelessWidget {
               ),
             ),
           ),
+      ],
+    );
+  }
+}
+
+class _MarkCompleteSection extends StatelessWidget {
+  const _MarkCompleteSection({
+    required this.isDark,
+    required this.onMarkComplete,
+  });
+
+  final bool isDark;
+  final VoidCallback onMarkComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: AppSpacing.cardInsets,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.white,
+        borderRadius: AppSpacing.borderRadiusLg,
+        border: isDark ? null : Border.all(color: AppColors.slate200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Report Status',
+            style: AppTypography.headline3.copyWith(
+              color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+            ),
+          ),
+          AppSpacing.verticalSm,
+          Text(
+            'Mark this report as complete when you have finished adding all entries and are ready to finalize it.',
+            style: AppTypography.body2.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.slate500,
+            ),
+          ),
+          AppSpacing.verticalMd,
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: onMarkComplete,
+              icon: Icon(
+                Icons.check_circle_outline,
+                color: isDark ? AppColors.darkEmerald : AppColors.emerald500,
+              ),
+              label: Text(
+                'Mark Complete',
+                style: AppTypography.button.copyWith(
+                  color: isDark ? AppColors.darkEmerald : AppColors.emerald500,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    isDark ? AppColors.darkEmeraldSubtle : AppColors.emerald50,
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.md,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MarkCompleteConfirmationDialog extends StatelessWidget {
+  const _MarkCompleteConfirmationDialog({
+    required this.isDark,
+  });
+
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: isDark ? AppColors.darkSurfaceHigh : AppColors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      title: Text(
+        'Mark Report Complete?',
+        style: AppTypography.headline3.copyWith(
+          color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+        ),
+      ),
+      content: Text(
+        'Once marked complete, you will not be able to add or modify entries. '
+        'You can still generate PDFs and share the report.',
+        style: AppTypography.body2.copyWith(
+          color: isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(
+            'Cancel',
+            style: AppTypography.button.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.slate500,
+            ),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor:
+                isDark ? AppColors.darkEmerald : AppColors.emerald500,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Text(
+            'Mark Complete',
+            style: AppTypography.button.copyWith(
+              color: AppColors.white,
+            ),
+          ),
+        ),
       ],
     );
   }
