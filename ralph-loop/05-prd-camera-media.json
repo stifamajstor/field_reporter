@@ -271,7 +271,7 @@
       "Verify orientation data",
       "Verify compass direction"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
