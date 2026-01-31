@@ -213,7 +213,7 @@
       "Verify recording stops",
       "Verify recording is added to report"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
