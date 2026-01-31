@@ -168,7 +168,7 @@
       "Verify entry is removed from list",
       "Verify entry count updates"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

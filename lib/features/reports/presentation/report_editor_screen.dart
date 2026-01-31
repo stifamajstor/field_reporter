@@ -502,6 +502,31 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     });
   }
 
+  Future<void> _handleDeleteEntry(Entry entry) async {
+    HapticFeedback.mediumImpact();
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => _DeleteConfirmationDialog(
+        isDark: context.isDarkMode,
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      // Delete the entry
+      await ref.read(entriesNotifierProvider.notifier).deleteEntry(entry.id);
+
+      // Update report entry count
+      final updatedReport = _report.copyWith(
+        entryCount: _report.entryCount - 1,
+        updatedAt: DateTime.now(),
+      );
+      _report = updatedReport;
+      ref.read(allReportsNotifierProvider.notifier).updateReport(updatedReport);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
@@ -578,6 +603,7 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
                 isDark: isDark,
                 entries: entries,
                 onAddEntry: _showAddEntryOptions,
+                onDeleteEntry: _handleDeleteEntry,
               ),
             ],
           ),
@@ -878,11 +904,13 @@ class _EntriesSection extends StatelessWidget {
     required this.isDark,
     required this.entries,
     required this.onAddEntry,
+    required this.onDeleteEntry,
   });
 
   final bool isDark;
   final List<Entry> entries;
   final VoidCallback onAddEntry;
+  final void Function(Entry) onDeleteEntry;
 
   @override
   Widget build(BuildContext context) {
@@ -902,7 +930,12 @@ class _EntriesSection extends StatelessWidget {
           ...entries.map(
             (entry) => Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: EntryCard(entry: entry),
+              child: _SwipeableEntryCard(
+                key: Key('entry_card_${entry.id}'),
+                entry: entry,
+                isDark: isDark,
+                onDelete: () => onDeleteEntry(entry),
+              ),
             ),
           ),
           AppSpacing.verticalSm,
@@ -974,6 +1007,80 @@ class _EntriesSection extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _SwipeableEntryCard extends StatefulWidget {
+  const _SwipeableEntryCard({
+    super.key,
+    required this.entry,
+    required this.isDark,
+    required this.onDelete,
+  });
+
+  final Entry entry;
+  final bool isDark;
+  final VoidCallback onDelete;
+
+  @override
+  State<_SwipeableEntryCard> createState() => _SwipeableEntryCardState();
+}
+
+class _SwipeableEntryCardState extends State<_SwipeableEntryCard> {
+  double _dragExtent = 0;
+  static const double _deleteThreshold = 80;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onHorizontalDragUpdate: (details) {
+        setState(() {
+          _dragExtent =
+              (_dragExtent + details.delta.dx).clamp(-_deleteThreshold, 0);
+        });
+      },
+      onHorizontalDragEnd: (details) {
+        if (_dragExtent <= -_deleteThreshold * 0.5) {
+          // Keep the delete button visible
+          setState(() {
+            _dragExtent = -_deleteThreshold;
+          });
+        } else {
+          // Snap back
+          setState(() {
+            _dragExtent = 0;
+          });
+        }
+      },
+      child: Stack(
+        children: [
+          // Delete button background
+          Positioned.fill(
+            child: Container(
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: widget.isDark ? AppColors.darkRose : AppColors.rose500,
+                borderRadius: AppSpacing.borderRadiusLg,
+              ),
+              child: IconButton(
+                key: Key('delete_button_${widget.entry.id}'),
+                onPressed: widget.onDelete,
+                icon: const Icon(
+                  Icons.delete,
+                  color: AppColors.white,
+                ),
+              ),
+            ),
+          ),
+          // Entry card
+          Transform.translate(
+            offset: Offset(_dragExtent, 0),
+            child: EntryCard(entry: widget.entry),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1891,6 +1998,65 @@ class _ScanOverlay extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DeleteConfirmationDialog extends StatelessWidget {
+  const _DeleteConfirmationDialog({
+    required this.isDark,
+  });
+
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      key: const Key('delete_confirmation_dialog'),
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      title: Text(
+        'Delete Entry',
+        style: AppTypography.headline3.copyWith(
+          color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+        ),
+      ),
+      content: Text(
+        'Are you sure you want to delete this entry?',
+        style: AppTypography.body1.copyWith(
+          color: isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+        ),
+      ),
+      actions: [
+        TextButton(
+          key: const Key('cancel_delete_button'),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            Navigator.of(context).pop(false);
+          },
+          child: Text(
+            'Cancel',
+            style: AppTypography.button.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+            ),
+          ),
+        ),
+        TextButton(
+          key: const Key('confirm_delete_button'),
+          onPressed: () {
+            HapticFeedback.mediumImpact();
+            Navigator.of(context).pop(true);
+          },
+          child: Text(
+            'Delete',
+            style: AppTypography.button.copyWith(
+              color: isDark ? AppColors.darkRose : AppColors.rose500,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
