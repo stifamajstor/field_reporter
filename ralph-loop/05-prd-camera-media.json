@@ -467,7 +467,7 @@
       "Verify warning that video will have no audio",
       "Verify option to proceed without audio or fix permissions"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "error-handling",

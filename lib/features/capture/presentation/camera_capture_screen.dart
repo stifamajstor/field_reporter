@@ -58,6 +58,8 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
   int _recordingSeconds = 0;
   Timer? _recordingTimer;
   bool _hasMicrophonePermission = false;
+  bool _showNoAudioWarning = false;
+  bool _userDismissedAudioWarning = false;
 
   @override
   void initState() {
@@ -300,10 +302,26 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
       micStatus = await permissionService.requestMicrophonePermission();
     }
 
+    final hasMic = micStatus.isGranted;
+
     setState(() {
-      _hasMicrophonePermission = micStatus.isGranted;
+      _hasMicrophonePermission = hasMic;
       _cameraMode = CameraMode.video;
+      // Show warning if microphone denied and user hasn't dismissed it yet
+      _showNoAudioWarning = !hasMic && !_userDismissedAudioWarning;
     });
+  }
+
+  void _dismissNoAudioWarning() {
+    setState(() {
+      _showNoAudioWarning = false;
+      _userDismissedAudioWarning = true;
+    });
+  }
+
+  Future<void> _openMicrophoneSettings() async {
+    final permissionService = ref.read(permissionServiceProvider);
+    await permissionService.openAppSettings();
   }
 
   void _switchToPhotoMode() {
@@ -593,6 +611,103 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
                   color: Colors.black.withOpacity(_switchAnimation.value * 0.5),
                 );
               },
+            ),
+
+          // No audio warning overlay (when microphone permission denied in video mode)
+          if (_showNoAudioWarning)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withOpacity(0.8),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          key: const Key('no_audio_warning'),
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: AppColors.darkSurfaceHigh,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.mic_off,
+                                size: 48,
+                                color: AppColors.orange500,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No Audio Permission',
+                                style: AppTypography.headline3.copyWith(
+                                  color: Colors.white,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Video will be recorded with no audio. Grant microphone permission to record audio with your videos.',
+                                style: AppTypography.body1.copyWith(
+                                  color: AppColors.slate400,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 24),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  key:
+                                      const Key('proceed_without_audio_button'),
+                                  onPressed: _dismissNoAudioWarning,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.orange500,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Continue Without Audio',
+                                    style: AppTypography.button,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton(
+                                  key: const Key('fix_permissions_button'),
+                                  onPressed: _openMicrophoneSettings,
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    side: const BorderSide(
+                                      color: AppColors.slate400,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Fix Permissions',
+                                    style: AppTypography.button,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
 
           // Bottom controls - positioned to ensure capture button is in bottom third and centered
