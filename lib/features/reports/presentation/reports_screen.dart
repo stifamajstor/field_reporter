@@ -10,6 +10,9 @@ import '../../projects/providers/projects_provider.dart';
 import '../domain/report.dart';
 import '../providers/reports_provider.dart';
 
+/// Provider for the current status filter.
+final statusFilterProvider = StateProvider<ReportStatus?>((ref) => null);
+
 /// Screen displaying the list of all reports.
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
@@ -18,11 +21,27 @@ class ReportsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final reportsAsync = ref.watch(allReportsNotifierProvider);
     final projectsAsync = ref.watch(projectsNotifierProvider);
+    final statusFilter = ref.watch(statusFilterProvider);
     final isDark = context.isDarkMode;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reports'),
+        actions: [
+          IconButton(
+            key: const Key('filter_button'),
+            icon: Icon(
+              statusFilter != null
+                  ? Icons.filter_alt
+                  : Icons.filter_alt_outlined,
+            ),
+            tooltip: 'Filter reports',
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              _showFilterMenu(context, ref);
+            },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -47,7 +66,12 @@ class ReportsScreen extends ConsumerWidget {
           ),
         ),
         data: (reports) {
-          if (reports.isEmpty) {
+          // Apply status filter
+          final filteredReports = statusFilter != null
+              ? reports.where((r) => r.status == statusFilter).toList()
+              : reports;
+
+          if (filteredReports.isEmpty) {
             return const EmptyState(
               icon: Icons.description_outlined,
               title: 'No reports yet',
@@ -74,10 +98,10 @@ class ReportsScreen extends ConsumerWidget {
                 top: AppSpacing.md,
                 bottom: AppSpacing.md,
               ),
-              itemCount: reports.length,
+              itemCount: filteredReports.length,
               separatorBuilder: (context, index) => AppSpacing.verticalSm,
               itemBuilder: (context, index) {
-                final report = reports[index];
+                final report = filteredReports[index];
                 final project = projectsMap[report.projectId];
 
                 return _ReportCard(
@@ -93,6 +117,84 @@ class ReportsScreen extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+
+  void _showFilterMenu(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Filter by Status',
+                          style: AppTypography.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? AppColors.darkTextPrimary
+                                : AppColors.slate900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ListTile(
+                    title: const Text('All'),
+                    leading: const Icon(Icons.list),
+                    onTap: () {
+                      ref.read(statusFilterProvider.notifier).state = null;
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Draft'),
+                    leading: const Icon(Icons.edit_outlined),
+                    onTap: () {
+                      ref.read(statusFilterProvider.notifier).state =
+                          ReportStatus.draft;
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Processing'),
+                    leading: const Icon(Icons.hourglass_empty),
+                    onTap: () {
+                      ref.read(statusFilterProvider.notifier).state =
+                          ReportStatus.processing;
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Complete'),
+                    leading: const Icon(Icons.check_circle_outline),
+                    onTap: () {
+                      ref.read(statusFilterProvider.notifier).state =
+                          ReportStatus.complete;
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
