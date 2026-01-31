@@ -327,7 +327,7 @@
       "Capture photo while rotating device",
       "Verify different gyroscope values recorded"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "offline",

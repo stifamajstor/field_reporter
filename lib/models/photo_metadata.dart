@@ -50,6 +50,9 @@ class PhotoMetadata {
     this.aperture,
     this.iso,
     this.exposureTime,
+    this.gyroscopeX,
+    this.gyroscopeY,
+    this.gyroscopeZ,
   });
 
   /// Path to the photo file.
@@ -94,11 +97,24 @@ class PhotoMetadata {
   /// Photo orientation.
   final PhotoOrientation orientation;
 
+  /// Gyroscope rotation rate around X axis (rad/s).
+  final double? gyroscopeX;
+
+  /// Gyroscope rotation rate around Y axis (rad/s).
+  final double? gyroscopeY;
+
+  /// Gyroscope rotation rate around Z axis (rad/s).
+  final double? gyroscopeZ;
+
   /// Whether GPS coordinates are available.
   bool get hasGpsCoordinates => latitude != null && longitude != null;
 
   /// Whether camera info is available.
   bool get hasCameraInfo => deviceModel.isNotEmpty && deviceMake.isNotEmpty;
+
+  /// Whether gyroscope data is available.
+  bool get hasGyroscopeData =>
+      gyroscopeX != null && gyroscopeY != null && gyroscopeZ != null;
 
   /// Formatted timestamp in ISO-like format.
   String get formattedTimestamp {
@@ -161,6 +177,15 @@ class PhotoMetadata {
     if (exposureTime != null) {
       map['ExposureTime'] = exposureTime;
     }
+    if (gyroscopeX != null) {
+      map['GyroscopeX'] = gyroscopeX;
+    }
+    if (gyroscopeY != null) {
+      map['GyroscopeY'] = gyroscopeY;
+    }
+    if (gyroscopeZ != null) {
+      map['GyroscopeZ'] = gyroscopeZ;
+    }
 
     return map;
   }
@@ -203,6 +228,9 @@ class PhotoCaptureContext {
     this.aperture,
     this.iso,
     this.exposureTime,
+    this.gyroscopeX,
+    this.gyroscopeY,
+    this.gyroscopeZ,
   });
 
   final String filePath;
@@ -219,4 +247,7 @@ class PhotoCaptureContext {
   final int? iso;
   final String? exposureTime;
   final PhotoOrientation orientation;
+  final double? gyroscopeX;
+  final double? gyroscopeY;
+  final double? gyroscopeZ;
 }

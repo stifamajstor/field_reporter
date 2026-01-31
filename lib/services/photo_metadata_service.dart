@@ -19,6 +19,9 @@ class PhotoMetadataService {
       iso: context.iso,
       exposureTime: context.exposureTime,
       orientation: context.orientation,
+      gyroscopeX: context.gyroscopeX,
+      gyroscopeY: context.gyroscopeY,
+      gyroscopeZ: context.gyroscopeZ,
     );
   }
 }
