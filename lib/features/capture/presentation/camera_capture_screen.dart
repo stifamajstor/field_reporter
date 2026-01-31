@@ -19,17 +19,30 @@ class CameraCaptureScreen extends ConsumerStatefulWidget {
 }
 
 class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   bool _isInitialized = false;
   bool _hasPermission = false;
   bool _isCheckingPermission = true;
   String? _errorMessage;
   bool _showShutterAnimation = false;
+  bool _showSwitchAnimation = false;
+  late AnimationController _switchAnimationController;
+  late Animation<double> _switchAnimation;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _switchAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _switchAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _switchAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _cameraService = ref.read(cameraServiceProvider);
       _checkPermissionAndInitialize();
@@ -40,6 +53,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
 
   @override
   void dispose() {
+    _switchAnimationController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _cameraService?.closeCamera();
     super.dispose();
@@ -106,6 +120,25 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
     } catch (e) {
       setState(() {
         _errorMessage = 'Failed to initialize camera';
+      });
+    }
+  }
+
+  Future<void> _switchCamera() async {
+    setState(() {
+      _showSwitchAnimation = true;
+    });
+
+    _switchAnimationController.forward(from: 0.0);
+
+    final cameraService = ref.read(cameraServiceProvider);
+    await cameraService.switchCamera();
+
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    if (mounted) {
+      setState(() {
+        _showSwitchAnimation = false;
       });
     }
   }
@@ -325,6 +358,18 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
               color: Colors.white.withOpacity(0.15),
             ),
 
+          // Camera switch animation overlay
+          if (_showSwitchAnimation)
+            AnimatedBuilder(
+              animation: _switchAnimation,
+              builder: (context, child) {
+                return Container(
+                  key: const Key('camera_switch_animation'),
+                  color: Colors.black.withOpacity(_switchAnimation.value * 0.5),
+                );
+              },
+            ),
+
           // Bottom controls
           Positioned(
             left: 0,
@@ -367,7 +412,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
             ),
           ),
 
-          // Top bar with close button
+          // Top bar with close button and camera switch
           Positioned(
             left: 0,
             right: 0,
@@ -376,11 +421,21 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(
                         Icons.close,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    IconButton(
+                      key: const Key('camera_switch_button'),
+                      onPressed: _switchCamera,
+                      icon: const Icon(
+                        Icons.cameraswitch,
                         color: Colors.white,
                         size: 28,
                       ),

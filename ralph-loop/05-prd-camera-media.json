@@ -38,7 +38,7 @@
       "Tap switch button again",
       "Verify back camera preview restored"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

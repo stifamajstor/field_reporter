@@ -1,6 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// Camera lens direction.
+enum CameraLensDirection {
+  front,
+  back,
+}
+
 /// Error types for camera service.
 enum CameraError {
   cameraFailure,
@@ -65,14 +71,26 @@ abstract class CameraService {
 
   /// Closes the camera and releases resources.
   Future<void> closeCamera();
+
+  /// Switches between front and back camera.
+  Future<void> switchCamera();
+
+  /// Gets the current lens direction.
+  CameraLensDirection get lensDirection;
 }
 
 /// Default implementation of CameraService.
 /// In production, this would use the camera package.
 class DefaultCameraService implements CameraService {
+  CameraLensDirection _lensDirection = CameraLensDirection.back;
+
+  @override
+  CameraLensDirection get lensDirection => _lensDirection;
+
   @override
   Future<void> openCamera() async {
     // Implementation will use camera package
+    _lensDirection = CameraLensDirection.back;
   }
 
   @override
@@ -100,6 +118,14 @@ class DefaultCameraService implements CameraService {
   @override
   Future<void> closeCamera() async {
     // Implementation will use camera package
+  }
+
+  @override
+  Future<void> switchCamera() async {
+    // Implementation will use camera package
+    _lensDirection = _lensDirection == CameraLensDirection.back
+        ? CameraLensDirection.front
+        : CameraLensDirection.back;
   }
 }
 

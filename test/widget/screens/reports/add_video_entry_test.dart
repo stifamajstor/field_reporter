@@ -391,6 +391,7 @@ class MockCameraService implements CameraService {
   final String? capturedVideoPath;
   final int? capturedVideoDuration;
   final String? capturedVideoThumbnailPath;
+  CameraLensDirection _lensDirection = CameraLensDirection.back;
 
   bool openCameraCalled = false;
   bool openCameraForVideoCalled = false;
@@ -403,6 +404,9 @@ class MockCameraService implements CameraService {
     this.capturedVideoDuration,
     this.capturedVideoThumbnailPath,
   });
+
+  @override
+  CameraLensDirection get lensDirection => _lensDirection;
 
   @override
   Future<void> openCamera() async {
@@ -440,4 +444,11 @@ class MockCameraService implements CameraService {
 
   @override
   Future<void> closeCamera() async {}
+
+  @override
+  Future<void> switchCamera() async {
+    _lensDirection = _lensDirection == CameraLensDirection.back
+        ? CameraLensDirection.front
+        : CameraLensDirection.back;
+  }
 }

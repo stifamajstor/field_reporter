@@ -419,6 +419,11 @@ class MockAudioRecorderService implements AudioRecorderService {
 
 /// Mock CameraService for testing
 class MockCameraService implements CameraService {
+  CameraLensDirection _lensDirection = CameraLensDirection.back;
+
+  @override
+  CameraLensDirection get lensDirection => _lensDirection;
+
   @override
   Future<void> openCamera() async {}
 
@@ -436,4 +441,11 @@ class MockCameraService implements CameraService {
 
   @override
   Future<void> closeCamera() async {}
+
+  @override
+  Future<void> switchCamera() async {
+    _lensDirection = _lensDirection == CameraLensDirection.back
+        ? CameraLensDirection.front
+        : CameraLensDirection.back;
+  }
 }

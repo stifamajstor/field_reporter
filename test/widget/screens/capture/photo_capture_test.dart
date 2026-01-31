@@ -30,9 +30,13 @@ class MockPermissionService implements PermissionService {
 /// Mock camera service for testing photo capture flow.
 class MockCameraService implements CameraService {
   bool _isOpen = false;
+  CameraLensDirection _lensDirection = CameraLensDirection.back;
   bool capturePhotoCalled = false;
   String? capturedPhotoPath;
   bool shouldShowShutterAnimation = true;
+
+  @override
+  CameraLensDirection get lensDirection => _lensDirection;
 
   @override
   Future<void> openCamera() async {
@@ -60,6 +64,13 @@ class MockCameraService implements CameraService {
   @override
   Future<void> closeCamera() async {
     _isOpen = false;
+  }
+
+  @override
+  Future<void> switchCamera() async {
+    _lensDirection = _lensDirection == CameraLensDirection.back
+        ? CameraLensDirection.front
+        : CameraLensDirection.back;
   }
 }
 

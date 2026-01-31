@@ -108,3 +108,4 @@
 [2026-01-31 09:35] | reports | Report Editor is accessible with screen reader | PASS | test/widget/screens/reports/report_editor_accessibility_test.dart
 [2026-01-31 14:54] | camera-media | Camera opens and displays live preview | PASS | lib/features/capture/presentation/camera_capture_screen.dart, test/widget/screens/capture/camera_preview_test.dart
 [2026-01-31 15:00] | camera-media | User can capture a photo | PASS | lib/features/capture/presentation/camera_capture_screen.dart, lib/features/capture/presentation/photo_preview_screen.dart, test/widget/screens/capture/photo_capture_test.dart
+[2026-01-31 15:02] | camera-media | User can switch between front and back camera | PASS | lib/services/camera_service.dart, lib/features/capture/presentation/camera_capture_screen.dart, test/widget/screens/capture/camera_switch_test.dart

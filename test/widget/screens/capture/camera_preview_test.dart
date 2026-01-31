@@ -39,9 +39,13 @@ class MockPermissionService implements PermissionService {
 class MockCameraService implements CameraService {
   bool _isInitialized = false;
   bool _isPreviewActive = false;
+  CameraLensDirection _lensDirection = CameraLensDirection.back;
 
   bool get isInitialized => _isInitialized;
   bool get isPreviewActive => _isPreviewActive;
+
+  @override
+  CameraLensDirection get lensDirection => _lensDirection;
 
   @override
   Future<void> openCamera() async {
@@ -72,6 +76,13 @@ class MockCameraService implements CameraService {
   Future<void> closeCamera() async {
     _isInitialized = false;
     _isPreviewActive = false;
+  }
+
+  @override
+  Future<void> switchCamera() async {
+    _lensDirection = _lensDirection == CameraLensDirection.back
+        ? CameraLensDirection.front
+        : CameraLensDirection.back;
   }
 }
 
