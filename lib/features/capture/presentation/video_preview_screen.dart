@@ -9,10 +9,12 @@ class VideoPreviewArguments {
   const VideoPreviewArguments({
     required this.videoPath,
     required this.durationSeconds,
+    this.hasAudio = true,
   });
 
   final String videoPath;
   final int durationSeconds;
+  final bool hasAudio;
 }
 
 /// Screen that displays the recorded video with accept/retake options.
@@ -73,6 +75,28 @@ class _VideoPreviewScreenState extends State<VideoPreviewScreen> {
                       fontFamily: 'monospace',
                     ),
                   ),
+                  if (widget.arguments.hasAudio) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      key: const Key('audio_indicator'),
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.mic,
+                          color: AppColors.slate400,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Audio',
+                          style: TextStyle(
+                            color: AppColors.slate400,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

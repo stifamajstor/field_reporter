@@ -392,6 +392,7 @@ class MockCameraService implements CameraService {
   final int? capturedVideoDuration;
   final String? capturedVideoThumbnailPath;
   CameraLensDirection _lensDirection = CameraLensDirection.back;
+  FlashMode _flashMode = FlashMode.auto;
 
   bool openCameraCalled = false;
   bool openCameraForVideoCalled = false;
@@ -409,12 +410,20 @@ class MockCameraService implements CameraService {
   CameraLensDirection get lensDirection => _lensDirection;
 
   @override
+  FlashMode get currentFlashMode => _flashMode;
+
+  @override
+  Future<void> setFlashMode(FlashMode mode) async {
+    _flashMode = mode;
+  }
+
+  @override
   Future<void> openCamera() async {
     openCameraCalled = true;
   }
 
   @override
-  Future<void> openCameraForVideo() async {
+  Future<void> openCameraForVideo({bool enableAudio = true}) async {
     openCameraForVideoCalled = true;
   }
 
@@ -425,7 +434,7 @@ class MockCameraService implements CameraService {
   }
 
   @override
-  Future<void> startRecording() async {
+  Future<void> startRecording({bool enableAudio = true}) async {
     startRecordingCalled = true;
   }
 

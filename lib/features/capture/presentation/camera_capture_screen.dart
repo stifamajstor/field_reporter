@@ -48,6 +48,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
   bool _isRecording = false;
   int _recordingSeconds = 0;
   Timer? _recordingTimer;
+  bool _hasMicrophonePermission = false;
 
   @override
   void initState() {
@@ -259,8 +260,17 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
     }
   }
 
-  void _switchToVideoMode() {
+  Future<void> _switchToVideoMode() async {
+    // Check and request microphone permission for audio recording
+    final permissionService = ref.read(permissionServiceProvider);
+    var micStatus = await permissionService.checkMicrophonePermission();
+
+    if (!micStatus.isGranted) {
+      micStatus = await permissionService.requestMicrophonePermission();
+    }
+
     setState(() {
+      _hasMicrophonePermission = micStatus.isGranted;
       _cameraMode = CameraMode.video;
     });
   }
@@ -275,7 +285,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
     HapticFeedback.lightImpact();
 
     final cameraService = ref.read(cameraServiceProvider);
-    await cameraService.startRecording();
+    await cameraService.startRecording(enableAudio: _hasMicrophonePermission);
 
     setState(() {
       _isRecording = true;
@@ -314,6 +324,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
             arguments: VideoPreviewArguments(
               videoPath: result.path,
               durationSeconds: result.durationSeconds,
+              hasAudio: result.hasAudio,
             ),
           ),
         ),

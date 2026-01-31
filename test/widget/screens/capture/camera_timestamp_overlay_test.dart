@@ -27,14 +27,6 @@ class MockPermissionService implements PermissionService {
 
   @override
   Future<bool> openAppSettings() async => true;
-
-  @override
-  Future<PermissionStatus> checkLocationPermission() async =>
-      PermissionStatus.granted;
-
-  @override
-  Future<PermissionStatus> requestLocationPermission() async =>
-      PermissionStatus.granted;
 }
 
 class MockCameraService implements CameraService {
@@ -51,13 +43,14 @@ class MockCameraService implements CameraService {
   Future<void> openCamera() async {}
 
   @override
-  Future<void> openCameraForVideo() async {}
+  Future<void> openCameraForVideo({bool enableAudio = true}) async {}
 
   @override
-  Future<String?> capturePhoto({double? compassHeading}) async => '/test/photo.jpg';
+  Future<String?> capturePhoto({double? compassHeading}) async =>
+      '/test/photo.jpg';
 
   @override
-  Future<void> startRecording() async {}
+  Future<void> startRecording({bool enableAudio = true}) async {}
 
   @override
   Future<VideoRecordingResult?> stopRecording() async => null;

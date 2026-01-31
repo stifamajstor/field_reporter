@@ -408,6 +408,7 @@ class MockCameraService implements CameraService {
   final CameraError? shouldFailWithError;
   final bool succeedOnRetry;
   CameraLensDirection _lensDirection = CameraLensDirection.back;
+  FlashMode _flashMode = FlashMode.auto;
 
   bool openCameraCalled = false;
   bool capturePhotoCalled = false;
@@ -426,6 +427,14 @@ class MockCameraService implements CameraService {
   CameraLensDirection get lensDirection => _lensDirection;
 
   @override
+  FlashMode get currentFlashMode => _flashMode;
+
+  @override
+  Future<void> setFlashMode(FlashMode mode) async {
+    _flashMode = mode;
+  }
+
+  @override
   Future<void> openCamera() async {
     openCameraCalled = true;
     _attemptCount++;
@@ -438,7 +447,7 @@ class MockCameraService implements CameraService {
   }
 
   @override
-  Future<void> openCameraForVideo() async {
+  Future<void> openCameraForVideo({bool enableAudio = true}) async {
     _attemptCount++;
     if (shouldFailWithError != null &&
         (!succeedOnRetry || _attemptCount == 1)) {
@@ -453,7 +462,7 @@ class MockCameraService implements CameraService {
   }
 
   @override
-  Future<void> startRecording() async {}
+  Future<void> startRecording({bool enableAudio = true}) async {}
 
   @override
   Future<VideoRecordingResult?> stopRecording() async => null;

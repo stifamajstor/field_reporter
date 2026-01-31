@@ -45,6 +45,7 @@ class VideoRecordingResult {
     required this.path,
     required this.durationSeconds,
     this.thumbnailPath,
+    this.hasAudio = true,
   });
 
   /// Path to the recorded video file.
@@ -55,6 +56,9 @@ class VideoRecordingResult {
 
   /// Path to the video thumbnail image.
   final String? thumbnailPath;
+
+  /// Whether the video has audio.
+  final bool hasAudio;
 }
 
 /// Service for camera operations.
@@ -63,7 +67,8 @@ abstract class CameraService {
   Future<void> openCamera();
 
   /// Opens the camera for video recording.
-  Future<void> openCameraForVideo();
+  /// [enableAudio] controls whether the camera is configured to capture audio.
+  Future<void> openCameraForVideo({bool enableAudio = true});
 
   /// Captures a photo and returns the file path.
   /// Returns null if capture was cancelled or failed.
@@ -71,7 +76,8 @@ abstract class CameraService {
   Future<String?> capturePhoto({double? compassHeading});
 
   /// Starts video recording.
-  Future<void> startRecording();
+  /// [enableAudio] controls whether audio is captured (requires microphone permission).
+  Future<void> startRecording({bool enableAudio = true});
 
   /// Stops video recording and returns the result.
   /// Returns null if recording was cancelled or failed.
@@ -118,7 +124,7 @@ class DefaultCameraService implements CameraService {
   }
 
   @override
-  Future<void> openCameraForVideo() async {
+  Future<void> openCameraForVideo({bool enableAudio = true}) async {
     // Implementation will use camera package
   }
 
@@ -130,7 +136,7 @@ class DefaultCameraService implements CameraService {
   }
 
   @override
-  Future<void> startRecording() async {
+  Future<void> startRecording({bool enableAudio = true}) async {
     // Implementation will use camera package
   }
 

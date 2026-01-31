@@ -347,6 +347,7 @@ class _MockEntriesNotifier extends EntriesNotifier {
 class MockCameraService implements CameraService {
   final String? capturedPhotoPath;
   CameraLensDirection _lensDirection = CameraLensDirection.back;
+  FlashMode _flashMode = FlashMode.auto;
 
   bool openCameraCalled = false;
   bool capturePhotoCalled = false;
@@ -357,12 +358,20 @@ class MockCameraService implements CameraService {
   CameraLensDirection get lensDirection => _lensDirection;
 
   @override
+  FlashMode get currentFlashMode => _flashMode;
+
+  @override
+  Future<void> setFlashMode(FlashMode mode) async {
+    _flashMode = mode;
+  }
+
+  @override
   Future<void> openCamera() async {
     openCameraCalled = true;
   }
 
   @override
-  Future<void> openCameraForVideo() async {}
+  Future<void> openCameraForVideo({bool enableAudio = true}) async {}
 
   @override
   Future<String?> capturePhoto({double? compassHeading}) async {
@@ -371,7 +380,7 @@ class MockCameraService implements CameraService {
   }
 
   @override
-  Future<void> startRecording() async {}
+  Future<void> startRecording({bool enableAudio = true}) async {}
 
   @override
   Future<VideoRecordingResult?> stopRecording() async => null;

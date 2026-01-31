@@ -8,12 +8,19 @@ import 'package:field_reporter/features/capture/presentation/video_preview_scree
 import 'package:field_reporter/services/camera_service.dart';
 import 'package:field_reporter/services/permission_service.dart';
 
-/// Mock permission service for testing.
+/// Mock permission service for testing audio recording.
 class MockPermissionService implements PermissionService {
   PermissionStatus _cameraStatus = PermissionStatus.granted;
+  PermissionStatus _microphoneStatus = PermissionStatus.granted;
+  bool microphonePermissionChecked = false;
+  bool microphonePermissionRequested = false;
 
   void setCameraStatus(PermissionStatus status) {
     _cameraStatus = status;
+  }
+
+  void setMicrophoneStatus(PermissionStatus status) {
+    _microphoneStatus = status;
   }
 
   @override
@@ -28,12 +35,14 @@ class MockPermissionService implements PermissionService {
 
   @override
   Future<PermissionStatus> checkMicrophonePermission() async {
-    return PermissionStatus.granted;
+    microphonePermissionChecked = true;
+    return _microphoneStatus;
   }
 
   @override
   Future<PermissionStatus> requestMicrophonePermission() async {
-    return PermissionStatus.granted;
+    microphonePermissionRequested = true;
+    return _microphoneStatus;
   }
 
   @override
@@ -42,14 +51,18 @@ class MockPermissionService implements PermissionService {
   }
 }
 
-/// Mock camera service for testing video recording.
+/// Mock camera service for testing video recording with audio.
 class MockCameraService implements CameraService {
   bool _isRecording = false;
   int _recordingDurationSeconds = 0;
   CameraLensDirection _lensDirection = CameraLensDirection.back;
   FlashMode _flashMode = FlashMode.auto;
+  bool _enableAudio = true;
+  bool startRecordingCalled = false;
+  bool? recordingHasAudio;
 
   bool get isRecording => _isRecording;
+  bool get enableAudio => _enableAudio;
 
   @override
   CameraLensDirection get lensDirection => _lensDirection;
@@ -66,7 +79,9 @@ class MockCameraService implements CameraService {
   Future<void> openCamera() async {}
 
   @override
-  Future<void> openCameraForVideo({bool enableAudio = true}) async {}
+  Future<void> openCameraForVideo({bool enableAudio = true}) async {
+    _enableAudio = enableAudio;
+  }
 
   @override
   Future<String?> capturePhoto({double? compassHeading}) async {
@@ -75,6 +90,8 @@ class MockCameraService implements CameraService {
 
   @override
   Future<void> startRecording({bool enableAudio = true}) async {
+    startRecordingCalled = true;
+    recordingHasAudio = enableAudio;
     _isRecording = true;
     _recordingDurationSeconds = 0;
   }
@@ -85,6 +102,7 @@ class MockCameraService implements CameraService {
     return VideoRecordingResult(
       path: '/path/to/video.mp4',
       durationSeconds: _recordingDurationSeconds,
+      hasAudio: recordingHasAudio ?? true,
     );
   }
 
@@ -104,7 +122,7 @@ class MockCameraService implements CameraService {
 }
 
 void main() {
-  group('User can record video', () {
+  group('Video recording captures audio', () {
     late MockPermissionService mockPermissionService;
     late MockCameraService mockCameraService;
 
@@ -125,63 +143,99 @@ void main() {
       );
     }
 
-    testWidgets('can switch to video mode and UI changes', (tester) async {
-      // Step 1: Open camera and switch to video mode
-      // Step 2: Verify video mode UI (record button changes)
+    testWidgets('checks microphone permission when switching to video mode',
+        (tester) async {
+      // Step 1: Ensure microphone permission granted
+      mockPermissionService.setMicrophoneStatus(PermissionStatus.granted);
+
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      // Should be in photo mode by default
-      expect(find.byKey(const Key('capture_button')), findsOneWidget);
-      expect(find.byKey(const Key('video_mode_button')), findsOneWidget);
-
-      // Switch to video mode
+      // Step 2: Open camera in video mode
       await tester.tap(find.byKey(const Key('video_mode_button')));
       await tester.pumpAndSettle();
 
-      // Verify video mode - record button should be red/different
-      expect(find.byKey(const Key('record_button')), findsOneWidget);
-      // Capture button should be hidden in video mode
-      expect(find.byKey(const Key('capture_button')), findsNothing);
+      // Verify microphone permission was checked
+      expect(mockPermissionService.microphonePermissionChecked, isTrue);
     });
 
-    testWidgets('tapping record starts recording with indicator and timer',
+    testWidgets(
+        'starts video recording with audio enabled when permission granted',
         (tester) async {
-      // Step 3: Tap record button
-      // Step 4: Verify recording indicator appears
-      // Step 5: Verify timer counting up
+      // Step 1: Ensure microphone permission granted
+      mockPermissionService.setMicrophoneStatus(PermissionStatus.granted);
+
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      // Switch to video mode
+      // Step 2: Open camera in video mode
       await tester.tap(find.byKey(const Key('video_mode_button')));
       await tester.pumpAndSettle();
 
-      // Tap record button to start recording
+      // Step 3: Start recording while speaking
       await tester.tap(find.byKey(const Key('record_button')));
       await tester.pump();
 
-      // Verify recording indicator appears
-      expect(find.byKey(const Key('recording_indicator')), findsOneWidget);
-
-      // Verify timer is visible and starts at 00:00
-      expect(find.byKey(const Key('recording_timer')), findsOneWidget);
-      expect(find.text('00:00'), findsOneWidget);
-
-      // Wait and verify timer updates
-      await tester.pump(const Duration(seconds: 1));
-      expect(find.text('00:01'), findsOneWidget);
-
-      await tester.pump(const Duration(seconds: 1));
-      expect(find.text('00:02'), findsOneWidget);
+      // Verify recording started with audio enabled
+      expect(mockCameraService.startRecordingCalled, isTrue);
+      expect(mockCameraService.recordingHasAudio, isTrue);
     });
 
-    testWidgets('tapping stop ends recording and shows preview',
+    testWidgets('video preview shows audio indicator when audio is captured',
         (tester) async {
-      // Step 6: Wait a few seconds
-      // Step 7: Tap stop button
-      // Step 8: Verify video preview plays automatically
-      // Step 9: Verify accept/retake options visible
+      // Step 1: Ensure microphone permission granted
+      mockPermissionService.setMicrophoneStatus(PermissionStatus.granted);
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      // Step 2: Open camera in video mode
+      await tester.tap(find.byKey(const Key('video_mode_button')));
+      await tester.pumpAndSettle();
+
+      // Step 3: Start recording
+      await tester.tap(find.byKey(const Key('record_button')));
+      await tester.pump();
+
+      // Simulate recording time
+      await tester.pump(const Duration(seconds: 2));
+      mockCameraService.simulateRecordingTime(2);
+
+      // Step 4: Stop recording
+      await tester.tap(find.byKey(const Key('stop_button')));
+      await tester.pumpAndSettle();
+
+      // Step 5: Play back video preview
+      expect(find.byType(VideoPreviewScreen), findsOneWidget);
+      expect(find.byKey(const Key('video_player')), findsOneWidget);
+
+      // Step 6: Verify audio is captured and audible (audio indicator visible)
+      expect(find.byKey(const Key('audio_indicator')), findsOneWidget);
+    });
+
+    testWidgets('requests microphone permission if not granted',
+        (tester) async {
+      // Microphone permission not granted
+      mockPermissionService.setMicrophoneStatus(PermissionStatus.denied);
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      // Switch to video mode
+      await tester.tap(find.byKey(const Key('video_mode_button')));
+      await tester.pumpAndSettle();
+
+      // Should request microphone permission
+      expect(mockPermissionService.microphonePermissionRequested, isTrue);
+    });
+
+    testWidgets(
+        'video recorded without audio when microphone permission denied',
+        (tester) async {
+      // Microphone permission permanently denied
+      mockPermissionService
+          .setMicrophoneStatus(PermissionStatus.permanentlyDenied);
+
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
@@ -193,48 +247,9 @@ void main() {
       await tester.tap(find.byKey(const Key('record_button')));
       await tester.pump();
 
-      // Simulate some recording time
-      await tester.pump(const Duration(seconds: 3));
-
-      // The record button becomes stop button while recording
-      expect(find.byKey(const Key('stop_button')), findsOneWidget);
-
-      // Stop recording
-      mockCameraService.simulateRecordingTime(3);
-      await tester.tap(find.byKey(const Key('stop_button')));
-      await tester.pumpAndSettle();
-
-      // Should navigate to video preview screen
-      expect(find.byType(VideoPreviewScreen), findsOneWidget);
-
-      // Verify video preview is playing (autoPlay)
-      expect(find.byKey(const Key('video_player')), findsOneWidget);
-
-      // Verify accept/retake options are visible
-      expect(find.byKey(const Key('accept_video_button')), findsOneWidget);
-      expect(find.byKey(const Key('retake_video_button')), findsOneWidget);
-    });
-
-    testWidgets('recording indicator is red dot', (tester) async {
-      await tester.pumpWidget(createTestWidget());
-      await tester.pumpAndSettle();
-
-      // Switch to video mode and start recording
-      await tester.tap(find.byKey(const Key('video_mode_button')));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('record_button')));
-      await tester.pump();
-
-      // Find the recording indicator
-      final indicatorFinder = find.byKey(const Key('recording_indicator'));
-      expect(indicatorFinder, findsOneWidget);
-
-      // Verify it's a red indicator (circle with red color)
-      final indicator = tester.widget<Container>(indicatorFinder);
-      final decoration = indicator.decoration as BoxDecoration;
-      expect(decoration.color, Colors.red);
-      expect(decoration.shape, BoxShape.circle);
+      // Recording should still work but without audio
+      expect(mockCameraService.startRecordingCalled, isTrue);
+      expect(mockCameraService.recordingHasAudio, isFalse);
     });
   });
 }

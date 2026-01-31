@@ -24,6 +24,14 @@ class MockPermissionService implements PermissionService {
   Future<PermissionStatus> requestCameraPermission() async => _cameraStatus;
 
   @override
+  Future<PermissionStatus> checkMicrophonePermission() async =>
+      PermissionStatus.granted;
+
+  @override
+  Future<PermissionStatus> requestMicrophonePermission() async =>
+      PermissionStatus.granted;
+
+  @override
   Future<bool> openAppSettings() async => true;
 }
 
@@ -53,7 +61,7 @@ class MockCameraService implements CameraService {
   }
 
   @override
-  Future<void> openCameraForVideo() async {
+  Future<void> openCameraForVideo({bool enableAudio = true}) async {
     _isOpen = true;
   }
 
@@ -65,7 +73,7 @@ class MockCameraService implements CameraService {
   }
 
   @override
-  Future<void> startRecording() async {}
+  Future<void> startRecording({bool enableAudio = true}) async {}
 
   @override
   Future<VideoRecordingResult?> stopRecording() async => null;

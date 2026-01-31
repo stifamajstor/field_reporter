@@ -462,9 +462,18 @@ class MockAudioRecorderService implements AudioRecorderService {
 /// Mock CameraService for testing
 class MockCameraService implements CameraService {
   CameraLensDirection _lensDirection = CameraLensDirection.back;
+  FlashMode _flashMode = FlashMode.auto;
 
   @override
   CameraLensDirection get lensDirection => _lensDirection;
+
+  @override
+  FlashMode get currentFlashMode => _flashMode;
+
+  @override
+  Future<void> setFlashMode(FlashMode mode) async {
+    _flashMode = mode;
+  }
 
   @override
   Future<void> openCamera() async {}
@@ -473,10 +482,10 @@ class MockCameraService implements CameraService {
   Future<String?> capturePhoto({double? compassHeading}) async => null;
 
   @override
-  Future<void> openCameraForVideo() async {}
+  Future<void> openCameraForVideo({bool enableAudio = true}) async {}
 
   @override
-  Future<void> startRecording() async {}
+  Future<void> startRecording({bool enableAudio = true}) async {}
 
   @override
   Future<VideoRecordingResult?> stopRecording() async => null;

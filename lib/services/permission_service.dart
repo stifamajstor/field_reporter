@@ -9,6 +9,12 @@ abstract class PermissionService {
   /// Requests camera permission from the user.
   Future<PermissionStatus> requestCameraPermission();
 
+  /// Checks the current microphone permission status.
+  Future<PermissionStatus> checkMicrophonePermission();
+
+  /// Requests microphone permission from the user.
+  Future<PermissionStatus> requestMicrophonePermission();
+
   /// Opens the app settings page.
   Future<bool> openAppSettings();
 }
@@ -23,6 +29,16 @@ class DefaultPermissionService implements PermissionService {
   @override
   Future<PermissionStatus> requestCameraPermission() async {
     return Permission.camera.request();
+  }
+
+  @override
+  Future<PermissionStatus> checkMicrophonePermission() async {
+    return Permission.microphone.status;
+  }
+
+  @override
+  Future<PermissionStatus> requestMicrophonePermission() async {
+    return Permission.microphone.request();
   }
 
   @override
