@@ -242,7 +242,7 @@
       "Verify successful decode",
       "Verify all formats display decoded number"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
