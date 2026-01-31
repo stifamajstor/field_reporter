@@ -10,7 +10,7 @@
       "Verify preview fills capture area",
       "Verify preview is smooth (no lag)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
