@@ -9,6 +9,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../services/camera_service.dart';
 import '../../../services/permission_service.dart';
+import '../providers/camera_focus_provider.dart';
 import '../providers/camera_zoom_provider.dart';
 import '../providers/compass_provider.dart';
 import '../providers/gps_overlay_provider.dart';
@@ -920,7 +921,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
   }
 }
 
-/// Widget that displays the camera preview with pinch-to-zoom support.
+/// Widget that displays the camera preview with pinch-to-zoom and tap-to-focus support.
 /// In production, the actual camera preview is managed by the CameraService.
 /// This widget provides the visual container that fills the screen.
 class CameraPreviewWidget extends ConsumerWidget {
@@ -929,56 +930,152 @@ class CameraPreviewWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final zoomState = ref.watch(cameraZoomProvider);
+    final focusState = ref.watch(cameraFocusProvider);
 
-    return GestureDetector(
-      onScaleStart: (_) {
-        ref.read(cameraZoomProvider.notifier).onScaleStart();
-      },
-      onScaleUpdate: (details) {
-        ref.read(cameraZoomProvider.notifier).onScaleUpdate(details.scale);
-      },
-      onScaleEnd: (_) {
-        ref.read(cameraZoomProvider.notifier).onScaleEnd();
-      },
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Camera preview placeholder
-          Container(
-            color: Colors.black,
-            child: const SizedBox.expand(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final previewSize = Size(constraints.maxWidth, constraints.maxHeight);
+
+        return GestureDetector(
+          onScaleStart: (_) {
+            ref.read(cameraZoomProvider.notifier).onScaleStart();
+          },
+          onScaleUpdate: (details) {
+            ref.read(cameraZoomProvider.notifier).onScaleUpdate(details.scale);
+          },
+          onScaleEnd: (_) {
+            ref.read(cameraZoomProvider.notifier).onScaleEnd();
+          },
+          onTapUp: (details) {
+            ref
+                .read(cameraFocusProvider.notifier)
+                .onTapToFocus(details.localPosition, previewSize);
+          },
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Camera preview placeholder
+              Container(
+                color: Colors.black,
+                child: const SizedBox.expand(),
+              ),
+              // Focus indicator
+              if (focusState.showIndicator && focusState.focusPoint != null)
+                Positioned(
+                  left: focusState.focusPoint!.dx - 30,
+                  top: focusState.focusPoint!.dy - 30,
+                  child:
+                      const FocusIndicatorWidget(key: Key('focus_indicator')),
+                ),
+              // Zoom level indicator (shown when zoomed above 1.0x)
+              if (zoomState.isZoomed)
+                Positioned(
+                  bottom: 180,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      key: const Key('zoom_indicator'),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        zoomState.formattedZoomLevel,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
-          // Zoom level indicator (shown when zoomed above 1.0x)
-          if (zoomState.isZoomed)
-            Positioned(
-              bottom: 180,
-              left: 0,
-              right: 0,
+        );
+      },
+    );
+  }
+}
+
+/// Widget that displays the focus indicator animation.
+class FocusIndicatorWidget extends StatefulWidget {
+  const FocusIndicatorWidget({super.key});
+
+  @override
+  State<FocusIndicatorWidget> createState() => _FocusIndicatorWidgetState();
+}
+
+class _FocusIndicatorWidgetState extends State<FocusIndicatorWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _opacityAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    _scaleAnimation = Tween<double>(begin: 1.5, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    _opacityAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: Opacity(
+            opacity: _opacityAnimation.value,
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white,
+                  width: 2,
+                ),
+              ),
               child: Center(
                 child: Container(
-                  key: const Key('zoom_indicator'),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    zoomState.formattedZoomLevel,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'monospace',
-                    ),
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
                   ),
                 ),
               ),
             ),
-        ],
-      ),
+          ),
+        );
+      },
     );
   }
 }

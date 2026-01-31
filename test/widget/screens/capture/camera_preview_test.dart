@@ -103,6 +103,21 @@ class MockCameraService implements CameraService {
         ? CameraLensDirection.front
         : CameraLensDirection.back;
   }
+
+  @override
+  Future<void> setZoomLevel(double zoom) async {}
+
+  @override
+  double get currentZoomLevel => 1.0;
+
+  @override
+  double get minZoomLevel => 1.0;
+
+  @override
+  double get maxZoomLevel => 10.0;
+
+  @override
+  Future<void> setFocusPoint(double x, double y) async {}
 }
 
 void main() {

@@ -129,6 +129,9 @@ class MockCameraService implements CameraService {
 
   @override
   double get maxZoomLevel => _maxZoom;
+
+  @override
+  Future<void> setFocusPoint(double x, double y) async {}
 }
 
 void main() {

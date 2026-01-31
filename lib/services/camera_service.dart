@@ -110,6 +110,10 @@ abstract class CameraService {
 
   /// Gets the maximum supported zoom level.
   double get maxZoomLevel;
+
+  /// Sets the focus point on the camera preview.
+  /// [x] and [y] are normalized coordinates (0.0 to 1.0) relative to the preview.
+  Future<void> setFocusPoint(double x, double y);
 }
 
 /// Default implementation of CameraService.
@@ -190,6 +194,11 @@ class DefaultCameraService implements CameraService {
         : CameraLensDirection.back;
     // Reset zoom when switching cameras
     _zoomLevel = 1.0;
+  }
+
+  @override
+  Future<void> setFocusPoint(double x, double y) async {
+    // Implementation will use camera package to set focus point
   }
 }
 

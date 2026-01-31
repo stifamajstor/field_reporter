@@ -315,7 +315,7 @@
       "Verify focus shifts to background",
       "Verify foreground becomes blurry"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
