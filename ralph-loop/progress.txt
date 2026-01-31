@@ -131,3 +131,4 @@
 [2026-01-31 16:35] | camera-media | Camera captures sensor data for gyroscope | PASS | lib/models/photo_metadata.dart, lib/services/photo_metadata_service.dart, test/unit/models/photo_metadata_gyroscope_test.dart
 [2026-01-31 16:40] | camera-media | All captures work without network connection | PASS | lib/services/offline_capture_service.dart, test/unit/services/capture/offline_capture_service_test.dart
 [2026-01-31 16:45] | camera-media | GPS capture works with cached location when no signal | PASS | lib/services/location_service.dart, lib/features/capture/providers/gps_overlay_provider.dart, lib/features/capture/presentation/camera_capture_screen.dart, test/unit/services/camera/gps_cached_location_offline_test.dart
+[2026-01-31 16:50] | camera-media | Large video files are stored efficiently | PASS | lib/services/video_storage_service.dart, test/unit/services/video_storage_service_test.dart

@@ -370,7 +370,7 @@
       "Play back video",
       "Verify quality is acceptable"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "storage",
