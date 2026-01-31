@@ -89,7 +89,7 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
 
   // State for camera error handling
   bool _showCameraError = false;
-  CameraException? _cameraException;
+  CameraServiceException? _cameraException;
   VoidCallback? _retryCallback;
 
   @override
@@ -312,7 +312,7 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
           _showPhotoPreview = true;
         });
       }
-    } on CameraException catch (e) {
+    } on CameraServiceException catch (e) {
       setState(() {
         _cameraException = e;
         _showCameraError = true;
@@ -408,7 +408,7 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
           _showVideoPreview = true;
         });
       }
-    } on CameraException catch (e) {
+    } on CameraServiceException catch (e) {
       setState(() {
         _cameraException = e;
         _showCameraError = true;
@@ -3500,7 +3500,7 @@ class _CameraErrorOverlay extends StatelessWidget {
   });
 
   final bool isDark;
-  final CameraException exception;
+  final CameraServiceException exception;
   final VoidCallback onRetry;
   final VoidCallback onCancel;
 

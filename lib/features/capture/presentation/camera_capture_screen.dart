@@ -189,7 +189,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Grant Permission',
                     style: AppTypography.button,
                   ),
@@ -255,7 +255,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Try Again',
                     style: AppTypography.button,
                   ),

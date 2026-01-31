@@ -8,10 +8,10 @@ enum CameraError {
 }
 
 /// Exception thrown by camera service.
-class CameraException implements Exception {
+class CameraServiceException implements Exception {
   final CameraError error;
 
-  const CameraException(this.error);
+  const CameraServiceException(this.error);
 
   String get message {
     switch (error) {

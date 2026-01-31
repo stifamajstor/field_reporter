@@ -429,7 +429,7 @@ class MockCameraService implements CameraService {
     // If should fail and this is first attempt (or no retry configured)
     if (shouldFailWithError != null &&
         (!succeedOnRetry || _attemptCount == 1)) {
-      throw CameraException(shouldFailWithError!);
+      throw CameraServiceException(shouldFailWithError!);
     }
   }
 
@@ -438,7 +438,7 @@ class MockCameraService implements CameraService {
     _attemptCount++;
     if (shouldFailWithError != null &&
         (!succeedOnRetry || _attemptCount == 1)) {
-      throw CameraException(shouldFailWithError!);
+      throw CameraServiceException(shouldFailWithError!);
     }
   }
 
