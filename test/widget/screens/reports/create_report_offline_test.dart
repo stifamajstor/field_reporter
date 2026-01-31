@@ -16,6 +16,7 @@ import 'package:field_reporter/features/sync/domain/pending_upload.dart';
 import 'package:field_reporter/features/sync/providers/pending_uploads_provider.dart';
 import 'package:field_reporter/services/camera_service.dart';
 import 'package:field_reporter/services/connectivity_service.dart';
+import 'package:field_reporter/services/location_service.dart';
 
 void main() {
   group('User can create report and add entries while offline', () {
@@ -603,7 +604,11 @@ class _MockCameraService implements CameraService {
   Future<void> openCameraForVideo({bool enableAudio = true}) async {}
 
   @override
-  Future<String?> capturePhoto({double? compassHeading}) async =>
+  Future<String?> capturePhoto({
+    double? compassHeading,
+    LocationPosition? location,
+    bool? isLocationStale,
+  }) async =>
       capturedPhotoPath;
 
   @override

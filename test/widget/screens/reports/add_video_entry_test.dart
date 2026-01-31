@@ -12,6 +12,7 @@ import 'package:field_reporter/features/reports/domain/report.dart';
 import 'package:field_reporter/features/reports/presentation/report_editor_screen.dart';
 import 'package:field_reporter/features/reports/providers/reports_provider.dart';
 import 'package:field_reporter/services/camera_service.dart';
+import 'package:field_reporter/services/location_service.dart';
 
 void main() {
   group('User can add video entry to report', () {
@@ -428,7 +429,11 @@ class MockCameraService implements CameraService {
   }
 
   @override
-  Future<String?> capturePhoto({double? compassHeading}) async {
+  Future<String?> capturePhoto({
+    double? compassHeading,
+    LocationPosition? location,
+    bool? isLocationStale,
+  }) async {
     capturePhotoCalled = true;
     return null;
   }

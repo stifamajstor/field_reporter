@@ -36,6 +36,7 @@ class MockBarcodeScannerService implements MockableBarcodeScannerService {
   bool shouldDetectCode = false;
   ScanResult? detectedCode;
   bool isStable = false;
+  bool _flashlightOn = false;
 
   @override
   void Function(ScanResult)? onCodeDetected;
@@ -63,6 +64,14 @@ class MockBarcodeScannerService implements MockableBarcodeScannerService {
   @override
   Future<void> dispose() async {
     isScanning = false;
+  }
+
+  @override
+  bool get isFlashlightOn => _flashlightOn;
+
+  @override
+  Future<void> toggleFlashlight() async {
+    _flashlightOn = !_flashlightOn;
   }
 }
 

@@ -8,6 +8,9 @@ import '../../../services/location_service.dart';
 
 const _kGpsOverlayEnabledKey = 'gps_overlay_enabled';
 
+/// Threshold in seconds after which a cached location is considered stale.
+const int kStaleLocationThresholdSeconds = 60;
+
 /// State for GPS overlay display.
 @immutable
 class GpsOverlayState {
@@ -16,18 +19,24 @@ class GpsOverlayState {
     required this.permissionStatus,
     this.currentPosition,
     this.isLoading = false,
+    this.isLocationStale = false,
+    this.positionTimestamp,
   });
 
   const GpsOverlayState.initial()
       : isEnabled = true,
         permissionStatus = LocationPermissionStatus.denied,
         currentPosition = null,
-        isLoading = true;
+        isLoading = true,
+        isLocationStale = false,
+        positionTimestamp = null;
 
   final bool isEnabled;
   final LocationPermissionStatus permissionStatus;
   final LocationPosition? currentPosition;
   final bool isLoading;
+  final bool isLocationStale;
+  final DateTime? positionTimestamp;
 
   bool get hasPermission =>
       permissionStatus == LocationPermissionStatus.granted;
@@ -48,6 +57,8 @@ class GpsOverlayState {
     LocationPermissionStatus? permissionStatus,
     LocationPosition? currentPosition,
     bool? isLoading,
+    bool? isLocationStale,
+    DateTime? positionTimestamp,
     bool clearPosition = false,
   }) {
     return GpsOverlayState(
@@ -56,6 +67,8 @@ class GpsOverlayState {
       currentPosition:
           clearPosition ? null : (currentPosition ?? this.currentPosition),
       isLoading: isLoading ?? this.isLoading,
+      isLocationStale: isLocationStale ?? this.isLocationStale,
+      positionTimestamp: positionTimestamp ?? this.positionTimestamp,
     );
   }
 }
@@ -91,14 +104,47 @@ class GpsOverlayNotifier extends StateNotifier<GpsOverlayState> {
   Future<void> _startLocationUpdates() async {
     try {
       final position = await locationService.getCurrentPosition();
-      state = state.copyWith(currentPosition: position);
+      final timestamp = DateTime.now();
+      state = state.copyWith(
+        currentPosition: position,
+        positionTimestamp: timestamp,
+        isLocationStale: false,
+      );
     } catch (e) {
-      // Position unavailable
+      // GPS unavailable - try to get cached/last known position
+      await _tryGetCachedLocation();
     }
   }
 
-  void updatePosition(LocationPosition position) {
-    state = state.copyWith(currentPosition: position);
+  Future<void> _tryGetCachedLocation() async {
+    try {
+      final cachedPosition = await locationService.getLastKnownPosition();
+      if (cachedPosition != null) {
+        final timestamp = await locationService.getLastKnownPositionTimestamp();
+        final isStale = _isPositionStale(timestamp);
+        state = state.copyWith(
+          currentPosition: cachedPosition,
+          positionTimestamp: timestamp,
+          isLocationStale: isStale,
+        );
+      }
+    } catch (e) {
+      // No cached location available
+    }
+  }
+
+  bool _isPositionStale(DateTime? timestamp) {
+    if (timestamp == null) return true;
+    final age = DateTime.now().difference(timestamp);
+    return age.inSeconds > kStaleLocationThresholdSeconds;
+  }
+
+  void updatePosition(LocationPosition position, {bool isStale = false}) {
+    state = state.copyWith(
+      currentPosition: position,
+      positionTimestamp: DateTime.now(),
+      isLocationStale: isStale,
+    );
   }
 
   Future<void> toggleOverlay() async {

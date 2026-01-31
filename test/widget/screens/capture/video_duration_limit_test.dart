@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:field_reporter/features/capture/presentation/camera_capture_screen.dart';
 import 'package:field_reporter/features/capture/presentation/video_preview_screen.dart';
 import 'package:field_reporter/services/camera_service.dart';
+import 'package:field_reporter/services/location_service.dart';
 import 'package:field_reporter/services/permission_service.dart';
 
 /// Mock permission service for testing.
@@ -54,7 +55,11 @@ class MockCameraService implements CameraService {
   Future<void> openCameraForVideo({bool enableAudio = true}) async {}
 
   @override
-  Future<String?> capturePhoto({double? compassHeading}) async {
+  Future<String?> capturePhoto({
+    double? compassHeading,
+    LocationPosition? location,
+    bool? isLocationStale,
+  }) async {
     return '/path/to/photo.jpg';
   }
 

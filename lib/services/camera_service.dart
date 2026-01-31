@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'location_service.dart';
+
 /// Camera lens direction.
 enum CameraLensDirection {
   front,
@@ -73,7 +75,13 @@ abstract class CameraService {
   /// Captures a photo and returns the file path.
   /// Returns null if capture was cancelled or failed.
   /// [compassHeading] is the compass direction in degrees (0-360) at capture time.
-  Future<String?> capturePhoto({double? compassHeading});
+  /// [location] is the GPS position to embed in metadata.
+  /// [isLocationStale] indicates if the location is from cache (may be outdated).
+  Future<String?> capturePhoto({
+    double? compassHeading,
+    LocationPosition? location,
+    bool? isLocationStale,
+  });
 
   /// Starts video recording.
   /// [enableAudio] controls whether audio is captured (requires microphone permission).
@@ -164,9 +172,13 @@ class DefaultCameraService implements CameraService {
   }
 
   @override
-  Future<String?> capturePhoto({double? compassHeading}) async {
+  Future<String?> capturePhoto({
+    double? compassHeading,
+    LocationPosition? location,
+    bool? isLocationStale,
+  }) async {
     // Implementation will use camera package
-    // compassHeading would be stored in EXIF metadata
+    // compassHeading and location would be stored in EXIF metadata
     return null;
   }
 

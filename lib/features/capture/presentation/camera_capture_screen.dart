@@ -226,14 +226,22 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
       final compassState = ref.read(compassProvider);
       final compassHeading = compassState.heading;
 
+      // Capture GPS location at moment of capture
+      final gpsState = ref.read(gpsOverlayProvider);
+      final capturedLocation = gpsState.currentPosition;
+      final isLocationStale = gpsState.isLocationStale;
+
       // Show shutter animation
       setState(() {
         _showShutterAnimation = true;
       });
 
       final cameraService = ref.read(cameraServiceProvider);
-      final photoPath =
-          await cameraService.capturePhoto(compassHeading: compassHeading);
+      final photoPath = await cameraService.capturePhoto(
+        compassHeading: compassHeading,
+        location: capturedLocation,
+        isLocationStale: isLocationStale,
+      );
 
       // Hide shutter animation after brief delay
       await Future.delayed(const Duration(milliseconds: 100));
@@ -1113,7 +1121,8 @@ class GpsOverlayWidget extends ConsumerWidget {
                 size: 16,
               ),
               const SizedBox(width: 4),
-              if (!gpsState.hasPermission)
+              if (!gpsState.hasPermission ||
+                  (!gpsState.hasPosition && !gpsState.isLoading))
                 const Text(
                   'Location unavailable',
                   style: TextStyle(
@@ -1142,6 +1151,31 @@ class GpsOverlayWidget extends ConsumerWidget {
                 ),
             ],
           ),
+          // Stale location indicator
+          if (gpsState.isLocationStale && gpsState.hasPosition)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Row(
+                key: const Key('stale_location_indicator'),
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: AppColors.orange500,
+                    size: 12,
+                  ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    'Location may be stale',
+                    style: TextStyle(
+                      color: AppColors.orange500,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );

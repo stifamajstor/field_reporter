@@ -89,6 +89,12 @@ abstract class LocationService {
   /// Gets the current GPS position.
   Future<LocationPosition> getCurrentPosition();
 
+  /// Gets the last known position (cached) when GPS is unavailable.
+  Future<LocationPosition?> getLastKnownPosition();
+
+  /// Gets the timestamp of the last known position.
+  Future<DateTime?> getLastKnownPositionTimestamp();
+
   /// Reverse geocodes coordinates to an address string.
   Future<String> reverseGeocode(double latitude, double longitude);
 
@@ -104,6 +110,8 @@ abstract class LocationService {
 
 /// Default implementation of LocationService using geolocator and geocoding.
 class DefaultLocationService implements LocationService {
+  DateTime? _lastPositionTimestamp;
+
   @override
   Future<LocationPermissionStatus> checkPermission() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -133,6 +141,7 @@ class DefaultLocationService implements LocationService {
         desiredAccuracy: LocationAccuracy.high,
         timeLimit: const Duration(seconds: 10),
       );
+      _lastPositionTimestamp = DateTime.now();
       return LocationPosition(
         latitude: position.latitude,
         longitude: position.longitude,
@@ -144,6 +153,25 @@ class DefaultLocationService implements LocationService {
     } catch (e) {
       throw LocationServiceException('Failed to get location: $e');
     }
+  }
+
+  @override
+  Future<LocationPosition?> getLastKnownPosition() async {
+    try {
+      final position = await Geolocator.getLastKnownPosition();
+      if (position == null) return null;
+      return LocationPosition(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  Future<DateTime?> getLastKnownPositionTimestamp() async {
+    return _lastPositionTimestamp;
   }
 
   @override

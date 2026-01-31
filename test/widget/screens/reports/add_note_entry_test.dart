@@ -13,6 +13,7 @@ import 'package:field_reporter/features/reports/presentation/report_editor_scree
 import 'package:field_reporter/features/reports/providers/reports_provider.dart';
 import 'package:field_reporter/services/audio_recorder_service.dart';
 import 'package:field_reporter/services/camera_service.dart';
+import 'package:field_reporter/services/location_service.dart';
 
 void main() {
   group('User can add text note entry to report', () {
@@ -437,7 +438,11 @@ class MockCameraService implements CameraService {
   Future<void> openCamera() async {}
 
   @override
-  Future<String?> capturePhoto({double? compassHeading}) async => null;
+  Future<String?> capturePhoto({
+    double? compassHeading,
+    LocationPosition? location,
+    bool? isLocationStale,
+  }) async => null;
 
   @override
   Future<void> openCameraForVideo({bool enableAudio = true}) async {}

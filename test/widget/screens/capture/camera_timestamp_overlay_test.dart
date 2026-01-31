@@ -46,7 +46,11 @@ class MockCameraService implements CameraService {
   Future<void> openCameraForVideo({bool enableAudio = true}) async {}
 
   @override
-  Future<String?> capturePhoto({double? compassHeading}) async =>
+  Future<String?> capturePhoto({
+    double? compassHeading,
+    LocationPosition? location,
+    bool? isLocationStale,
+  }) async =>
       '/test/photo.jpg';
 
   @override
@@ -112,6 +116,13 @@ class MockLocationService implements LocationService {
   @override
   Future<LocationPosition> geocodeAddress(String address) async =>
       const LocationPosition(latitude: 45.8150, longitude: 15.9819);
+
+  @override
+  Future<LocationPosition?> getLastKnownPosition() async =>
+      const LocationPosition(latitude: 45.8150, longitude: 15.9819);
+
+  @override
+  Future<DateTime?> getLastKnownPositionTimestamp() async => DateTime.now();
 }
 
 void main() {

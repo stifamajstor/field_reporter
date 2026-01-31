@@ -4,6 +4,7 @@ import 'package:field_reporter/services/audio_recorder_service.dart';
 import 'package:field_reporter/services/barcode_scanner_service.dart';
 import 'package:field_reporter/services/camera_service.dart';
 import 'package:field_reporter/services/connectivity_service.dart';
+import 'package:field_reporter/services/location_service.dart';
 import 'package:field_reporter/services/offline_capture_service.dart';
 
 void main() {
@@ -304,7 +305,11 @@ class _MockCameraService implements CameraService {
   Future<void> openCameraForVideo({bool enableAudio = true}) async {}
 
   @override
-  Future<String?> capturePhoto({double? compassHeading}) async =>
+  Future<String?> capturePhoto({
+    double? compassHeading,
+    LocationPosition? location,
+    bool? isLocationStale,
+  }) async =>
       _capturedPhotoPath;
 
   @override

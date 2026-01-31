@@ -357,7 +357,7 @@
       "Capture photo",
       "Verify cached location attached to metadata"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "storage",
