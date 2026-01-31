@@ -188,6 +188,22 @@ class Auth extends _$Auth {
       state = AuthState.error(e.toString());
     }
   }
+
+  /// Development-only method to bypass authentication.
+  ///
+  /// This allows quick access to the app without needing a backend.
+  /// Should be removed or disabled in production.
+  void setAuthenticatedForDevelopment() {
+    const token = 'dev_bypass_token';
+    const userId = 'dev_user';
+    const email = 'dev@fieldreporter.com';
+
+    state = const AuthState.authenticated(
+      userId: userId,
+      email: email,
+      token: token,
+    );
+  }
 }
 
 /// Type alias for the auth notifier

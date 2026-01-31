@@ -426,7 +426,7 @@
       "Move camera around",
       "Verify indicator stays visible regardless of background"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",

@@ -5,6 +5,22 @@ allprojects {
     }
 }
 
+// Some third-party Flutter plugins still read Android SDK values from a `flutter` object.
+// Provide those values for plugin subprojects, but DO NOT set `flutter` on :app
+// (the Flutter Gradle plugin uses that name for its own extension).
+ext.flutterSdkValues = [
+    compileSdkVersion: 35,
+    minSdkVersion: 21,
+    targetSdkVersion: 35,
+    ndkVersion: "25.1.8937393",
+]
+
+subprojects { project ->
+    if (project.name != "app") {
+        project.ext.flutter = rootProject.ext.flutterSdkValues
+    }
+}
+
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"

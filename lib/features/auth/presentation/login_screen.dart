@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -307,6 +308,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ],
                     ),
+
+                    // Development bypass button (debug mode only)
+                    if (kDebugMode) AppSpacing.verticalXl,
+                    if (kDebugMode)
+                      OutlinedButton(
+                        key: const Key('dev_bypass_button'),
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                // Bypass authentication for development
+                                ref
+                                    .read(authProvider.notifier)
+                                    .setAuthenticatedForDevelopment();
+                              },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.bug_report_outlined,
+                              size: 16,
+                              color: isDark
+                                  ? AppColors.darkTextSecondary
+                                  : AppColors.slate500,
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Text(
+                              'DEV: Bypass Login',
+                              style: AppTypography.button.copyWith(
+                                color: isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.slate500,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
               ),
