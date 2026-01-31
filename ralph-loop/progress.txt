@@ -129,3 +129,4 @@
 [2026-01-31 16:28] | camera-media | User can zoom camera preview | PASS | lib/services/camera_service.dart, lib/features/capture/providers/camera_zoom_provider.dart, lib/features/capture/presentation/camera_capture_screen.dart, test/widget/screens/capture/camera_zoom_test.dart
 [2026-01-31 16:28] | camera-media | User can tap to focus camera | PASS | lib/services/camera_service.dart, lib/features/capture/providers/camera_focus_provider.dart, lib/features/capture/presentation/camera_capture_screen.dart, test/widget/screens/capture/camera_focus_test.dart
 [2026-01-31 16:35] | camera-media | Camera captures sensor data for gyroscope | PASS | lib/models/photo_metadata.dart, lib/services/photo_metadata_service.dart, test/unit/models/photo_metadata_gyroscope_test.dart
+[2026-01-31 16:40] | camera-media | All captures work without network connection | PASS | lib/services/offline_capture_service.dart, test/unit/services/capture/offline_capture_service_test.dart

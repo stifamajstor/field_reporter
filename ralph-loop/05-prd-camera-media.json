@@ -344,7 +344,7 @@
       "Verify scan saves locally",
       "All entries marked for sync when online"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "offline",
