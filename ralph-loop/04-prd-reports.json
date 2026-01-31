@@ -485,6 +485,6 @@
       "Navigate through existing entries",
       "Verify entry type, timestamp, description announced"
     ],
-    "passes": false
+    "passes": true
   }
 ]

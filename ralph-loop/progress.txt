@@ -105,3 +105,4 @@
 [2026-01-31 09:12] | reports | AI processing failure shows appropriate error | PASS | lib/features/entries/presentation/entry_detail_screen.dart, test/widget/screens/reports/ai_processing_failure_test.dart
 [2026-01-31 09:25] | reports | PDF generation failure allows retry | PASS | lib/features/reports/presentation/report_editor_screen.dart, test/widget/screens/reports/pdf_generation_failure_test.dart
 [2026-01-31 09:26] | reports | Large reports with many entries perform well | PASS | test/widget/screens/reports/large_report_performance_test.dart
+[2026-01-31 09:35] | reports | Report Editor is accessible with screen reader | PASS | test/widget/screens/reports/report_editor_accessibility_test.dart
