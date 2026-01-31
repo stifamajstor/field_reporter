@@ -241,7 +241,7 @@
       "Verify QR codes for videos in PDF"
     ],
     "dependencies": ["11-prd-pdf-generation.json"],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

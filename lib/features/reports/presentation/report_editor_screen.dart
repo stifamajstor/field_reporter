@@ -7,6 +7,7 @@ import '../../../core/theme/theme.dart';
 import '../../../services/audio_recorder_service.dart';
 import '../../../services/barcode_scanner_service.dart';
 import '../../../services/camera_service.dart';
+import '../../../services/pdf_generation_service.dart';
 import '../../entries/domain/entry.dart';
 import '../../entries/presentation/entry_card.dart';
 import '../../entries/providers/entries_provider.dart';
@@ -49,6 +50,11 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
   bool _isGeneratingSummary = false;
   bool _isEditingSummary = false;
   final TextEditingController _summaryController = TextEditingController();
+
+  // State for PDF generation
+  bool _isGeneratingPdf = false;
+  String? _generatedPdfPath;
+  String? _pdfSuccessMessage;
 
   // State for entry type selection
   bool _showEntryTypeOptions = false;
@@ -189,6 +195,59 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     setState(() {
       _isEditingSummary = false;
     });
+  }
+
+  Future<void> _generatePdf() async {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isGeneratingPdf = true;
+      _pdfSuccessMessage = null;
+      _generatedPdfPath = null;
+    });
+
+    try {
+      // Get entries for this report
+      final entriesAsync = ref.read(entriesNotifierProvider).valueOrNull ?? [];
+      final entries = entriesAsync
+          .where((e) => e.reportId == _report.id)
+          .toList()
+        ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+
+      final pdfService = ref.read(pdfGenerationServiceProvider);
+      final result = await pdfService.generatePdf(
+        report: _report,
+        entries: entries,
+        includeQrCodes: true,
+      );
+
+      if (result.success && result.filePath != null) {
+        setState(() {
+          _isGeneratingPdf = false;
+          _generatedPdfPath = result.filePath;
+          _pdfSuccessMessage = 'PDF generated successfully';
+        });
+      } else {
+        setState(() {
+          _isGeneratingPdf = false;
+          _pdfSuccessMessage = result.error ?? 'Failed to generate PDF';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isGeneratingPdf = false;
+        _pdfSuccessMessage = 'Error generating PDF';
+      });
+    }
+  }
+
+  void _previewPdf() {
+    HapticFeedback.lightImpact();
+    // TODO: Implement PDF preview
+  }
+
+  void _sharePdf() {
+    HapticFeedback.lightImpact();
+    // TODO: Implement PDF sharing
   }
 
   void _showAddEntryOptions() {
@@ -665,6 +724,19 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
                 onGenerateSummary: _generateSummary,
                 onStartEditing: _startEditingSummary,
                 onSaveEdit: _saveSummaryEdit,
+              ),
+              AppSpacing.verticalLg,
+
+              // PDF Generation section
+              _PdfGenerationSection(
+                isDark: isDark,
+                report: _report,
+                isGenerating: _isGeneratingPdf,
+                generatedPdfPath: _generatedPdfPath,
+                successMessage: _pdfSuccessMessage,
+                onGeneratePdf: _generatePdf,
+                onPreviewPdf: _previewPdf,
+                onSharePdf: _sharePdf,
               ),
               AppSpacing.verticalLg,
 
@@ -2397,6 +2469,209 @@ class _DeleteConfirmationDialog extends StatelessWidget {
             ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+class _PdfGenerationSection extends StatelessWidget {
+  const _PdfGenerationSection({
+    required this.isDark,
+    required this.report,
+    required this.isGenerating,
+    required this.generatedPdfPath,
+    required this.successMessage,
+    required this.onGeneratePdf,
+    required this.onPreviewPdf,
+    required this.onSharePdf,
+  });
+
+  final bool isDark;
+  final Report report;
+  final bool isGenerating;
+  final String? generatedPdfPath;
+  final String? successMessage;
+  final VoidCallback onGeneratePdf;
+  final VoidCallback onPreviewPdf;
+  final VoidCallback onSharePdf;
+
+  @override
+  Widget build(BuildContext context) {
+    // Only show for complete reports (or show disabled for draft)
+    final isComplete = report.status == ReportStatus.complete;
+    final hasPdf = generatedPdfPath != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'PDF Export',
+              style: AppTypography.headline3.copyWith(
+                color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+              ),
+            ),
+            if (isGenerating)
+              SizedBox(
+                key: const Key('pdf_processing_indicator'),
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(
+                    isDark ? AppColors.darkOrange : AppColors.orange500,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        AppSpacing.verticalSm,
+
+        // Success message
+        if (successMessage != null && hasPdf) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkEmeraldSubtle : AppColors.emerald50,
+              borderRadius: AppSpacing.borderRadiusMd,
+              border: Border.all(
+                color: isDark
+                    ? AppColors.darkEmerald
+                    : AppColors.emerald500.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  size: 20,
+                  color: isDark ? AppColors.darkEmerald : AppColors.emerald500,
+                ),
+                AppSpacing.horizontalSm,
+                Expanded(
+                  child: Text(
+                    successMessage!,
+                    style: AppTypography.body2.copyWith(
+                      color:
+                          isDark ? AppColors.darkEmerald : AppColors.emerald500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          AppSpacing.verticalMd,
+        ],
+
+        // PDF preview/share buttons (after successful generation)
+        if (hasPdf) ...[
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  key: const Key('pdf_preview_button'),
+                  onPressed: onPreviewPdf,
+                  icon: Icon(
+                    Icons.visibility,
+                    color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                  ),
+                  label: Text(
+                    'Preview',
+                    style: AppTypography.button.copyWith(
+                      color:
+                          isDark ? AppColors.darkOrange : AppColors.orange500,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.md,
+                    ),
+                    side: BorderSide(
+                      color:
+                          isDark ? AppColors.darkOrange : AppColors.orange500,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              AppSpacing.horizontalMd,
+              Expanded(
+                child: ElevatedButton.icon(
+                  key: const Key('pdf_share_button'),
+                  onPressed: onSharePdf,
+                  icon: const Icon(Icons.share, color: AppColors.white),
+                  label: Text(
+                    'Share',
+                    style:
+                        AppTypography.button.copyWith(color: AppColors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        isDark ? AppColors.darkOrange : AppColors.orange500,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.md,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          AppSpacing.verticalMd,
+        ],
+
+        // Generate PDF button
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            key: const Key('generate_pdf_button'),
+            onPressed: isComplete && !isGenerating ? onGeneratePdf : null,
+            icon: Icon(
+              Icons.picture_as_pdf,
+              color: isComplete ? AppColors.white : AppColors.slate400,
+            ),
+            label: Text(
+              hasPdf ? 'Regenerate PDF' : 'Generate PDF',
+              style: AppTypography.button.copyWith(
+                color: isComplete ? AppColors.white : AppColors.slate400,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isComplete
+                  ? (isDark ? AppColors.darkOrange : AppColors.orange500)
+                  : (isDark ? AppColors.darkSurfaceHigh : AppColors.slate100),
+              disabledBackgroundColor:
+                  isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
+              padding: const EdgeInsets.symmetric(
+                vertical: AppSpacing.md,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+
+        // Help text for draft reports
+        if (!isComplete)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            child: Text(
+              'Mark report as complete to generate PDF',
+              style: AppTypography.caption.copyWith(
+                color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+              ),
+            ),
+          ),
       ],
     );
   }
