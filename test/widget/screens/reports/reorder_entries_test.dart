@@ -104,6 +104,13 @@ void main() {
       // Verify report editor is displayed
       expect(find.byType(ReportEditorScreen), findsOneWidget);
 
+      // Scroll to entries section
+      await tester.drag(
+        find.byType(ListView),
+        const Offset(0, -400),
+      );
+      await tester.pumpAndSettle();
+
       // Verify entries section shows all entries
       expect(find.text('Entries'), findsOneWidget);
       expect(find.byKey(const Key('entry_card_entry-1')), findsOneWidget);
@@ -124,6 +131,13 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
+      // Scroll to entries section
+      await tester.drag(
+        find.byType(ListView),
+        const Offset(0, -400),
+      );
+      await tester.pumpAndSettle();
+
       // Verify ReorderableListView is used for entries
       expect(find.byType(ReorderableListView), findsOneWidget);
     });
@@ -139,6 +153,13 @@ void main() {
         mockReportsNotifier: mockReportsNotifier,
         mockProjectsNotifier: mockProjectsNotifier,
       ));
+      await tester.pumpAndSettle();
+
+      // Scroll to entries section
+      await tester.drag(
+        find.byType(ListView),
+        const Offset(0, -400),
+      );
       await tester.pumpAndSettle();
 
       // Find the first reorderable entry
@@ -173,8 +194,17 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
+      // Scroll to entries section
+      await tester.drag(
+        find.byType(ListView),
+        const Offset(0, -400),
+      );
+      await tester.pumpAndSettle();
+
       // Find the first entry
       final firstEntryFinder = find.byKey(const Key('reorderable_entry_0'));
+      await tester.ensureVisible(firstEntryFinder);
+      await tester.pumpAndSettle();
       expect(firstEntryFinder, findsOneWidget);
 
       // Start long-press drag gesture
@@ -212,8 +242,17 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
+      // Scroll to entries section
+      await tester.drag(
+        find.byType(ListView),
+        const Offset(0, -400),
+      );
+      await tester.pumpAndSettle();
+
       // Perform drag reorder
       final firstEntryFinder = find.byKey(const Key('reorderable_entry_0'));
+      await tester.ensureVisible(firstEntryFinder);
+      await tester.pumpAndSettle();
 
       final gesture = await tester.startGesture(
         tester.getCenter(firstEntryFinder),

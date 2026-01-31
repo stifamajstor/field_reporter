@@ -105,6 +105,13 @@ void main() {
       // Verify report editor is displayed
       expect(find.byType(ReportEditorScreen), findsOneWidget);
 
+      // Scroll to entries section
+      await tester.drag(
+        find.byType(ListView),
+        const Offset(0, -400),
+      );
+      await tester.pumpAndSettle();
+
       // Verify entries section shows all entries
       expect(find.text('Entries'), findsOneWidget);
       expect(find.text('Photo'), findsOneWidget);
@@ -125,8 +132,17 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
+      // Scroll to entries section
+      await tester.drag(
+        find.byType(ListView),
+        const Offset(0, -400),
+      );
+      await tester.pumpAndSettle();
+
       // Find the first entry card (Photo)
       final entryCard = find.byKey(const Key('entry_card_entry-1'));
+      await tester.ensureVisible(entryCard);
+      await tester.pumpAndSettle();
       expect(entryCard, findsOneWidget);
 
       // Swipe left to reveal delete action
@@ -150,13 +166,24 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
+      // Scroll to entries section
+      await tester.drag(
+        find.byType(ListView),
+        const Offset(0, -400),
+      );
+      await tester.pumpAndSettle();
+
       // Swipe left on entry to reveal delete
       final entryCard = find.byKey(const Key('entry_card_entry-1'));
+      await tester.ensureVisible(entryCard);
+      await tester.pumpAndSettle();
       await tester.drag(entryCard, const Offset(-200, 0));
       await tester.pumpAndSettle();
 
       // Tap delete button
       final deleteButton = find.byKey(const Key('delete_button_entry-1'));
+      await tester.ensureVisible(deleteButton);
+      await tester.pumpAndSettle();
       await tester.tap(deleteButton);
       await tester.pumpAndSettle();
 
@@ -166,8 +193,8 @@ void main() {
       expect(find.text('Delete Entry'), findsOneWidget);
       expect(find.text('Are you sure you want to delete this entry?'),
           findsOneWidget);
-      expect(find.text('Cancel'), findsOneWidget);
-      expect(find.text('Delete'), findsOneWidget);
+      expect(find.byKey(const Key('cancel_delete_button')), findsOneWidget);
+      expect(find.byKey(const Key('confirm_delete_button')), findsOneWidget);
     });
 
     testWidgets('Confirm deletion removes entry from list', (tester) async {
@@ -181,6 +208,13 @@ void main() {
         mockReportsNotifier: mockReportsNotifier,
         mockProjectsNotifier: mockProjectsNotifier,
       ));
+      await tester.pumpAndSettle();
+
+      // Scroll to entries section
+      await tester.drag(
+        find.byType(ListView),
+        const Offset(0, -400),
+      );
       await tester.pumpAndSettle();
 
       // Verify 3 entries initially
@@ -232,13 +266,24 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
+      // Scroll to entries section
+      await tester.drag(
+        find.byType(ListView),
+        const Offset(0, -400),
+      );
+      await tester.pumpAndSettle();
+
       // Swipe left on entry
       final entryCard = find.byKey(const Key('entry_card_entry-1'));
+      await tester.ensureVisible(entryCard);
+      await tester.pumpAndSettle();
       await tester.drag(entryCard, const Offset(-200, 0));
       await tester.pumpAndSettle();
 
       // Tap delete button
       final deleteButton = find.byKey(const Key('delete_button_entry-1'));
+      await tester.ensureVisible(deleteButton);
+      await tester.pumpAndSettle();
       await tester.tap(deleteButton);
       await tester.pumpAndSettle();
 
@@ -269,12 +314,23 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
+      // Scroll to entries section
+      await tester.drag(
+        find.byType(ListView),
+        const Offset(0, -400),
+      );
+      await tester.pumpAndSettle();
+
       // Swipe and delete an entry
       final entryCard = find.byKey(const Key('entry_card_entry-1'));
+      await tester.ensureVisible(entryCard);
+      await tester.pumpAndSettle();
       await tester.drag(entryCard, const Offset(-200, 0));
       await tester.pumpAndSettle();
 
       final deleteButton = find.byKey(const Key('delete_button_entry-1'));
+      await tester.ensureVisible(deleteButton);
+      await tester.pumpAndSettle();
       await tester.tap(deleteButton);
       await tester.pumpAndSettle();
 

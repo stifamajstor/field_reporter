@@ -1287,60 +1287,65 @@ class _EntriesSection extends StatelessWidget {
         ),
         AppSpacing.verticalSm,
 
-        // Show entries if we have them
+        // Show entries if we have them - Timeline format
         if (entries.isNotEmpty) ...[
-          ReorderableListView.builder(
-            key: const Key('entry_list'),
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: entries.length,
-            onReorder: onReorder != null
-                ? (oldIndex, newIndex) {
-                    HapticFeedback.mediumImpact();
-                    // ReorderableListView passes newIndex as if the item was already removed
-                    // So we need to adjust it
-                    if (newIndex > oldIndex) {
-                      newIndex -= 1;
+          Container(
+            key: const Key('entries_timeline'),
+            child: ReorderableListView.builder(
+              key: const Key('entry_list'),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: entries.length,
+              onReorder: onReorder != null
+                  ? (oldIndex, newIndex) {
+                      HapticFeedback.mediumImpact();
+                      // ReorderableListView passes newIndex as if the item was already removed
+                      // So we need to adjust it
+                      if (newIndex > oldIndex) {
+                        newIndex -= 1;
+                      }
+                      onReorder!(oldIndex, newIndex);
                     }
-                    onReorder!(oldIndex, newIndex);
-                  }
-                : (_, __) {},
-            proxyDecorator: (child, index, animation) {
-              return AnimatedBuilder(
-                animation: animation,
-                builder: (context, child) {
-                  final scale = Tween<double>(begin: 1.0, end: 1.05)
-                      .animate(CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeInOut,
-                  ));
-                  return Transform.scale(
-                    scale: scale.value,
-                    child: Material(
-                      elevation: 4,
-                      borderRadius: AppSpacing.borderRadiusLg,
-                      child: child,
-                    ),
-                  );
-                },
-                child: child,
-              );
-            },
-            itemBuilder: (context, index) {
-              final entry = entries[index];
-              return Padding(
-                key: Key('reorderable_entry_$index'),
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: _SwipeableEntryCard(
-                  key: Key('entry_card_${entry.id}'),
-                  entry: entry,
-                  isDark: isDark,
-                  onDelete: onDeleteEntry != null
-                      ? () => onDeleteEntry!(entry)
-                      : null,
-                ),
-              );
-            },
+                  : (_, __) {},
+              proxyDecorator: (child, index, animation) {
+                return AnimatedBuilder(
+                  animation: animation,
+                  builder: (context, child) {
+                    final scale = Tween<double>(begin: 1.0, end: 1.05)
+                        .animate(CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeInOut,
+                    ));
+                    return Transform.scale(
+                      scale: scale.value,
+                      child: Material(
+                        elevation: 4,
+                        borderRadius: AppSpacing.borderRadiusLg,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: child,
+                );
+              },
+              itemBuilder: (context, index) {
+                final entry = entries[index];
+                final isLast = index == entries.length - 1;
+                return Padding(
+                  key: Key('reorderable_entry_$index'),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                  child: _TimelineEntryCard(
+                    key: Key('entry_card_${entry.id}'),
+                    entry: entry,
+                    isDark: isDark,
+                    showConnector: !isLast,
+                    onDelete: onDeleteEntry != null
+                        ? () => onDeleteEntry!(entry)
+                        : null,
+                  ),
+                );
+              },
+            ),
           ),
           if (onAddEntry != null) ...[
             AppSpacing.verticalSm,
@@ -1419,28 +1424,54 @@ class _EntriesSection extends StatelessWidget {
   }
 }
 
-class _SwipeableEntryCard extends StatefulWidget {
-  const _SwipeableEntryCard({
+/// Timeline entry card with connector and timestamp
+class _TimelineEntryCard extends StatefulWidget {
+  const _TimelineEntryCard({
     super.key,
     required this.entry,
     required this.isDark,
+    required this.showConnector,
     this.onDelete,
   });
 
   final Entry entry;
   final bool isDark;
+  final bool showConnector;
   final VoidCallback? onDelete;
 
   @override
-  State<_SwipeableEntryCard> createState() => _SwipeableEntryCardState();
+  State<_TimelineEntryCard> createState() => _TimelineEntryCardState();
 }
 
-class _SwipeableEntryCardState extends State<_SwipeableEntryCard> {
+class _TimelineEntryCardState extends State<_TimelineEntryCard> {
   double _dragExtent = 0;
   static const double _deleteThreshold = 80;
 
+  IconData _getIconForType(EntryType type) {
+    return switch (type) {
+      EntryType.photo => Icons.camera_alt_outlined,
+      EntryType.video => Icons.videocam_outlined,
+      EntryType.audio => Icons.mic_outlined,
+      EntryType.note => Icons.edit_note_outlined,
+      EntryType.scan => Icons.qr_code_scanner_outlined,
+    };
+  }
+
+  String _getIconKeyForType(EntryType type) {
+    return switch (type) {
+      EntryType.photo => 'timeline_icon_photo',
+      EntryType.video => 'timeline_icon_video',
+      EntryType.audio => 'timeline_icon_audio',
+      EntryType.note => 'timeline_icon_note',
+      EntryType.scan => 'timeline_icon_scan',
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
+    final timeFormat = DateFormat('h:mm a');
+    final timestamp = timeFormat.format(widget.entry.capturedAt);
+
     return GestureDetector(
       onHorizontalDragUpdate: (details) {
         setState(() {
@@ -1450,12 +1481,10 @@ class _SwipeableEntryCardState extends State<_SwipeableEntryCard> {
       },
       onHorizontalDragEnd: (details) {
         if (_dragExtent <= -_deleteThreshold * 0.5) {
-          // Keep the delete button visible
           setState(() {
             _dragExtent = -_deleteThreshold;
           });
         } else {
-          // Snap back
           setState(() {
             _dragExtent = 0;
           });
@@ -1467,25 +1496,112 @@ class _SwipeableEntryCardState extends State<_SwipeableEntryCard> {
           Positioned.fill(
             child: Container(
               alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: AppSpacing.sm),
               decoration: BoxDecoration(
                 color: widget.isDark ? AppColors.darkRose : AppColors.rose500,
                 borderRadius: AppSpacing.borderRadiusLg,
               ),
-              child: IconButton(
-                key: Key('delete_button_${widget.entry.id}'),
-                onPressed: widget.onDelete,
-                icon: const Icon(
-                  Icons.delete,
-                  color: AppColors.white,
+              child: Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.md),
+                child: GestureDetector(
+                  key: Key('delete_button_${widget.entry.id}'),
+                  onTap: widget.onDelete,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.delete_outline,
+                        color: AppColors.white,
+                        size: 24,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Delete',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.white,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-          // Entry card
+          // Timeline entry content
           Transform.translate(
             offset: Offset(_dragExtent, 0),
-            child: EntryCard(entry: widget.entry),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Timeline column (icon, connector)
+                SizedBox(
+                  width: 48,
+                  child: Column(
+                    children: [
+                      // Type icon in circle
+                      Container(
+                        key: Key(_getIconKeyForType(widget.entry.type)),
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: widget.isDark
+                              ? AppColors.darkOrangeSubtle
+                              : AppColors.orange50,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: widget.isDark
+                                ? AppColors.darkOrange
+                                : AppColors.orange500,
+                            width: 2,
+                          ),
+                        ),
+                        child: Icon(
+                          _getIconForType(widget.entry.type),
+                          size: 18,
+                          color: widget.isDark
+                              ? AppColors.darkOrange
+                              : AppColors.orange500,
+                        ),
+                      ),
+                      // Connector line
+                      if (widget.showConnector)
+                        Container(
+                          key: const Key('timeline_connector'),
+                          width: 2,
+                          height: 60,
+                          color: widget.isDark
+                              ? AppColors.darkBorder
+                              : AppColors.slate200,
+                        ),
+                    ],
+                  ),
+                ),
+                // Entry card content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Timestamp
+                      Padding(
+                        key: Key('timeline_timestamp_${widget.entry.id}'),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                        child: Text(
+                          timestamp,
+                          style: AppTypography.mono.copyWith(
+                            color: widget.isDark
+                                ? AppColors.darkTextMuted
+                                : AppColors.slate400,
+                          ),
+                        ),
+                      ),
+                      // Entry card
+                      EntryCard(
+                        entry: widget.entry,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

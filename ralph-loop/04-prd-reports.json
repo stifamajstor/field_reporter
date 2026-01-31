@@ -395,7 +395,7 @@
       "Verify visual connection between entries",
       "Verify different entry types have distinct icons"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
