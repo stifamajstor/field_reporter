@@ -151,7 +151,7 @@
       "Verify recording auto-stops at max duration",
       "Verify video is saved successfully"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

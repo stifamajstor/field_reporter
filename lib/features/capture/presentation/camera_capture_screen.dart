@@ -22,6 +22,12 @@ enum CameraMode {
   video,
 }
 
+/// Maximum video recording duration in seconds (5 minutes).
+const int kMaxRecordingDurationSeconds = 300;
+
+/// Warning threshold in seconds before max duration (30 seconds).
+const int kWarningThresholdSeconds = 30;
+
 /// Screen for capturing photos/videos with the camera.
 class CameraCaptureScreen extends ConsumerStatefulWidget {
   const CameraCaptureScreen({super.key});
@@ -298,8 +304,25 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
         setState(() {
           _recordingSeconds++;
         });
+
+        // Auto-stop at max duration
+        if (_recordingSeconds >= kMaxRecordingDurationSeconds) {
+          _stopRecording();
+        }
       }
     });
+  }
+
+  /// Returns true if recording is near max duration and should show warning.
+  bool get _shouldShowDurationWarning {
+    if (!_isRecording) return false;
+    final timeRemaining = kMaxRecordingDurationSeconds - _recordingSeconds;
+    return timeRemaining <= kWarningThresholdSeconds && timeRemaining > 0;
+  }
+
+  /// Returns the time remaining in seconds.
+  int get _timeRemainingSeconds {
+    return kMaxRecordingDurationSeconds - _recordingSeconds;
   }
 
   Future<void> _stopRecording() async {
@@ -537,6 +560,40 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Duration warning (when near max duration)
+                    if (_shouldShowDurationWarning) ...[
+                      Container(
+                        key: const Key('duration_warning'),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.orange500.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${_timeRemainingSeconds}s remaining',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     // Recording indicator and timer (only when recording)
                     if (_isRecording) ...[
                       Row(
