@@ -19,6 +19,12 @@ final projectFilterProvider = StateProvider<String?>((ref) => null);
 /// Provider for the date range filter.
 final dateRangeFilterProvider = StateProvider<DateTimeRange?>((ref) => null);
 
+/// Provider for the current search query.
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
+/// Provider for whether search mode is active.
+final isSearchActiveProvider = StateProvider<bool>((ref) => false);
+
 /// Screen displaying the list of all reports.
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
@@ -30,28 +36,51 @@ class ReportsScreen extends ConsumerWidget {
     final statusFilter = ref.watch(statusFilterProvider);
     final projectFilter = ref.watch(projectFilterProvider);
     final dateRangeFilter = ref.watch(dateRangeFilterProvider);
+    final searchQuery = ref.watch(searchQueryProvider);
+    final isSearchActive = ref.watch(isSearchActiveProvider);
     final isDark = context.isDarkMode;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reports'),
-        actions: [
-          IconButton(
-            key: const Key('filter_button'),
-            icon: Icon(
-              statusFilter != null ||
-                      projectFilter != null ||
-                      dateRangeFilter != null
-                  ? Icons.filter_alt
-                  : Icons.filter_alt_outlined,
-            ),
-            tooltip: 'Filter reports',
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              _showFilterMenu(context, ref);
-            },
-          ),
-        ],
+        title: isSearchActive
+            ? _SearchField(
+                onChanged: (value) {
+                  ref.read(searchQueryProvider.notifier).state = value;
+                },
+                onClear: () {
+                  ref.read(searchQueryProvider.notifier).state = '';
+                  ref.read(isSearchActiveProvider.notifier).state = false;
+                },
+              )
+            : const Text('Reports'),
+        actions: isSearchActive
+            ? null
+            : [
+                IconButton(
+                  key: const Key('search_button'),
+                  icon: const Icon(Icons.search),
+                  tooltip: 'Search reports',
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    ref.read(isSearchActiveProvider.notifier).state = true;
+                  },
+                ),
+                IconButton(
+                  key: const Key('filter_button'),
+                  icon: Icon(
+                    statusFilter != null ||
+                            projectFilter != null ||
+                            dateRangeFilter != null
+                        ? Icons.filter_alt
+                        : Icons.filter_alt_outlined,
+                  ),
+                  tooltip: 'Filter reports',
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    _showFilterMenu(context, ref);
+                  },
+                ),
+              ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -93,6 +122,26 @@ class ReportsScreen extends ConsumerWidget {
               return !reportDate.isBefore(dateRangeFilter.start) &&
                   !reportDate.isAfter(dateRangeFilter.end);
             }).toList();
+          }
+
+          // Apply search filter
+          if (searchQuery.isNotEmpty) {
+            final query = searchQuery.toLowerCase();
+            filteredReports = filteredReports.where((r) {
+              final titleMatch = r.title.toLowerCase().contains(query);
+              final notesMatch =
+                  r.notes?.toLowerCase().contains(query) ?? false;
+              return titleMatch || notesMatch;
+            }).toList();
+          }
+
+          // Show "No reports found" when search returns empty
+          if (filteredReports.isEmpty && searchQuery.isNotEmpty) {
+            return const EmptyState(
+              icon: Icons.search_off,
+              title: 'No reports found',
+              description: 'Try a different search term.',
+            );
           }
 
           if (filteredReports.isEmpty) {
@@ -662,6 +711,71 @@ class _StatusBadge extends StatelessWidget {
           color: color,
           fontWeight: FontWeight.w600,
           fontSize: 10,
+        ),
+      ),
+    );
+  }
+}
+
+/// Search field widget for the app bar.
+class _SearchField extends StatefulWidget {
+  const _SearchField({
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  @override
+  State<_SearchField> createState() => _SearchFieldState();
+}
+
+class _SearchFieldState extends State<_SearchField> {
+  final _controller = TextEditingController();
+  final _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-focus when search field appears
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return TextField(
+      key: const Key('search_field'),
+      controller: _controller,
+      focusNode: _focusNode,
+      onChanged: widget.onChanged,
+      style: AppTypography.body1.copyWith(
+        color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+      ),
+      decoration: InputDecoration(
+        hintText: 'Search reports...',
+        hintStyle: AppTypography.body1.copyWith(
+          color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+        ),
+        border: InputBorder.none,
+        suffixIcon: IconButton(
+          key: const Key('clear_search_button'),
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            _controller.clear();
+            widget.onClear();
+          },
         ),
       ),
     );

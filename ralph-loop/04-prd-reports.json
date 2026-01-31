@@ -340,7 +340,7 @@
       "Clear search",
       "Verify all reports shown again"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "offline",

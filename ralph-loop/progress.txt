@@ -95,3 +95,4 @@
 [2026-01-31 08:09] | reports | User can filter reports by status | PASS | lib/features/reports/presentation/reports_screen.dart, test/widget/screens/reports/filter_reports_by_status_test.dart
 [2026-01-31 08:15] | reports | User can filter reports by project | PASS | lib/features/reports/presentation/reports_screen.dart, test/widget/screens/reports/filter_reports_by_project_test.dart
 [2026-01-31 08:22] | reports | User can filter reports by date range | PASS | lib/features/reports/presentation/reports_screen.dart, test/widget/screens/reports/filter_reports_by_date_range_test.dart
+[2026-01-31 08:18] | reports | User can search reports by keyword | PASS | lib/features/reports/presentation/reports_screen.dart, test/widget/screens/reports/search_reports_test.dart
