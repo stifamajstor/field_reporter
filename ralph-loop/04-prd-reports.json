@@ -471,7 +471,7 @@
       "Verify smooth scrolling without jank",
       "Verify memory usage stays reasonable"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "accessibility",
