@@ -210,7 +210,7 @@
       "Verify AI-generated description appears",
       "Verify description is editable"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

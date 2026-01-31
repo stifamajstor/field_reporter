@@ -28,10 +28,14 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
   bool _isEditingAnnotation = false;
   bool _isTranscribing = false;
   bool _isEditingTranscription = false;
+  bool _isGeneratingDescription = false;
+  bool _isEditingDescription = false;
   late TextEditingController _annotationController;
   late TextEditingController _transcriptionController;
+  late TextEditingController _descriptionController;
   final FocusNode _annotationFocusNode = FocusNode();
   final FocusNode _transcriptionFocusNode = FocusNode();
+  final FocusNode _descriptionFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -41,6 +45,8 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
         TextEditingController(text: _currentEntry.annotation ?? '');
     _transcriptionController =
         TextEditingController(text: _currentEntry.content ?? '');
+    _descriptionController =
+        TextEditingController(text: _currentEntry.aiDescription ?? '');
   }
 
   @override
@@ -49,6 +55,8 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     _annotationFocusNode.dispose();
     _transcriptionController.dispose();
     _transcriptionFocusNode.dispose();
+    _descriptionController.dispose();
+    _descriptionFocusNode.dispose();
     super.dispose();
   }
 
@@ -143,6 +151,63 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     });
   }
 
+  Future<void> _requestDescription() async {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isGeneratingDescription = true;
+    });
+
+    try {
+      final describedEntry = await ref
+          .read(entriesNotifierProvider.notifier)
+          .generateDescription(_currentEntry.id);
+
+      setState(() {
+        _currentEntry = describedEntry;
+        _descriptionController.text = describedEntry.aiDescription ?? '';
+        _isGeneratingDescription = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isGeneratingDescription = false;
+      });
+    }
+  }
+
+  void _startEditingDescription() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isEditingDescription = true;
+      _descriptionController.text = _currentEntry.aiDescription ?? '';
+    });
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _descriptionFocusNode.requestFocus();
+    });
+  }
+
+  Future<void> _saveDescription() async {
+    HapticFeedback.lightImpact();
+    final newDescription = _descriptionController.text.trim();
+    final updatedEntry = _currentEntry.copyWith(
+      aiDescription: newDescription.isNotEmpty ? newDescription : null,
+    );
+
+    await ref.read(entriesNotifierProvider.notifier).updateEntry(updatedEntry);
+
+    setState(() {
+      _currentEntry = updatedEntry;
+      _isEditingDescription = false;
+    });
+  }
+
+  void _cancelEditingDescription() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isEditingDescription = false;
+      _descriptionController.text = _currentEntry.aiDescription ?? '';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
@@ -222,9 +287,20 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                   ),
                   AppSpacing.verticalLg,
 
-                  // AI Description section
-                  if (_currentEntry.aiDescription != null) ...[
-                    _AiDescriptionSection(entry: _currentEntry, isDark: isDark),
+                  // AI Description section (for photo entries)
+                  if (_currentEntry.type == EntryType.photo) ...[
+                    _AiDescriptionSection(
+                      entry: _currentEntry,
+                      isDark: isDark,
+                      isGenerating: _isGeneratingDescription,
+                      isEditing: _isEditingDescription,
+                      controller: _descriptionController,
+                      focusNode: _descriptionFocusNode,
+                      onRequestDescription: _requestDescription,
+                      onStartEditing: _startEditingDescription,
+                      onSave: _saveDescription,
+                      onCancel: _cancelEditingDescription,
+                    ),
                     AppSpacing.verticalLg,
                   ],
 
@@ -1131,21 +1207,182 @@ class _AiDescriptionSection extends StatelessWidget {
   const _AiDescriptionSection({
     required this.entry,
     required this.isDark,
+    required this.isGenerating,
+    required this.isEditing,
+    required this.controller,
+    required this.focusNode,
+    required this.onRequestDescription,
+    required this.onStartEditing,
+    required this.onSave,
+    required this.onCancel,
   });
 
   final Entry entry;
   final bool isDark;
+  final bool isGenerating;
+  final bool isEditing;
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final VoidCallback onRequestDescription;
+  final VoidCallback onStartEditing;
+  final VoidCallback onSave;
+  final VoidCallback onCancel;
 
   @override
   Widget build(BuildContext context) {
+    final hasDescription =
+        entry.aiDescription != null && entry.aiDescription!.isNotEmpty;
+
+    if (isGenerating) {
+      return _buildProcessingState();
+    }
+
+    if (isEditing) {
+      return _buildEditingState();
+    }
+
+    if (hasDescription) {
+      return _buildDescriptionDisplay();
+    }
+
+    return _buildGenerateButton();
+  }
+
+  Widget _buildGenerateButton() {
+    return GestureDetector(
+      key: const Key('generate_description_button'),
+      onTap: onRequestDescription,
+      child: Container(
+        width: double.infinity,
+        padding: AppSpacing.cardInsets,
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : AppColors.white,
+          borderRadius: AppSpacing.borderRadiusLg,
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.slate200,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.auto_awesome,
+              size: 20,
+              color: isDark ? AppColors.darkOrange : AppColors.orange500,
+            ),
+            AppSpacing.horizontalSm,
+            Text(
+              'Generate Description',
+              style: AppTypography.body2.copyWith(
+                color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProcessingState() {
     return Container(
-      key: const Key('ai_description_section'),
+      key: const Key('description_processing_indicator'),
       width: double.infinity,
       padding: AppSpacing.cardInsets,
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : AppColors.white,
         borderRadius: AppSpacing.borderRadiusLg,
-        border: isDark ? null : Border.all(color: AppColors.slate200),
+        border: Border.all(
+          color: isDark ? AppColors.darkOrange : AppColors.orange500,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation(
+                isDark ? AppColors.darkOrange : AppColors.orange500,
+              ),
+            ),
+          ),
+          AppSpacing.horizontalMd,
+          Text(
+            'Generating description...',
+            style: AppTypography.body2.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDescriptionDisplay() {
+    return GestureDetector(
+      key: const Key('ai_description_section'),
+      onTap: onStartEditing,
+      child: Container(
+        width: double.infinity,
+        padding: AppSpacing.cardInsets,
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : AppColors.white,
+          borderRadius: AppSpacing.borderRadiusLg,
+          border: isDark ? null : Border.all(color: AppColors.slate200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.auto_awesome,
+                  size: 16,
+                  color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                ),
+                AppSpacing.horizontalXs,
+                Text(
+                  'AI Description',
+                  style: AppTypography.caption.copyWith(
+                    color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.edit_outlined,
+                  size: 16,
+                  color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+                ),
+              ],
+            ),
+            AppSpacing.verticalSm,
+            Text(
+              entry.aiDescription!,
+              style: AppTypography.body1.copyWith(
+                color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditingState() {
+    return Container(
+      width: double.infinity,
+      padding: AppSpacing.cardInsets,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.white,
+        borderRadius: AppSpacing.borderRadiusLg,
+        border: Border.all(
+          color: isDark ? AppColors.darkOrange : AppColors.orange500,
+          width: 2,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1168,11 +1405,64 @@ class _AiDescriptionSection extends StatelessWidget {
             ],
           ),
           AppSpacing.verticalSm,
-          Text(
-            entry.aiDescription!,
+          TextField(
+            key: const Key('ai_description_text_field'),
+            controller: controller,
+            focusNode: focusNode,
+            maxLines: 6,
+            decoration: InputDecoration(
+              hintText: 'Edit description...',
+              hintStyle: AppTypography.body1.copyWith(
+                color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+              ),
+              filled: true,
+              fillColor:
+                  isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.all(AppSpacing.sm),
+            ),
             style: AppTypography.body1.copyWith(
               color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
             ),
+          ),
+          AppSpacing.verticalMd,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                key: const Key('ai_description_cancel_button'),
+                onPressed: onCancel,
+                child: Text(
+                  'Cancel',
+                  style: AppTypography.button.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.slate700,
+                  ),
+                ),
+              ),
+              AppSpacing.horizontalSm,
+              ElevatedButton(
+                key: const Key('ai_description_save_button'),
+                onPressed: onSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      isDark ? AppColors.darkOrange : AppColors.orange500,
+                  foregroundColor: AppColors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('Save'),
+              ),
+            ],
           ),
         ],
       ),

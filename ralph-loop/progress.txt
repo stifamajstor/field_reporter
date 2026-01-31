@@ -86,3 +86,4 @@
 [2026-01-31 07:29] | reports | User can delete an entry from report | PASS | lib/features/reports/presentation/report_editor_screen.dart, test/widget/screens/reports/delete_entry_test.dart
 [2026-01-31 07:37] | reports | User can reorder entries in report | PASS | lib/features/entries/providers/entries_provider.dart, lib/features/reports/presentation/report_editor_screen.dart, test/widget/screens/reports/reorder_entries_test.dart
 [2026-01-31 07:37] | reports | User can request AI transcription for audio entry | PASS | lib/features/entries/providers/entries_provider.dart, lib/features/entries/presentation/entry_detail_screen.dart, test/widget/screens/reports/audio_transcription_test.dart
+[2026-01-31 07:42] | reports | User can request AI description for photo entry | PASS | lib/features/entries/presentation/entry_detail_screen.dart, lib/features/entries/providers/entries_provider.dart, test/widget/screens/reports/photo_ai_description_test.dart

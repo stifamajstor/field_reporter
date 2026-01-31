@@ -91,6 +91,21 @@ class EntriesNotifier extends _$EntriesNotifier {
     await updateEntry(transcribedEntry);
     return transcribedEntry;
   }
+
+  /// Generates AI description for a photo entry.
+  /// Returns the entry with AI-generated description.
+  Future<Entry> generateDescription(String entryId) async {
+    final currentEntries = state.valueOrNull ?? [];
+    final entry = currentEntries.firstWhere((e) => e.id == entryId);
+
+    // Simulate AI description generation (in production, this would call an API)
+    await Future.delayed(const Duration(milliseconds: 500));
+    const generatedDescription = 'AI-generated description of the photo.';
+
+    final describedEntry = entry.copyWith(aiDescription: generatedDescription);
+    await updateEntry(describedEntry);
+    return describedEntry;
+  }
 }
 
 /// Provider for getting entries for a specific report.
