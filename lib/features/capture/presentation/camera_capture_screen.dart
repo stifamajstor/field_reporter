@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../services/camera_service.dart';
 import '../../../services/permission_service.dart';
+import 'photo_preview_screen.dart';
 
 /// Screen for capturing photos/videos with the camera.
 class CameraCaptureScreen extends ConsumerStatefulWidget {
@@ -23,6 +24,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
   bool _hasPermission = false;
   bool _isCheckingPermission = true;
   String? _errorMessage;
+  bool _showShutterAnimation = false;
 
   @override
   void initState() {
@@ -110,15 +112,47 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
 
   Future<void> _capturePhoto() async {
     try {
+      // Trigger haptic feedback
       HapticFeedback.lightImpact();
+
+      // Show shutter animation
+      setState(() {
+        _showShutterAnimation = true;
+      });
+
       final cameraService = ref.read(cameraServiceProvider);
       final photoPath = await cameraService.capturePhoto();
 
+      // Hide shutter animation after brief delay
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (mounted) {
+        setState(() {
+          _showShutterAnimation = false;
+        });
+      }
+
       if (mounted && photoPath != null) {
-        Navigator.of(context).pop(photoPath);
+        // Navigate to photo preview screen
+        final result = await Navigator.of(context).push<PhotoPreviewResult>(
+          MaterialPageRoute(
+            builder: (context) => PhotoPreviewScreen(
+              arguments: PhotoPreviewArguments(photoPath: photoPath),
+            ),
+          ),
+        );
+
+        if (!mounted) return;
+
+        if (result == PhotoPreviewResult.accept) {
+          // Return the photo path to the caller
+          Navigator.of(context).pop(photoPath);
+        }
+        // If retake, stay on camera screen (do nothing)
       }
     } catch (e) {
-      // Handle capture error
+      setState(() {
+        _showShutterAnimation = false;
+      });
     }
   }
 
@@ -282,6 +316,13 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
               child: CircularProgressIndicator(
                 color: Colors.white,
               ),
+            ),
+
+          // Shutter animation overlay
+          if (_showShutterAnimation)
+            Container(
+              key: const Key('shutter_animation'),
+              color: Colors.white.withOpacity(0.15),
             ),
 
           // Bottom controls

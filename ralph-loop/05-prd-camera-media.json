@@ -24,7 +24,7 @@
       "Verify captured photo preview appears",
       "Verify accept/retake options visible"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
