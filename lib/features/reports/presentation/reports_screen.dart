@@ -16,6 +16,9 @@ final statusFilterProvider = StateProvider<ReportStatus?>((ref) => null);
 /// Provider for the current project filter.
 final projectFilterProvider = StateProvider<String?>((ref) => null);
 
+/// Provider for the date range filter.
+final dateRangeFilterProvider = StateProvider<DateTimeRange?>((ref) => null);
+
 /// Screen displaying the list of all reports.
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
@@ -26,6 +29,7 @@ class ReportsScreen extends ConsumerWidget {
     final projectsAsync = ref.watch(projectsNotifierProvider);
     final statusFilter = ref.watch(statusFilterProvider);
     final projectFilter = ref.watch(projectFilterProvider);
+    final dateRangeFilter = ref.watch(dateRangeFilterProvider);
     final isDark = context.isDarkMode;
 
     return Scaffold(
@@ -35,7 +39,9 @@ class ReportsScreen extends ConsumerWidget {
           IconButton(
             key: const Key('filter_button'),
             icon: Icon(
-              statusFilter != null || projectFilter != null
+              statusFilter != null ||
+                      projectFilter != null ||
+                      dateRangeFilter != null
                   ? Icons.filter_alt
                   : Icons.filter_alt_outlined,
             ),
@@ -70,7 +76,7 @@ class ReportsScreen extends ConsumerWidget {
           ),
         ),
         data: (reports) {
-          // Apply status and project filters
+          // Apply status, project, and date range filters
           var filteredReports = reports;
           if (statusFilter != null) {
             filteredReports =
@@ -80,6 +86,13 @@ class ReportsScreen extends ConsumerWidget {
             filteredReports = filteredReports
                 .where((r) => r.projectId == projectFilter)
                 .toList();
+          }
+          if (dateRangeFilter != null) {
+            filteredReports = filteredReports.where((r) {
+              final reportDate = r.createdAt;
+              return !reportDate.isBefore(dateRangeFilter.start) &&
+                  !reportDate.isAfter(dateRangeFilter.end);
+            }).toList();
           }
 
           if (filteredReports.isEmpty) {
@@ -134,6 +147,7 @@ class ReportsScreen extends ConsumerWidget {
   void _showFilterMenu(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final projectsAsync = ref.read(projectsNotifierProvider);
+    final dateRangeFilter = ref.read(dateRangeFilterProvider);
 
     showModalBottomSheet(
       context: context,
@@ -256,10 +270,227 @@ class ReportsScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
+
+                  // Date range filter section
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Filter by Date Range',
+                          style: AppTypography.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? AppColors.darkTextPrimary
+                                : AppColors.slate900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ListTile(
+                    key: const Key('date_range_filter_option'),
+                    title: Text(dateRangeFilter != null
+                        ? '${DateFormat('MMM d').format(dateRangeFilter.start)} - ${DateFormat('MMM d').format(dateRangeFilter.end)}'
+                        : 'Select Date Range'),
+                    leading: const Icon(Icons.date_range),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showDateRangePickerDialog(context, ref);
+                    },
+                  ),
+                  if (dateRangeFilter != null)
+                    ListTile(
+                      key: const Key('clear_date_filter_option'),
+                      title: const Text('Clear Date Filter'),
+                      leading: const Icon(Icons.clear),
+                      onTap: () {
+                        ref.read(dateRangeFilterProvider.notifier).state = null;
+                        Navigator.pop(context);
+                      },
+                    ),
                 ],
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  void _showDateRangePickerDialog(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    DateTime? startDate;
+    DateTime? endDate;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              key: const Key('date_range_picker_dialog'),
+              backgroundColor: isDark ? AppColors.darkSurface : AppColors.white,
+              title: Text(
+                'Select Date Range',
+                style: AppTypography.headline3.copyWith(
+                  color:
+                      isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Start date field
+                  InkWell(
+                    key: const Key('start_date_field'),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: startDate ?? DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          startDate = picked;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : AppColors.slate200,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            size: 20,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.slate500,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            startDate != null
+                                ? DateFormat('MMM d, yyyy').format(startDate!)
+                                : 'Start Date',
+                            style: AppTypography.body1.copyWith(
+                              color: startDate != null
+                                  ? (isDark
+                                      ? AppColors.darkTextPrimary
+                                      : AppColors.slate900)
+                                  : (isDark
+                                      ? AppColors.darkTextMuted
+                                      : AppColors.slate400),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // End date field
+                  InkWell(
+                    key: const Key('end_date_field'),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: endDate ?? startDate ?? DateTime.now(),
+                        firstDate: startDate ?? DateTime(2020),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          endDate = picked;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: isDark
+                              ? AppColors.darkBorder
+                              : AppColors.slate200,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            size: 20,
+                            color: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.slate500,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            endDate != null
+                                ? DateFormat('MMM d, yyyy').format(endDate!)
+                                : 'End Date',
+                            style: AppTypography.body1.copyWith(
+                              color: endDate != null
+                                  ? (isDark
+                                      ? AppColors.darkTextPrimary
+                                      : AppColors.slate900)
+                                  : (isDark
+                                      ? AppColors.darkTextMuted
+                                      : AppColors.slate400),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.slate500,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  key: const Key('apply_date_filter_button'),
+                  onPressed: startDate != null && endDate != null
+                      ? () {
+                          ref.read(dateRangeFilterProvider.notifier).state =
+                              DateTimeRange(start: startDate!, end: endDate!);
+                          Navigator.pop(context);
+                        }
+                      : null,
+                  child: Text(
+                    'Apply',
+                    style: TextStyle(
+                      color: startDate != null && endDate != null
+                          ? (isDark
+                              ? AppColors.darkOrange
+                              : AppColors.orange500)
+                          : (isDark
+                              ? AppColors.darkTextMuted
+                              : AppColors.slate400),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
