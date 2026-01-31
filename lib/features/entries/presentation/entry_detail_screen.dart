@@ -10,7 +10,7 @@ import '../domain/entry.dart';
 import '../providers/entries_provider.dart';
 
 /// Screen for displaying entry details.
-class EntryDetailScreen extends ConsumerWidget {
+class EntryDetailScreen extends ConsumerStatefulWidget {
   const EntryDetailScreen({
     super.key,
     required this.entry,
@@ -20,12 +20,71 @@ class EntryDetailScreen extends ConsumerWidget {
   final Entry entry;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EntryDetailScreen> createState() => _EntryDetailScreenState();
+}
+
+class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
+  late Entry _currentEntry;
+  bool _isEditingAnnotation = false;
+  late TextEditingController _annotationController;
+  final FocusNode _annotationFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _currentEntry = widget.entry;
+    _annotationController =
+        TextEditingController(text: _currentEntry.annotation ?? '');
+  }
+
+  @override
+  void dispose() {
+    _annotationController.dispose();
+    _annotationFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _startEditingAnnotation() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isEditingAnnotation = true;
+      _annotationController.text = _currentEntry.annotation ?? '';
+    });
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _annotationFocusNode.requestFocus();
+    });
+  }
+
+  Future<void> _saveAnnotation() async {
+    HapticFeedback.lightImpact();
+    final newAnnotation = _annotationController.text.trim();
+    final updatedEntry = _currentEntry.copyWith(
+      annotation: newAnnotation.isNotEmpty ? newAnnotation : null,
+    );
+
+    await ref.read(entriesNotifierProvider.notifier).updateEntry(updatedEntry);
+
+    setState(() {
+      _currentEntry = updatedEntry;
+      _isEditingAnnotation = false;
+    });
+  }
+
+  void _cancelEditingAnnotation() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isEditingAnnotation = false;
+      _annotationController.text = _currentEntry.annotation ?? '';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_labelForType(entry.type)),
+        title: Text(_labelForType(_currentEntry.type)),
         actions: [
           IconButton(
             key: const Key('edit_entry_button'),
@@ -40,7 +99,7 @@ class EntryDetailScreen extends ConsumerWidget {
             icon: const Icon(Icons.delete_outlined),
             onPressed: () {
               HapticFeedback.lightImpact();
-              _showDeleteConfirmation(context, ref);
+              _showDeleteConfirmation(context);
             },
           ),
         ],
@@ -50,7 +109,7 @@ class EntryDetailScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Media display section
-            _MediaDisplay(entry: entry, isDark: isDark),
+            _MediaDisplay(entry: _currentEntry, isDark: isDark),
 
             Padding(
               padding: AppSpacing.screenPadding,
@@ -58,24 +117,37 @@ class EntryDetailScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Entry type and timestamp header
-                  _EntryHeader(entry: entry, isDark: isDark),
+                  _EntryHeader(entry: _currentEntry, isDark: isDark),
                   AppSpacing.verticalLg,
 
                   // Content section (for notes and scans)
-                  if (entry.type == EntryType.note ||
-                      entry.type == EntryType.scan) ...[
-                    _ContentSection(entry: entry, isDark: isDark),
+                  if (_currentEntry.type == EntryType.note ||
+                      _currentEntry.type == EntryType.scan) ...[
+                    _ContentSection(entry: _currentEntry, isDark: isDark),
                     AppSpacing.verticalLg,
                   ],
 
+                  // Annotation section
+                  _AnnotationSection(
+                    entry: _currentEntry,
+                    isDark: isDark,
+                    isEditing: _isEditingAnnotation,
+                    controller: _annotationController,
+                    focusNode: _annotationFocusNode,
+                    onStartEditing: _startEditingAnnotation,
+                    onSave: _saveAnnotation,
+                    onCancel: _cancelEditingAnnotation,
+                  ),
+                  AppSpacing.verticalLg,
+
                   // AI Description section
-                  if (entry.aiDescription != null) ...[
-                    _AiDescriptionSection(entry: entry, isDark: isDark),
+                  if (_currentEntry.aiDescription != null) ...[
+                    _AiDescriptionSection(entry: _currentEntry, isDark: isDark),
                     AppSpacing.verticalLg,
                   ],
 
                   // Metadata section
-                  _MetadataSection(entry: entry, isDark: isDark),
+                  _MetadataSection(entry: _currentEntry, isDark: isDark),
                 ],
               ),
             ),
@@ -85,23 +157,23 @@ class EntryDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
+  void _showDeleteConfirmation(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Entry'),
         content: const Text('Are you sure you want to delete this entry?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context); // Close dialog
+              Navigator.pop(dialogContext); // Close dialog
               await ref
                   .read(entriesNotifierProvider.notifier)
-                  .deleteEntry(entry.id);
+                  .deleteEntry(_currentEntry.id);
               if (context.mounted) {
                 Navigator.pop(context); // Close detail screen
               }
@@ -476,6 +548,230 @@ class _ContentSection extends StatelessWidget {
                     color:
                         isDark ? AppColors.darkTextPrimary : AppColors.slate900,
                   ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnnotationSection extends StatelessWidget {
+  const _AnnotationSection({
+    required this.entry,
+    required this.isDark,
+    required this.isEditing,
+    required this.controller,
+    required this.focusNode,
+    required this.onStartEditing,
+    required this.onSave,
+    required this.onCancel,
+  });
+
+  final Entry entry;
+  final bool isDark;
+  final bool isEditing;
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final VoidCallback onStartEditing;
+  final VoidCallback onSave;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasAnnotation =
+        entry.annotation != null && entry.annotation!.isNotEmpty;
+
+    if (isEditing) {
+      return _buildEditingState();
+    }
+
+    if (hasAnnotation) {
+      return _buildAnnotationDisplay();
+    }
+
+    return _buildAddAnnotationButton();
+  }
+
+  Widget _buildAnnotationDisplay() {
+    return GestureDetector(
+      key: const Key('annotation_field'),
+      onTap: onStartEditing,
+      child: Container(
+        key: const Key('annotation_section'),
+        width: double.infinity,
+        padding: AppSpacing.cardInsets,
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : AppColors.white,
+          borderRadius: AppSpacing.borderRadiusLg,
+          border: isDark ? null : Border.all(color: AppColors.slate200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.edit_note,
+                  size: 16,
+                  color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+                ),
+                AppSpacing.horizontalXs,
+                Text(
+                  'Annotation',
+                  style: AppTypography.caption.copyWith(
+                    color:
+                        isDark ? AppColors.darkTextMuted : AppColors.slate400,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.edit_outlined,
+                  size: 16,
+                  color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+                ),
+              ],
+            ),
+            AppSpacing.verticalSm,
+            Text(
+              entry.annotation!,
+              style: AppTypography.body1.copyWith(
+                color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddAnnotationButton() {
+    return GestureDetector(
+      key: const Key('add_annotation_button'),
+      onTap: onStartEditing,
+      child: Container(
+        width: double.infinity,
+        padding: AppSpacing.cardInsets,
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : AppColors.white,
+          borderRadius: AppSpacing.borderRadiusLg,
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.slate200,
+            style: BorderStyle.solid,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.add,
+              size: 20,
+              color: isDark ? AppColors.darkOrange : AppColors.orange500,
+            ),
+            AppSpacing.horizontalSm,
+            Text(
+              'Add Annotation',
+              style: AppTypography.body2.copyWith(
+                color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditingState() {
+    return Container(
+      width: double.infinity,
+      padding: AppSpacing.cardInsets,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.white,
+        borderRadius: AppSpacing.borderRadiusLg,
+        border: Border.all(
+          color: isDark ? AppColors.darkOrange : AppColors.orange500,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.edit_note,
+                size: 16,
+                color: isDark ? AppColors.darkOrange : AppColors.orange500,
+              ),
+              AppSpacing.horizontalXs,
+              Text(
+                'Annotation',
+                style: AppTypography.caption.copyWith(
+                  color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          AppSpacing.verticalSm,
+          TextField(
+            key: const Key('annotation_text_field'),
+            controller: controller,
+            focusNode: focusNode,
+            maxLines: 4,
+            decoration: InputDecoration(
+              hintText: 'Enter annotation or notes...',
+              hintStyle: AppTypography.body1.copyWith(
+                color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+              ),
+              filled: true,
+              fillColor:
+                  isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.all(AppSpacing.sm),
+            ),
+            style: AppTypography.body1.copyWith(
+              color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+            ),
+          ),
+          AppSpacing.verticalMd,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                key: const Key('annotation_cancel_button'),
+                onPressed: onCancel,
+                child: Text(
+                  'Cancel',
+                  style: AppTypography.button.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.slate700,
+                  ),
+                ),
+              ),
+              AppSpacing.horizontalSm,
+              ElevatedButton(
+                key: const Key('annotation_save_button'),
+                onPressed: onSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      isDark ? AppColors.darkOrange : AppColors.orange500,
+                  foregroundColor: AppColors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('Save'),
+              ),
+            ],
           ),
         ],
       ),

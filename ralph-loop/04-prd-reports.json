@@ -155,7 +155,7 @@
       "Return to report",
       "Verify annotation visible in entry preview"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
