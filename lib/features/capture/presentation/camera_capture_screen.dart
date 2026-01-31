@@ -8,6 +8,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../services/camera_service.dart';
 import '../../../services/permission_service.dart';
 import '../providers/gps_overlay_provider.dart';
+import '../providers/timestamp_overlay_provider.dart';
 import 'photo_preview_screen.dart';
 
 /// Screen for capturing photos/videos with the camera.
@@ -49,6 +50,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
       _cameraService = ref.read(cameraServiceProvider);
       _checkPermissionAndInitialize();
       ref.read(gpsOverlayProvider.notifier).initialize();
+      ref.read(timestampOverlayProvider.notifier).initialize();
     });
   }
 
@@ -184,6 +186,9 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
       // Trigger haptic feedback
       HapticFeedback.lightImpact();
 
+      // Capture timestamp at moment of capture
+      final capturedTimestamp = DateTime.now();
+
       // Show shutter animation
       setState(() {
         _showShutterAnimation = true;
@@ -205,7 +210,10 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
         final result = await Navigator.of(context).push<PhotoPreviewResult>(
           MaterialPageRoute(
             builder: (context) => PhotoPreviewScreen(
-              arguments: PhotoPreviewArguments(photoPath: photoPath),
+              arguments: PhotoPreviewArguments(
+                photoPath: photoPath,
+                capturedTimestamp: capturedTimestamp,
+              ),
             ),
           ),
         );
@@ -469,6 +477,29 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
                     ),
                     Row(
                       children: [
+                        // Timestamp overlay toggle button
+                        IconButton(
+                          key: const Key('timestamp_overlay_toggle'),
+                          onPressed: () {
+                            ref
+                                .read(timestampOverlayProvider.notifier)
+                                .toggleOverlay();
+                          },
+                          icon: Consumer(
+                            builder: (context, ref, child) {
+                              final timestampState =
+                                  ref.watch(timestampOverlayProvider);
+                              return Icon(
+                                timestampState.isEnabled
+                                    ? Icons.access_time_filled
+                                    : Icons.access_time,
+                                color: Colors.white,
+                                size: 28,
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         // GPS overlay toggle button
                         IconButton(
                           key: const Key('gps_overlay_toggle'),
@@ -527,6 +558,13 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
             left: 16,
             bottom: 120,
             child: GpsOverlayWidget(),
+          ),
+
+          // Timestamp overlay
+          const Positioned(
+            right: 16,
+            bottom: 120,
+            child: TimestampOverlayWidget(),
           ),
         ],
       ),
@@ -614,6 +652,49 @@ class GpsOverlayWidget extends ConsumerWidget {
                   ),
                 ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Widget that displays timestamp overlay on the camera.
+class TimestampOverlayWidget extends ConsumerWidget {
+  const TimestampOverlayWidget({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final timestampState = ref.watch(timestampOverlayProvider);
+
+    if (!timestampState.isEnabled) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      key: const Key('timestamp_overlay'),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.access_time,
+            color: Colors.white,
+            size: 16,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            timestampState.formattedTimestamp,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              fontFamily: 'monospace',
+            ),
           ),
         ],
       ),

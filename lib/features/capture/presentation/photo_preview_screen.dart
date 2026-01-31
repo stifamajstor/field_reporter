@@ -2,20 +2,28 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../providers/timestamp_overlay_provider.dart';
 
 /// Arguments for the photo preview screen.
 class PhotoPreviewArguments {
-  const PhotoPreviewArguments({required this.photoPath});
+  const PhotoPreviewArguments({
+    required this.photoPath,
+    this.capturedTimestamp,
+  });
 
   /// Path to the captured photo file.
   final String photoPath;
+
+  /// Timestamp when photo was captured.
+  final DateTime? capturedTimestamp;
 }
 
 /// Screen that displays the captured photo with accept/retake options.
-class PhotoPreviewScreen extends StatelessWidget {
+class PhotoPreviewScreen extends ConsumerWidget {
   const PhotoPreviewScreen({
     super.key,
     required this.arguments,
@@ -23,8 +31,18 @@ class PhotoPreviewScreen extends StatelessWidget {
 
   final PhotoPreviewArguments arguments;
 
+  String _formatTimestamp(DateTime time) {
+    return '${time.year.toString().padLeft(4, '0')}-'
+        '${time.month.toString().padLeft(2, '0')}-'
+        '${time.day.toString().padLeft(2, '0')} '
+        '${time.hour.toString().padLeft(2, '0')}:'
+        '${time.minute.toString().padLeft(2, '0')}:'
+        '${time.second.toString().padLeft(2, '0')}';
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final timestampState = ref.watch(timestampOverlayProvider);
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -78,6 +96,42 @@ class PhotoPreviewScreen extends StatelessWidget {
               ),
             ),
           ),
+
+          // Timestamp overlay on preview
+          if (timestampState.isEnabled && arguments.capturedTimestamp != null)
+            Positioned(
+              right: 16,
+              bottom: 120,
+              child: Container(
+                key: const Key('preview_timestamp_overlay'),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.access_time,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _formatTimestamp(arguments.capturedTimestamp!),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );

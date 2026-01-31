@@ -79,7 +79,7 @@
       "Verify timestamp is embedded in photo metadata",
       "Verify timestamp visible in overlay on captured preview"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
