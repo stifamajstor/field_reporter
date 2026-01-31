@@ -110,7 +110,7 @@
       "Verify note entry added to report",
       "Verify note preview shows truncated text"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

@@ -64,6 +64,10 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
   int? _recordedAudioDuration;
   int _recordingSeconds = 0;
 
+  // State for note entry
+  bool _showNoteEditor = false;
+  final TextEditingController _noteContentController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -83,6 +87,7 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     _notesFocusNode.dispose();
     _titleController.dispose();
     _notesController.dispose();
+    _noteContentController.dispose();
     super.dispose();
   }
 
@@ -370,6 +375,61 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     });
   }
 
+  void _handleNoteCapture() {
+    setState(() {
+      _showEntryTypeOptions = false;
+      _showNoteEditor = true;
+      _noteContentController.clear();
+    });
+  }
+
+  Future<void> _confirmNoteEntry() async {
+    final noteText = _noteContentController.text.trim();
+    if (noteText.isEmpty) return;
+
+    HapticFeedback.lightImpact();
+
+    // Get current entries to determine sort order
+    final entriesNotifier = ref.read(entriesNotifierProvider.notifier);
+    final currentEntries = ref.read(entriesNotifierProvider).valueOrNull ?? [];
+    final reportEntries =
+        currentEntries.where((e) => e.reportId == _report.id).toList();
+
+    // Create the entry
+    final entry = Entry(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      reportId: _report.id,
+      type: EntryType.note,
+      content: noteText,
+      sortOrder: reportEntries.length,
+      capturedAt: DateTime.now(),
+      createdAt: DateTime.now(),
+    );
+
+    await entriesNotifier.addEntry(entry);
+
+    // Update report entry count
+    final updatedReport = _report.copyWith(
+      entryCount: _report.entryCount + 1,
+      updatedAt: DateTime.now(),
+    );
+    _report = updatedReport;
+    ref.read(allReportsNotifierProvider.notifier).updateReport(updatedReport);
+
+    setState(() {
+      _showNoteEditor = false;
+      _noteContentController.clear();
+    });
+  }
+
+  void _cancelNoteEditor() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _showNoteEditor = false;
+      _noteContentController.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
@@ -458,6 +518,7 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
               onPhotoSelected: _handlePhotoCapture,
               onVideoSelected: _handleVideoCapture,
               onVoiceMemoSelected: _handleVoiceMemoCapture,
+              onNoteSelected: _handleNoteCapture,
             ),
 
           // Photo preview overlay
@@ -492,6 +553,15 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
               onPlayRecording: _playVoiceRecording,
               onConfirm: _confirmVoiceMemoEntry,
               onCancel: _cancelVoiceMemoRecording,
+            ),
+
+          // Note editor overlay
+          if (_showNoteEditor)
+            _NoteEditorOverlay(
+              isDark: isDark,
+              controller: _noteContentController,
+              onConfirm: _confirmNoteEntry,
+              onCancel: _cancelNoteEditor,
             ),
         ],
       ),
@@ -833,6 +903,7 @@ class _EntryTypeOptionsOverlay extends StatelessWidget {
     required this.onPhotoSelected,
     required this.onVideoSelected,
     required this.onVoiceMemoSelected,
+    required this.onNoteSelected,
   });
 
   final bool isDark;
@@ -840,6 +911,7 @@ class _EntryTypeOptionsOverlay extends StatelessWidget {
   final VoidCallback onPhotoSelected;
   final VoidCallback onVideoSelected;
   final VoidCallback onVoiceMemoSelected;
+  final VoidCallback onNoteSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -890,9 +962,7 @@ class _EntryTypeOptionsOverlay extends StatelessWidget {
                   icon: Icons.note,
                   label: 'Note',
                   isDark: isDark,
-                  onTap: () {
-                    // TODO: Implement note
-                  },
+                  onTap: onNoteSelected,
                 ),
                 _EntryTypeOption(
                   icon: Icons.qr_code_scanner,
@@ -1416,6 +1486,121 @@ class _RecordingControlButton extends StatelessWidget {
           icon,
           size: 36,
           color: AppColors.white,
+        ),
+      ),
+    );
+  }
+}
+
+class _NoteEditorOverlay extends StatelessWidget {
+  const _NoteEditorOverlay({
+    required this.isDark,
+    required this.controller,
+    required this.onConfirm,
+    required this.onCancel,
+  });
+
+  final bool isDark;
+  final TextEditingController controller;
+  final VoidCallback onConfirm;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black87,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Top bar with cancel
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: onCancel,
+                    child: Text(
+                      'Cancel',
+                      style: AppTypography.button.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'Add Note',
+                    style: AppTypography.headline3.copyWith(
+                      color: AppColors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 60), // Balance the layout
+                ],
+              ),
+            ),
+
+            // Note text field
+            Expanded(
+              child: Padding(
+                padding: AppSpacing.screenPadding,
+                child: TextField(
+                  key: const Key('note_text_field'),
+                  controller: controller,
+                  maxLines: null,
+                  expands: true,
+                  textAlignVertical: TextAlignVertical.top,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Enter your note here...',
+                    hintStyle: AppTypography.body1.copyWith(
+                      color: AppColors.slate400,
+                    ),
+                    filled: true,
+                    fillColor: isDark ? AppColors.darkSurface : AppColors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color:
+                            isDark ? AppColors.darkOrange : AppColors.orange500,
+                        width: 2,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.all(AppSpacing.md),
+                  ),
+                  style: AppTypography.body1.copyWith(
+                    color:
+                        isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+                  ),
+                ),
+              ),
+            ),
+
+            // Bottom bar with save
+            Padding(
+              padding: AppSpacing.screenPadding,
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  key: const Key('note_save_button'),
+                  onPressed: onConfirm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.orange500,
+                    foregroundColor: AppColors.white,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.md,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Save'),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
