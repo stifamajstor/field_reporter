@@ -8,6 +8,7 @@ import '../../../services/audio_recorder_service.dart';
 import '../../../services/barcode_scanner_service.dart';
 import '../../../services/camera_service.dart';
 import '../../../services/pdf_generation_service.dart';
+import '../../../services/share_service.dart';
 import '../../entries/domain/entry.dart';
 import '../../entries/presentation/entry_card.dart';
 import '../../entries/providers/entries_provider.dart';
@@ -245,9 +246,17 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     // TODO: Implement PDF preview
   }
 
-  void _sharePdf() {
+  Future<void> _sharePdf() async {
+    if (_generatedPdfPath == null) return;
+
     HapticFeedback.lightImpact();
-    // TODO: Implement PDF sharing
+
+    final shareService = ref.read(shareServiceProvider);
+    await shareService.shareFile(
+      filePath: _generatedPdfPath!,
+      mimeType: 'application/pdf',
+      subject: _report.title,
+    );
   }
 
   void _showAddEntryOptions() {

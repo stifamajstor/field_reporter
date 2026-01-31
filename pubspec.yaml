@@ -60,9 +60,9 @@ dependencies:
   # firebase_messaging: ^14.7.0
   # flutter_local_notifications: ^16.1.0
 
-  # File Handling (not yet needed)
-  # path_provider: ^2.1.1
-  # share_plus: ^7.2.1
+  # File Handling
+  path_provider: ^2.1.1
+  share_plus: ^7.2.1
   # open_file: ^3.3.2
 
   # PDF (Phase 11 - not yet implemented)

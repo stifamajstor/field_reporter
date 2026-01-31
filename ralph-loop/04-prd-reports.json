@@ -254,7 +254,7 @@
       "Select a share destination (email, messages, etc.)",
       "Verify share completes successfully"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
