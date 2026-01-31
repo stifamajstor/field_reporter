@@ -301,7 +301,7 @@
       "Capture photo at zoomed level",
       "Verify saved photo reflects zoom"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

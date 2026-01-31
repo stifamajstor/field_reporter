@@ -97,6 +97,19 @@ abstract class CameraService {
 
   /// Gets the current flash mode.
   FlashMode get currentFlashMode;
+
+  /// Sets the zoom level.
+  /// [zoom] is a multiplier value (e.g., 1.0 = no zoom, 2.0 = 2x zoom).
+  Future<void> setZoomLevel(double zoom);
+
+  /// Gets the current zoom level.
+  double get currentZoomLevel;
+
+  /// Gets the minimum supported zoom level.
+  double get minZoomLevel;
+
+  /// Gets the maximum supported zoom level.
+  double get maxZoomLevel;
 }
 
 /// Default implementation of CameraService.
@@ -104,6 +117,9 @@ abstract class CameraService {
 class DefaultCameraService implements CameraService {
   CameraLensDirection _lensDirection = CameraLensDirection.back;
   FlashMode _flashMode = FlashMode.auto;
+  double _zoomLevel = 1.0;
+  final double _minZoom = 1.0;
+  final double _maxZoom = 10.0;
 
   @override
   CameraLensDirection get lensDirection => _lensDirection;
@@ -112,8 +128,22 @@ class DefaultCameraService implements CameraService {
   FlashMode get currentFlashMode => _flashMode;
 
   @override
+  double get currentZoomLevel => _zoomLevel;
+
+  @override
+  double get minZoomLevel => _minZoom;
+
+  @override
+  double get maxZoomLevel => _maxZoom;
+
+  @override
   Future<void> setFlashMode(FlashMode mode) async {
     _flashMode = mode;
+  }
+
+  @override
+  Future<void> setZoomLevel(double zoom) async {
+    _zoomLevel = zoom.clamp(_minZoom, _maxZoom);
   }
 
   @override
@@ -121,6 +151,7 @@ class DefaultCameraService implements CameraService {
     // Implementation will use camera package
     _lensDirection = CameraLensDirection.back;
     _flashMode = FlashMode.auto;
+    _zoomLevel = 1.0;
   }
 
   @override
@@ -157,6 +188,8 @@ class DefaultCameraService implements CameraService {
     _lensDirection = _lensDirection == CameraLensDirection.back
         ? CameraLensDirection.front
         : CameraLensDirection.back;
+    // Reset zoom when switching cameras
+    _zoomLevel = 1.0;
   }
 }
 

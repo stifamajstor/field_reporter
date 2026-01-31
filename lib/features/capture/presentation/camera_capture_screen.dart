@@ -9,6 +9,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../services/camera_service.dart';
 import '../../../services/permission_service.dart';
+import '../providers/camera_zoom_provider.dart';
 import '../providers/compass_provider.dart';
 import '../providers/gps_overlay_provider.dart';
 import '../providers/level_indicator_provider.dart';
@@ -77,6 +78,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
       ref.read(timestampOverlayProvider.notifier).initialize();
       ref.read(levelIndicatorProvider.notifier).initialize();
       ref.read(compassProvider.notifier).initialize();
+      ref.read(cameraZoomProvider.notifier).initialize();
     });
   }
 
@@ -165,6 +167,9 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
 
     final cameraService = ref.read(cameraServiceProvider);
     await cameraService.switchCamera();
+
+    // Reset zoom when switching cameras
+    ref.read(cameraZoomProvider.notifier).reset();
 
     await Future.delayed(const Duration(milliseconds: 300));
 
@@ -915,21 +920,65 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
   }
 }
 
-/// Widget that displays the camera preview.
+/// Widget that displays the camera preview with pinch-to-zoom support.
 /// In production, the actual camera preview is managed by the CameraService.
 /// This widget provides the visual container that fills the screen.
-class CameraPreviewWidget extends StatelessWidget {
+class CameraPreviewWidget extends ConsumerWidget {
   const CameraPreviewWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // This widget serves as a placeholder/container for the camera preview.
-    // The actual preview rendering is handled by the camera service layer.
-    // In widget tests, this displays as a placeholder.
-    // In production, the CameraService manages the actual preview.
-    return Container(
-      color: Colors.black,
-      child: const SizedBox.expand(),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final zoomState = ref.watch(cameraZoomProvider);
+
+    return GestureDetector(
+      onScaleStart: (_) {
+        ref.read(cameraZoomProvider.notifier).onScaleStart();
+      },
+      onScaleUpdate: (details) {
+        ref.read(cameraZoomProvider.notifier).onScaleUpdate(details.scale);
+      },
+      onScaleEnd: (_) {
+        ref.read(cameraZoomProvider.notifier).onScaleEnd();
+      },
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Camera preview placeholder
+          Container(
+            color: Colors.black,
+            child: const SizedBox.expand(),
+          ),
+          // Zoom level indicator (shown when zoomed above 1.0x)
+          if (zoomState.isZoomed)
+            Positioned(
+              bottom: 180,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  key: const Key('zoom_indicator'),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    zoomState.formattedZoomLevel,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
