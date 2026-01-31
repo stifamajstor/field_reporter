@@ -169,7 +169,7 @@
       "Verify recording stops",
       "Verify playback controls appear"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
