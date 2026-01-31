@@ -408,7 +408,7 @@
       "Scroll quickly through list",
       "Verify no UI jank during scroll"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",

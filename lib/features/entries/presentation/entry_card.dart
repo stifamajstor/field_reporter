@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/theme.dart';
+import '../../../widgets/progressive_thumbnail.dart';
 import '../domain/entry.dart';
 
 /// A card widget that displays an entry with thumbnail and timestamp.
@@ -41,8 +40,8 @@ class EntryCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail
-            _EntryThumbnail(entry: entry, isDark: isDark),
+            // Thumbnail with progressive loading
+            ProgressiveThumbnail(entry: entry, size: 64),
             AppSpacing.horizontalSm,
             // Content
             Expanded(
@@ -151,69 +150,5 @@ class EntryCard extends StatelessWidget {
         EntryType.audio => 'Voice Memo',
         EntryType.note => 'Note',
         EntryType.scan => 'Scan',
-      };
-}
-
-class _EntryThumbnail extends StatelessWidget {
-  const _EntryThumbnail({
-    required this.entry,
-    required this.isDark,
-  });
-
-  final Entry entry;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: SizedBox(
-        width: 64,
-        height: 64,
-        child: _buildThumbnailContent(),
-      ),
-    );
-  }
-
-  Widget _buildThumbnailContent() {
-    // If we have a thumbnail path, show the image
-    if (entry.thumbnailPath != null) {
-      final file = File(entry.thumbnailPath!);
-      if (file.existsSync()) {
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-        );
-      }
-    }
-
-    // If we have a media path for photo, show the image
-    if (entry.type == EntryType.photo && entry.mediaPath != null) {
-      final file = File(entry.mediaPath!);
-      if (file.existsSync()) {
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-        );
-      }
-    }
-
-    // Otherwise show a placeholder icon
-    return Container(
-      color: isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
-      child: Icon(
-        _iconForType(entry.type),
-        color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
-        size: 28,
-      ),
-    );
-  }
-
-  IconData _iconForType(EntryType type) => switch (type) {
-        EntryType.photo => Icons.photo,
-        EntryType.video => Icons.videocam,
-        EntryType.audio => Icons.mic,
-        EntryType.note => Icons.note,
-        EntryType.scan => Icons.qr_code_scanner,
       };
 }

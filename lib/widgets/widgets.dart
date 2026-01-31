@@ -18,3 +18,6 @@ export 'indicators/status_badge.dart';
 
 // Layout
 export 'layout/empty_state.dart';
+
+// Media
+export 'progressive_thumbnail.dart';
