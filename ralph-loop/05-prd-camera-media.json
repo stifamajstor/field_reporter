@@ -386,7 +386,7 @@
       "Verify Medium is smaller than High",
       "Verify both photos are usable quality"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "storage",
