@@ -140,7 +140,7 @@
       "Verify AI-generated description if available",
       "Verify edit and delete options available"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
