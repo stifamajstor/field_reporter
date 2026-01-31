@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/theme.dart';
+import '../../../services/connectivity_service.dart';
 import '../../../widgets/layout/empty_state.dart';
 import '../../projects/domain/project.dart';
 import '../../projects/providers/projects_provider.dart';
@@ -39,6 +40,8 @@ class ReportsScreen extends ConsumerWidget {
     final searchQuery = ref.watch(searchQueryProvider);
     final isSearchActive = ref.watch(isSearchActiveProvider);
     final isDark = context.isDarkMode;
+    final connectivityService = ref.watch(connectivityServiceProvider);
+    final isOffline = !connectivityService.isOnline;
 
     return Scaffold(
       appBar: AppBar(
@@ -94,101 +97,137 @@ class ReportsScreen extends ConsumerWidget {
           color: isDark ? AppColors.darkBackground : AppColors.white,
         ),
       ),
-      body: reportsAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        error: (error, stack) => Center(
-          child: ErrorState(
-            message: error.toString().replaceFirst('Exception: ', ''),
-            onRetry: () => ref.invalidate(allReportsNotifierProvider),
-          ),
-        ),
-        data: (reports) {
-          // Apply status, project, and date range filters
-          var filteredReports = reports;
-          if (statusFilter != null) {
-            filteredReports =
-                filteredReports.where((r) => r.status == statusFilter).toList();
-          }
-          if (projectFilter != null) {
-            filteredReports = filteredReports
-                .where((r) => r.projectId == projectFilter)
-                .toList();
-          }
-          if (dateRangeFilter != null) {
-            filteredReports = filteredReports.where((r) {
-              final reportDate = r.createdAt;
-              return !reportDate.isBefore(dateRangeFilter.start) &&
-                  !reportDate.isAfter(dateRangeFilter.end);
-            }).toList();
-          }
-
-          // Apply search filter
-          if (searchQuery.isNotEmpty) {
-            final query = searchQuery.toLowerCase();
-            filteredReports = filteredReports.where((r) {
-              final titleMatch = r.title.toLowerCase().contains(query);
-              final notesMatch =
-                  r.notes?.toLowerCase().contains(query) ?? false;
-              return titleMatch || notesMatch;
-            }).toList();
-          }
-
-          // Show "No reports found" when search returns empty
-          if (filteredReports.isEmpty && searchQuery.isNotEmpty) {
-            return const EmptyState(
-              icon: Icons.search_off,
-              title: 'No reports found',
-              description: 'Try a different search term.',
-            );
-          }
-
-          if (filteredReports.isEmpty) {
-            return const EmptyState(
-              icon: Icons.description_outlined,
-              title: 'No reports yet',
-              description:
-                  'Create your first report to document your findings.',
-            );
-          }
-
-          // Get projects map for looking up project names
-          final projectsMap = <String, Project>{};
-          projectsAsync.whenData((projects) {
-            for (final project in projects) {
-              projectsMap[project.id] = project;
-            }
-          });
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(allReportsNotifierProvider);
-              await ref.read(allReportsNotifierProvider.future);
-            },
-            child: ListView.separated(
-              padding: AppSpacing.listPadding.copyWith(
-                top: AppSpacing.md,
-                bottom: AppSpacing.md,
+      body: Column(
+        children: [
+          // Offline indicator
+          if (isOffline)
+            Container(
+              key: const Key('offline_indicator'),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
               ),
-              itemCount: filteredReports.length,
-              separatorBuilder: (context, index) => AppSpacing.verticalSm,
-              itemBuilder: (context, index) {
-                final report = filteredReports[index];
-                final project = projectsMap[report.projectId];
+              color: isDark ? AppColors.darkAmberSubtle : AppColors.amber50,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.cloud_off,
+                    size: 16,
+                    color: isDark ? AppColors.darkAmber : AppColors.amber500,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Offline mode',
+                    style: AppTypography.caption.copyWith(
+                      color: isDark ? AppColors.darkAmber : AppColors.amber500,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: reportsAsync.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              error: (error, stack) => Center(
+                child: ErrorState(
+                  message: error.toString().replaceFirst('Exception: ', ''),
+                  onRetry: () => ref.invalidate(allReportsNotifierProvider),
+                ),
+              ),
+              data: (reports) {
+                // Apply status, project, and date range filters
+                var filteredReports = reports;
+                if (statusFilter != null) {
+                  filteredReports = filteredReports
+                      .where((r) => r.status == statusFilter)
+                      .toList();
+                }
+                if (projectFilter != null) {
+                  filteredReports = filteredReports
+                      .where((r) => r.projectId == projectFilter)
+                      .toList();
+                }
+                if (dateRangeFilter != null) {
+                  filteredReports = filteredReports.where((r) {
+                    final reportDate = r.createdAt;
+                    return !reportDate.isBefore(dateRangeFilter.start) &&
+                        !reportDate.isAfter(dateRangeFilter.end);
+                  }).toList();
+                }
 
-                return _ReportCard(
-                  report: report,
-                  projectName: project?.name ?? 'Unknown Project',
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    // TODO: Navigate to report detail
+                // Apply search filter
+                if (searchQuery.isNotEmpty) {
+                  final query = searchQuery.toLowerCase();
+                  filteredReports = filteredReports.where((r) {
+                    final titleMatch = r.title.toLowerCase().contains(query);
+                    final notesMatch =
+                        r.notes?.toLowerCase().contains(query) ?? false;
+                    return titleMatch || notesMatch;
+                  }).toList();
+                }
+
+                // Show "No reports found" when search returns empty
+                if (filteredReports.isEmpty && searchQuery.isNotEmpty) {
+                  return const EmptyState(
+                    icon: Icons.search_off,
+                    title: 'No reports found',
+                    description: 'Try a different search term.',
+                  );
+                }
+
+                if (filteredReports.isEmpty) {
+                  return const EmptyState(
+                    icon: Icons.description_outlined,
+                    title: 'No reports yet',
+                    description:
+                        'Create your first report to document your findings.',
+                  );
+                }
+
+                // Get projects map for looking up project names
+                final projectsMap = <String, Project>{};
+                projectsAsync.whenData((projects) {
+                  for (final project in projects) {
+                    projectsMap[project.id] = project;
+                  }
+                });
+
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(allReportsNotifierProvider);
+                    await ref.read(allReportsNotifierProvider.future);
                   },
+                  child: ListView.separated(
+                    padding: AppSpacing.listPadding.copyWith(
+                      top: AppSpacing.md,
+                      bottom: AppSpacing.md,
+                    ),
+                    itemCount: filteredReports.length,
+                    separatorBuilder: (context, index) => AppSpacing.verticalSm,
+                    itemBuilder: (context, index) {
+                      final report = filteredReports[index];
+                      final project = projectsMap[report.projectId];
+
+                      return _ReportCard(
+                        report: report,
+                        projectName: project?.name ?? 'Unknown Project',
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          // TODO: Navigate to report detail
+                        },
+                      );
+                    },
+                  ),
                 );
               },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }

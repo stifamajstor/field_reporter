@@ -357,7 +357,7 @@
       "Verify automatic sync starts",
       "Verify entries upload successfully"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "offline",

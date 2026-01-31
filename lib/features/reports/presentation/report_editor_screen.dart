@@ -1184,14 +1184,54 @@ class _EntriesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasPendingSyncEntries = entries.any((e) => e.syncPending);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Entries',
-          style: AppTypography.headline3.copyWith(
-            color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Entries',
+                style: AppTypography.headline3.copyWith(
+                  color:
+                      isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+                ),
+              ),
+            ),
+            if (hasPendingSyncEntries)
+              Container(
+                key: const Key('pending_sync_indicator'),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkAmberSubtle : AppColors.amber50,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.cloud_upload_outlined,
+                      size: 14,
+                      color: isDark ? AppColors.darkAmber : AppColors.amber500,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Pending sync',
+                      style: AppTypography.caption.copyWith(
+                        color:
+                            isDark ? AppColors.darkAmber : AppColors.amber500,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
         AppSpacing.verticalSm,
 
@@ -1447,30 +1487,35 @@ class _EntryTypeOptionsOverlay extends StatelessWidget {
                 ),
                 AppSpacing.verticalMd,
                 _EntryTypeOption(
+                  key: const Key('add_photo_button'),
                   icon: Icons.photo_camera,
                   label: 'Photo',
                   isDark: isDark,
                   onTap: onPhotoSelected,
                 ),
                 _EntryTypeOption(
+                  key: const Key('add_video_button'),
                   icon: Icons.videocam,
                   label: 'Video',
                   isDark: isDark,
                   onTap: onVideoSelected,
                 ),
                 _EntryTypeOption(
+                  key: const Key('add_voice_memo_button'),
                   icon: Icons.mic,
                   label: 'Voice Memo',
                   isDark: isDark,
                   onTap: onVoiceMemoSelected,
                 ),
                 _EntryTypeOption(
+                  key: const Key('add_note_button'),
                   icon: Icons.note,
                   label: 'Note',
                   isDark: isDark,
                   onTap: onNoteSelected,
                 ),
                 _EntryTypeOption(
+                  key: const Key('add_scan_button'),
                   icon: Icons.qr_code_scanner,
                   label: 'Scan',
                   isDark: isDark,
@@ -1487,6 +1532,7 @@ class _EntryTypeOptionsOverlay extends StatelessWidget {
 
 class _EntryTypeOption extends StatelessWidget {
   const _EntryTypeOption({
+    super.key,
     required this.icon,
     required this.label,
     required this.isDark,
