@@ -95,7 +95,7 @@
       "Tap 'Save' or confirm",
       "Verify audio entry added to report"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

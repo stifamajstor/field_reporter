@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/theme.dart';
+import '../../../services/audio_recorder_service.dart';
 import '../../../services/camera_service.dart';
 import '../../entries/domain/entry.dart';
 import '../../entries/presentation/entry_card.dart';
@@ -55,6 +56,13 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
   String? _capturedVideoThumbnailPath;
   int? _capturedVideoDuration;
   bool _showVideoPreview = false;
+
+  // State for voice memo recording
+  bool _showVoiceMemoRecorder = false;
+  bool _isRecording = false;
+  String? _recordedAudioPath;
+  int? _recordedAudioDuration;
+  int _recordingSeconds = 0;
 
   @override
   void initState() {
@@ -268,6 +276,100 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     });
   }
 
+  void _handleVoiceMemoCapture() {
+    setState(() {
+      _showEntryTypeOptions = false;
+      _showVoiceMemoRecorder = true;
+      _isRecording = false;
+      _recordedAudioPath = null;
+      _recordedAudioDuration = null;
+      _recordingSeconds = 0;
+    });
+  }
+
+  Future<void> _startVoiceRecording() async {
+    HapticFeedback.lightImpact();
+    final audioRecorderService = ref.read(audioRecorderServiceProvider);
+    await audioRecorderService.startRecording();
+    setState(() {
+      _isRecording = true;
+      _recordingSeconds = 0;
+    });
+  }
+
+  Future<void> _stopVoiceRecording() async {
+    HapticFeedback.lightImpact();
+    final audioRecorderService = ref.read(audioRecorderServiceProvider);
+    final result = await audioRecorderService.stopRecording();
+    if (result != null) {
+      setState(() {
+        _isRecording = false;
+        _recordedAudioPath = result.path;
+        _recordedAudioDuration = result.durationSeconds;
+      });
+    }
+  }
+
+  Future<void> _playVoiceRecording() async {
+    if (_recordedAudioPath == null) return;
+    HapticFeedback.lightImpact();
+    final audioRecorderService = ref.read(audioRecorderServiceProvider);
+    await audioRecorderService.startPlayback(_recordedAudioPath!);
+  }
+
+  Future<void> _confirmVoiceMemoEntry() async {
+    if (_recordedAudioPath == null) return;
+
+    HapticFeedback.lightImpact();
+
+    // Get current entries to determine sort order
+    final entriesNotifier = ref.read(entriesNotifierProvider.notifier);
+    final currentEntries = ref.read(entriesNotifierProvider).valueOrNull ?? [];
+    final reportEntries =
+        currentEntries.where((e) => e.reportId == _report.id).toList();
+
+    // Create the entry
+    final entry = Entry(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      reportId: _report.id,
+      type: EntryType.audio,
+      mediaPath: _recordedAudioPath,
+      durationSeconds: _recordedAudioDuration,
+      sortOrder: reportEntries.length,
+      capturedAt: DateTime.now(),
+      createdAt: DateTime.now(),
+    );
+
+    await entriesNotifier.addEntry(entry);
+
+    // Update report entry count
+    final updatedReport = _report.copyWith(
+      entryCount: _report.entryCount + 1,
+      updatedAt: DateTime.now(),
+    );
+    _report = updatedReport;
+    ref.read(allReportsNotifierProvider.notifier).updateReport(updatedReport);
+
+    setState(() {
+      _showVoiceMemoRecorder = false;
+      _recordedAudioPath = null;
+      _recordedAudioDuration = null;
+      _isRecording = false;
+      _recordingSeconds = 0;
+    });
+  }
+
+  void _cancelVoiceMemoRecording() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _showVoiceMemoRecorder = false;
+      _recordedAudioPath = null;
+      _recordedAudioDuration = null;
+      _isRecording = false;
+      _recordingSeconds = 0;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
@@ -355,6 +457,7 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
               onClose: () => setState(() => _showEntryTypeOptions = false),
               onPhotoSelected: _handlePhotoCapture,
               onVideoSelected: _handleVideoCapture,
+              onVoiceMemoSelected: _handleVoiceMemoCapture,
             ),
 
           // Photo preview overlay
@@ -374,6 +477,21 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
               durationSeconds: _capturedVideoDuration ?? 0,
               onConfirm: _confirmVideoEntry,
               onCancel: _cancelVideoPreview,
+            ),
+
+          // Voice memo recorder overlay
+          if (_showVoiceMemoRecorder)
+            _VoiceMemoRecorderOverlay(
+              isDark: isDark,
+              isRecording: _isRecording,
+              recordedAudioPath: _recordedAudioPath,
+              recordedDuration: _recordedAudioDuration ?? 0,
+              recordingSeconds: _recordingSeconds,
+              onStartRecording: _startVoiceRecording,
+              onStopRecording: _stopVoiceRecording,
+              onPlayRecording: _playVoiceRecording,
+              onConfirm: _confirmVoiceMemoEntry,
+              onCancel: _cancelVoiceMemoRecording,
             ),
         ],
       ),
@@ -714,12 +832,14 @@ class _EntryTypeOptionsOverlay extends StatelessWidget {
     required this.onClose,
     required this.onPhotoSelected,
     required this.onVideoSelected,
+    required this.onVoiceMemoSelected,
   });
 
   final bool isDark;
   final VoidCallback onClose;
   final VoidCallback onPhotoSelected;
   final VoidCallback onVideoSelected;
+  final VoidCallback onVoiceMemoSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -764,9 +884,7 @@ class _EntryTypeOptionsOverlay extends StatelessWidget {
                   icon: Icons.mic,
                   label: 'Voice Memo',
                   isDark: isDark,
-                  onTap: () {
-                    // TODO: Implement voice memo
-                  },
+                  onTap: onVoiceMemoSelected,
                 ),
                 _EntryTypeOption(
                   icon: Icons.note,
@@ -1066,6 +1184,238 @@ class _VideoPreviewOverlay extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _VoiceMemoRecorderOverlay extends StatelessWidget {
+  const _VoiceMemoRecorderOverlay({
+    required this.isDark,
+    required this.isRecording,
+    required this.recordedAudioPath,
+    required this.recordedDuration,
+    required this.recordingSeconds,
+    required this.onStartRecording,
+    required this.onStopRecording,
+    required this.onPlayRecording,
+    required this.onConfirm,
+    required this.onCancel,
+  });
+
+  final bool isDark;
+  final bool isRecording;
+  final String? recordedAudioPath;
+  final int recordedDuration;
+  final int recordingSeconds;
+  final VoidCallback onStartRecording;
+  final VoidCallback onStopRecording;
+  final VoidCallback onPlayRecording;
+  final VoidCallback onConfirm;
+  final VoidCallback onCancel;
+
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasRecording = recordedAudioPath != null;
+
+    return Container(
+      color: Colors.black87,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Top bar with cancel
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: onCancel,
+                    child: Text(
+                      'Cancel',
+                      style: AppTypography.button.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'Voice Memo',
+                    style: AppTypography.headline3.copyWith(
+                      color: AppColors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 60), // Balance the layout
+                ],
+              ),
+            ),
+
+            // Recording UI
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Mic icon
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: isRecording
+                            ? AppColors.rose500.withOpacity(0.2)
+                            : (hasRecording
+                                ? AppColors.emerald500.withOpacity(0.2)
+                                : AppColors.slate700.withOpacity(0.3)),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.mic,
+                        size: 64,
+                        color: isRecording
+                            ? AppColors.rose500
+                            : (hasRecording
+                                ? AppColors.emerald500
+                                : AppColors.white),
+                      ),
+                    ),
+                    AppSpacing.verticalLg,
+
+                    // Status text
+                    if (isRecording)
+                      Text(
+                        'Recording...',
+                        style: AppTypography.body1.copyWith(
+                          color: AppColors.rose500,
+                        ),
+                      )
+                    else if (hasRecording)
+                      Text(
+                        'Recording Complete',
+                        style: AppTypography.body1.copyWith(
+                          color: AppColors.emerald500,
+                        ),
+                      )
+                    else
+                      Text(
+                        'Tap to Record',
+                        style: AppTypography.body1.copyWith(
+                          color: AppColors.slate400,
+                        ),
+                      ),
+
+                    AppSpacing.verticalSm,
+
+                    // Timer
+                    Text(
+                      _formatDuration(
+                          hasRecording ? recordedDuration : recordingSeconds),
+                      style: AppTypography.monoLarge.copyWith(
+                        color: AppColors.white,
+                        fontSize: 32,
+                      ),
+                    ),
+
+                    AppSpacing.verticalXl,
+
+                    // Control buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (!hasRecording) ...[
+                          // Record/Stop button
+                          if (isRecording)
+                            _RecordingControlButton(
+                              key: const Key('stop_button'),
+                              icon: Icons.stop,
+                              color: AppColors.rose500,
+                              onTap: onStopRecording,
+                            )
+                          else
+                            _RecordingControlButton(
+                              key: const Key('record_button'),
+                              icon: Icons.mic,
+                              color: AppColors.orange500,
+                              onTap: onStartRecording,
+                            ),
+                        ] else ...[
+                          // Play button
+                          _RecordingControlButton(
+                            key: const Key('play_button'),
+                            icon: Icons.play_arrow,
+                            color: AppColors.emerald500,
+                            onTap: onPlayRecording,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Bottom bar with save
+            if (hasRecording)
+              Padding(
+                padding: AppSpacing.screenPadding,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    key: const Key('voice_memo_save_button'),
+                    onPressed: onConfirm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.orange500,
+                      foregroundColor: AppColors.white,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.md,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Save'),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecordingControlButton extends StatelessWidget {
+  const _RecordingControlButton({
+    super.key,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 72,
+        height: 72,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          size: 36,
+          color: AppColors.white,
         ),
       ),
     );
