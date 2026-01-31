@@ -227,7 +227,7 @@
       "Verify decoded content displayed",
       "Verify option to save or rescan"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
