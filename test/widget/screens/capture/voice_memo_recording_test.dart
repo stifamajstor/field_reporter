@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -50,17 +48,36 @@ class MockPermissionService implements PermissionService {
 /// Mock audio recorder service for testing.
 class MockAudioRecorderService implements AudioRecorderService {
   bool _isRecording = false;
+  bool _isPlaying = false;
   bool startRecordingCalled = false;
   bool stopRecordingCalled = false;
   bool startPlaybackCalled = false;
   bool stopPlaybackCalled = false;
+  bool pausePlaybackCalled = false;
+  bool resumePlaybackCalled = false;
   String? lastPlaybackPath;
   int _recordedDurationSeconds = 5;
+  Duration _playbackPosition = Duration.zero;
+  void Function(Duration)? onPositionChanged;
+  void Function()? onPlaybackComplete;
 
   bool get isRecording => _isRecording;
+  bool get isPlaying => _isPlaying;
 
   void setRecordedDuration(int seconds) {
     _recordedDurationSeconds = seconds;
+  }
+
+  /// Simulate playback progress for testing.
+  void simulatePlaybackProgress(Duration position) {
+    _playbackPosition = position;
+    onPositionChanged?.call(position);
+  }
+
+  /// Simulate playback completion.
+  void simulatePlaybackComplete() {
+    _isPlaying = false;
+    onPlaybackComplete?.call();
   }
 
   @override
@@ -83,12 +100,40 @@ class MockAudioRecorderService implements AudioRecorderService {
   Future<void> startPlayback(String path) async {
     startPlaybackCalled = true;
     lastPlaybackPath = path;
+    _isPlaying = true;
+    _playbackPosition = Duration.zero;
   }
 
   @override
   Future<void> stopPlayback() async {
     stopPlaybackCalled = true;
+    _isPlaying = false;
   }
+
+  @override
+  Future<void> pausePlayback() async {
+    pausePlaybackCalled = true;
+    _isPlaying = false;
+  }
+
+  @override
+  Future<void> resumePlayback() async {
+    resumePlaybackCalled = true;
+    _isPlaying = true;
+  }
+
+  @override
+  void setPositionListener(void Function(Duration)? listener) {
+    onPositionChanged = listener;
+  }
+
+  @override
+  void setCompletionListener(void Function()? listener) {
+    onPlaybackComplete = listener;
+  }
+
+  @override
+  Duration get currentPosition => _playbackPosition;
 
   @override
   Future<void> dispose() async {}
@@ -327,6 +372,182 @@ void main() {
       // Verify back to recording UI
       expect(find.byKey(const Key('record_button')), findsOneWidget);
       expect(find.byKey(const Key('playback_controls')), findsNothing);
+    });
+  });
+
+  group('Voice memo playback', () {
+    late MockPermissionService mockPermissionService;
+    late MockAudioRecorderService mockAudioRecorderService;
+
+    setUp(() {
+      mockPermissionService = MockPermissionService();
+      mockAudioRecorderService = MockAudioRecorderService();
+    });
+
+    Widget createTestWidget() {
+      return ProviderScope(
+        overrides: [
+          permissionServiceProvider.overrideWithValue(mockPermissionService),
+          audioRecorderServiceProvider
+              .overrideWithValue(mockAudioRecorderService),
+        ],
+        child: const MaterialApp(
+          home: VoiceMemoScreen(),
+        ),
+      );
+    }
+
+    Future<void> recordAndStopMemo(WidgetTester tester) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      // Record
+      await tester.tap(find.byKey(const Key('record_button')));
+      await tester.pump();
+
+      // Stop
+      await tester.tap(find.byKey(const Key('stop_button')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('plays audio through speaker when play tapped', (tester) async {
+      // Step 1: Record a voice memo
+      mockPermissionService.setMicrophoneStatus(PermissionStatus.granted);
+      mockAudioRecorderService.setRecordedDuration(10);
+
+      await recordAndStopMemo(tester);
+
+      // Step 2: Tap play button in preview
+      await tester.tap(find.byKey(const Key('play_button')));
+      await tester.pump();
+
+      // Step 3: Verify audio plays through speaker
+      expect(mockAudioRecorderService.startPlaybackCalled, isTrue);
+      expect(
+        mockAudioRecorderService.lastPlaybackPath,
+        '/path/to/voice_memo.m4a',
+      );
+    });
+
+    testWidgets('progress indicator updates during playback', (tester) async {
+      mockPermissionService.setMicrophoneStatus(PermissionStatus.granted);
+      mockAudioRecorderService.setRecordedDuration(10);
+
+      await recordAndStopMemo(tester);
+
+      // Tap play button
+      await tester.tap(find.byKey(const Key('play_button')));
+      await tester.pump();
+
+      // Step 4: Verify progress indicator updates
+      expect(find.byKey(const Key('playback_progress')), findsOneWidget);
+
+      // Initial position should be 0
+      expect(find.text('00:00 / 00:10'), findsOneWidget);
+
+      // Simulate playback progress
+      mockAudioRecorderService.simulatePlaybackProgress(
+        const Duration(seconds: 3),
+      );
+      await tester.pump();
+
+      expect(find.text('00:03 / 00:10'), findsOneWidget);
+
+      // More progress
+      mockAudioRecorderService.simulatePlaybackProgress(
+        const Duration(seconds: 7),
+      );
+      await tester.pump();
+
+      expect(find.text('00:07 / 00:10'), findsOneWidget);
+    });
+
+    testWidgets('pause button pauses playback', (tester) async {
+      mockPermissionService.setMicrophoneStatus(PermissionStatus.granted);
+      mockAudioRecorderService.setRecordedDuration(10);
+
+      await recordAndStopMemo(tester);
+
+      // Tap play button
+      await tester.tap(find.byKey(const Key('play_button')));
+      await tester.pump();
+
+      // Simulate some progress
+      mockAudioRecorderService.simulatePlaybackProgress(
+        const Duration(seconds: 3),
+      );
+      await tester.pump();
+
+      // Step 5: Tap pause button (same button toggles play/pause)
+      await tester.tap(find.byKey(const Key('play_button')));
+      await tester.pump();
+
+      // Step 6: Verify playback pauses
+      expect(mockAudioRecorderService.pausePlaybackCalled, isTrue);
+
+      // Verify button shows play icon (not pause)
+      expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+      expect(find.byIcon(Icons.pause), findsNothing);
+    });
+
+    testWidgets('play button resumes from pause point', (tester) async {
+      mockPermissionService.setMicrophoneStatus(PermissionStatus.granted);
+      mockAudioRecorderService.setRecordedDuration(10);
+
+      await recordAndStopMemo(tester);
+
+      // Tap play
+      await tester.tap(find.byKey(const Key('play_button')));
+      await tester.pump();
+
+      // Simulate progress to 5 seconds
+      mockAudioRecorderService.simulatePlaybackProgress(
+        const Duration(seconds: 5),
+      );
+      await tester.pump();
+
+      // Pause
+      await tester.tap(find.byKey(const Key('play_button')));
+      await tester.pump();
+
+      // Verify paused at 5 seconds (position preserved)
+      expect(find.text('00:05 / 00:10'), findsOneWidget);
+
+      // Step 7: Tap play again
+      await tester.tap(find.byKey(const Key('play_button')));
+      await tester.pump();
+
+      // Step 8: Verify playback resumes from pause point
+      expect(mockAudioRecorderService.resumePlaybackCalled, isTrue);
+
+      // Button should show pause icon (playing)
+      expect(find.byIcon(Icons.pause), findsOneWidget);
+    });
+
+    testWidgets('playback completes and resets to beginning', (tester) async {
+      mockPermissionService.setMicrophoneStatus(PermissionStatus.granted);
+      mockAudioRecorderService.setRecordedDuration(5);
+
+      await recordAndStopMemo(tester);
+
+      // Tap play
+      await tester.tap(find.byKey(const Key('play_button')));
+      await tester.pump();
+
+      // Simulate complete playback
+      mockAudioRecorderService.simulatePlaybackProgress(
+        const Duration(seconds: 5),
+      );
+      await tester.pump();
+
+      mockAudioRecorderService.simulatePlaybackComplete();
+      await tester.pump();
+
+      // Verify button shows play icon (ready to play again)
+      expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+
+      // Position should reset to beginning
+      expect(find.text('00:00 / 00:05'), findsOneWidget);
     });
   });
 }

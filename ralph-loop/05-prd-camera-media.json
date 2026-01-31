@@ -184,7 +184,7 @@
       "Tap play again",
       "Verify playback resumes from pause point"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

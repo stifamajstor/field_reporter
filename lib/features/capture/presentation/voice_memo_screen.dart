@@ -34,6 +34,8 @@ class _VoiceMemoScreenState extends ConsumerState<VoiceMemoScreen> {
   String? _recordedPath;
   int _recordedDuration = 0;
   bool _isPlaying = false;
+  Duration _playbackPosition = Duration.zero;
+  bool _isPaused = false;
 
   @override
   void initState() {
@@ -128,20 +130,67 @@ class _VoiceMemoScreenState extends ConsumerState<VoiceMemoScreen> {
     HapticFeedback.lightImpact();
 
     final audioService = ref.read(audioRecorderServiceProvider);
+
+    // Set up listeners before starting playback
+    audioService.setPositionListener((position) {
+      if (mounted) {
+        setState(() {
+          _playbackPosition = position;
+        });
+      }
+    });
+
+    audioService.setCompletionListener(() {
+      if (mounted) {
+        setState(() {
+          _isPlaying = false;
+          _isPaused = false;
+          _playbackPosition = Duration.zero;
+        });
+      }
+    });
+
     await audioService.startPlayback(_recordedPath!);
 
     setState(() {
       _isPlaying = true;
+      _isPaused = false;
+      _playbackPosition = Duration.zero;
     });
   }
 
-  Future<void> _stopPlayback() async {
+  Future<void> _pausePlayback() async {
+    HapticFeedback.lightImpact();
+
     final audioService = ref.read(audioRecorderServiceProvider);
-    await audioService.stopPlayback();
+    await audioService.pausePlayback();
 
     setState(() {
       _isPlaying = false;
+      _isPaused = true;
     });
+  }
+
+  Future<void> _resumePlayback() async {
+    HapticFeedback.lightImpact();
+
+    final audioService = ref.read(audioRecorderServiceProvider);
+    await audioService.resumePlayback();
+
+    setState(() {
+      _isPlaying = true;
+      _isPaused = false;
+    });
+  }
+
+  void _togglePlayback() {
+    if (_isPlaying) {
+      _pausePlayback();
+    } else if (_isPaused) {
+      _resumePlayback();
+    } else {
+      _playRecording();
+    }
   }
 
   void _acceptRecording() {
@@ -156,6 +205,8 @@ class _VoiceMemoScreenState extends ConsumerState<VoiceMemoScreen> {
       _recordedPath = null;
       _recordedDuration = 0;
       _isPlaying = false;
+      _isPaused = false;
+      _playbackPosition = Duration.zero;
     });
   }
 
@@ -367,6 +418,11 @@ class _VoiceMemoScreenState extends ConsumerState<VoiceMemoScreen> {
   }
 
   Widget _buildPlaybackUI() {
+    final totalDuration = Duration(seconds: _recordedDuration);
+    final progress = _recordedDuration > 0
+        ? _playbackPosition.inMilliseconds / totalDuration.inMilliseconds
+        : 0.0;
+
     return Column(
       key: const Key('playback_controls'),
       mainAxisAlignment: MainAxisAlignment.center,
@@ -389,21 +445,40 @@ class _VoiceMemoScreenState extends ConsumerState<VoiceMemoScreen> {
           ),
         ),
         const SizedBox(height: 24),
-        // Duration
-        Text(
-          _formatTime(_recordedDuration),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 32,
-            fontWeight: FontWeight.w300,
-            fontFamily: 'JetBrains Mono',
+        // Progress indicator
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 48),
+          child: Column(
+            key: const Key('playback_progress'),
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: progress.clamp(0.0, 1.0),
+                  backgroundColor: AppColors.slate700,
+                  valueColor:
+                      const AlwaysStoppedAnimation<Color>(AppColors.orange500),
+                  minHeight: 4,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${_formatTime(_playbackPosition.inSeconds)} / ${_formatTime(_recordedDuration)}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w300,
+                  fontFamily: 'JetBrains Mono',
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 32),
-        // Play button
+        // Play/Pause button
         GestureDetector(
           key: const Key('play_button'),
-          onTap: _isPlaying ? _stopPlayback : _playRecording,
+          onTap: _togglePlayback,
           child: Container(
             width: 64,
             height: 64,
