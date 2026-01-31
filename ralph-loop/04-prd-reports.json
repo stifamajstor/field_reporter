@@ -446,7 +446,7 @@
       "Verify 'Retry' option available",
       "Verify entry is still functional without AI"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "error-handling",

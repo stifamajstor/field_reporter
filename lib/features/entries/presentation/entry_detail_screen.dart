@@ -30,6 +30,8 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
   bool _isEditingTranscription = false;
   bool _isGeneratingDescription = false;
   bool _isEditingDescription = false;
+  String? _transcriptionError;
+  String? _descriptionError;
   late TextEditingController _annotationController;
   late TextEditingController _transcriptionController;
   late TextEditingController _descriptionController;
@@ -98,6 +100,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     HapticFeedback.lightImpact();
     setState(() {
       _isTranscribing = true;
+      _transcriptionError = null;
     });
 
     try {
@@ -109,12 +112,20 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
         _currentEntry = transcribedEntry;
         _transcriptionController.text = transcribedEntry.content ?? '';
         _isTranscribing = false;
+        _transcriptionError = null;
       });
     } catch (e) {
       setState(() {
         _isTranscribing = false;
+        _transcriptionError = e.toString().replaceFirst('Exception: ', '');
       });
     }
+  }
+
+  void _clearTranscriptionError() {
+    setState(() {
+      _transcriptionError = null;
+    });
   }
 
   void _startEditingTranscription() {
@@ -155,6 +166,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     HapticFeedback.lightImpact();
     setState(() {
       _isGeneratingDescription = true;
+      _descriptionError = null;
     });
 
     try {
@@ -166,12 +178,20 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
         _currentEntry = describedEntry;
         _descriptionController.text = describedEntry.aiDescription ?? '';
         _isGeneratingDescription = false;
+        _descriptionError = null;
       });
     } catch (e) {
       setState(() {
         _isGeneratingDescription = false;
+        _descriptionError = e.toString().replaceFirst('Exception: ', '');
       });
     }
+  }
+
+  void _clearDescriptionError() {
+    setState(() {
+      _descriptionError = null;
+    });
   }
 
   void _startEditingDescription() {
@@ -266,10 +286,13 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                       isEditing: _isEditingTranscription,
                       controller: _transcriptionController,
                       focusNode: _transcriptionFocusNode,
+                      errorMessage: _transcriptionError,
                       onRequestTranscription: _requestTranscription,
                       onStartEditing: _startEditingTranscription,
                       onSave: _saveTranscription,
                       onCancel: _cancelEditingTranscription,
+                      onRetry: _requestTranscription,
+                      onDismissError: _clearTranscriptionError,
                     ),
                     AppSpacing.verticalLg,
                   ],
@@ -296,10 +319,13 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                       isEditing: _isEditingDescription,
                       controller: _descriptionController,
                       focusNode: _descriptionFocusNode,
+                      errorMessage: _descriptionError,
                       onRequestDescription: _requestDescription,
                       onStartEditing: _startEditingDescription,
                       onSave: _saveDescription,
                       onCancel: _cancelEditingDescription,
+                      onRetry: _requestDescription,
+                      onDismissError: _clearDescriptionError,
                     ),
                     AppSpacing.verticalLg,
                   ],
@@ -949,6 +975,9 @@ class _TranscriptionSection extends StatelessWidget {
     required this.onStartEditing,
     required this.onSave,
     required this.onCancel,
+    this.errorMessage,
+    this.onRetry,
+    this.onDismissError,
   });
 
   final Entry entry;
@@ -961,6 +990,9 @@ class _TranscriptionSection extends StatelessWidget {
   final VoidCallback onStartEditing;
   final VoidCallback onSave;
   final VoidCallback onCancel;
+  final String? errorMessage;
+  final VoidCallback? onRetry;
+  final VoidCallback? onDismissError;
 
   @override
   Widget build(BuildContext context) {
@@ -968,6 +1000,10 @@ class _TranscriptionSection extends StatelessWidget {
 
     if (isTranscribing) {
       return _buildProcessingState();
+    }
+
+    if (errorMessage != null) {
+      return _buildErrorState();
     }
 
     if (isEditing) {
@@ -979,6 +1015,85 @@ class _TranscriptionSection extends StatelessWidget {
     }
 
     return _buildTranscribeButton();
+  }
+
+  Widget _buildErrorState() {
+    return Container(
+      key: const Key('ai_error_message'),
+      width: double.infinity,
+      padding: AppSpacing.cardInsets,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkRoseSubtle : AppColors.rose50,
+        borderRadius: AppSpacing.borderRadiusLg,
+        border: Border.all(
+          color: isDark ? AppColors.darkRose : AppColors.rose500,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 20,
+                color: isDark ? AppColors.darkRose : AppColors.rose500,
+              ),
+              AppSpacing.horizontalSm,
+              Text(
+                'Transcription failed',
+                style: AppTypography.body2.copyWith(
+                  color: isDark ? AppColors.darkRose : AppColors.rose500,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          AppSpacing.verticalSm,
+          Text(
+            errorMessage!,
+            style: AppTypography.caption.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+            ),
+          ),
+          AppSpacing.verticalMd,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: onDismissError,
+                child: Text(
+                  'Dismiss',
+                  style: AppTypography.button.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.slate700,
+                  ),
+                ),
+              ),
+              AppSpacing.horizontalSm,
+              ElevatedButton(
+                key: const Key('ai_retry_button'),
+                onPressed: onRetry,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      isDark ? AppColors.darkOrange : AppColors.orange500,
+                  foregroundColor: AppColors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildTranscribeButton() {
@@ -1215,6 +1330,9 @@ class _AiDescriptionSection extends StatelessWidget {
     required this.onStartEditing,
     required this.onSave,
     required this.onCancel,
+    this.errorMessage,
+    this.onRetry,
+    this.onDismissError,
   });
 
   final Entry entry;
@@ -1227,6 +1345,9 @@ class _AiDescriptionSection extends StatelessWidget {
   final VoidCallback onStartEditing;
   final VoidCallback onSave;
   final VoidCallback onCancel;
+  final String? errorMessage;
+  final VoidCallback? onRetry;
+  final VoidCallback? onDismissError;
 
   @override
   Widget build(BuildContext context) {
@@ -1235,6 +1356,10 @@ class _AiDescriptionSection extends StatelessWidget {
 
     if (isGenerating) {
       return _buildProcessingState();
+    }
+
+    if (errorMessage != null) {
+      return _buildErrorState();
     }
 
     if (isEditing) {
@@ -1246,6 +1371,85 @@ class _AiDescriptionSection extends StatelessWidget {
     }
 
     return _buildGenerateButton();
+  }
+
+  Widget _buildErrorState() {
+    return Container(
+      key: const Key('ai_description_error_message'),
+      width: double.infinity,
+      padding: AppSpacing.cardInsets,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkRoseSubtle : AppColors.rose50,
+        borderRadius: AppSpacing.borderRadiusLg,
+        border: Border.all(
+          color: isDark ? AppColors.darkRose : AppColors.rose500,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 20,
+                color: isDark ? AppColors.darkRose : AppColors.rose500,
+              ),
+              AppSpacing.horizontalSm,
+              Text(
+                'Description generation failed',
+                style: AppTypography.body2.copyWith(
+                  color: isDark ? AppColors.darkRose : AppColors.rose500,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          AppSpacing.verticalSm,
+          Text(
+            errorMessage!,
+            style: AppTypography.caption.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+            ),
+          ),
+          AppSpacing.verticalMd,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: onDismissError,
+                child: Text(
+                  'Dismiss',
+                  style: AppTypography.button.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.slate700,
+                  ),
+                ),
+              ),
+              AppSpacing.horizontalSm,
+              ElevatedButton(
+                key: const Key('ai_description_retry_button'),
+                onPressed: onRetry,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      isDark ? AppColors.darkOrange : AppColors.orange500,
+                  foregroundColor: AppColors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildGenerateButton() {

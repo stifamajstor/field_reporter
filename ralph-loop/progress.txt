@@ -102,3 +102,4 @@
 [2026-01-31 09:00] | reports | Entry thumbnails load progressively | PASS | lib/widgets/progressive_thumbnail.dart, lib/features/entries/presentation/entry_card.dart, test/widget/screens/reports/entry_thumbnail_progressive_test.dart
 [2026-01-31 09:04] | reports | Report status badge reflects current state | PASS | lib/features/reports/presentation/report_editor_screen.dart, test/widget/screens/reports/report_status_badge_test.dart
 [2026-01-31 09:08] | reports | Media capture failure shows retry option | PASS | lib/services/camera_service.dart, lib/features/reports/presentation/report_editor_screen.dart, test/widget/screens/reports/media_capture_failure_retry_test.dart
+[2026-01-31 09:12] | reports | AI processing failure shows appropriate error | PASS | lib/features/entries/presentation/entry_detail_screen.dart, test/widget/screens/reports/ai_processing_failure_test.dart
