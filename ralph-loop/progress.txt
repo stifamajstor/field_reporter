@@ -97,3 +97,4 @@
 [2026-01-31 08:22] | reports | User can filter reports by date range | PASS | lib/features/reports/presentation/reports_screen.dart, test/widget/screens/reports/filter_reports_by_date_range_test.dart
 [2026-01-31 08:18] | reports | User can search reports by keyword | PASS | lib/features/reports/presentation/reports_screen.dart, test/widget/screens/reports/search_reports_test.dart
 [2026-01-31 08:36] | reports | User can view cached reports when offline | PASS | lib/features/reports/presentation/report_editor_screen.dart, test/widget/screens/reports/view_cached_reports_offline_test.dart
+[2026-01-31 08:44] | reports | AI features show unavailable state when offline | PASS | lib/features/reports/domain/report.dart, lib/features/reports/providers/reports_provider.dart, lib/features/reports/presentation/report_editor_screen.dart, test/widget/screens/reports/ai_offline_unavailable_test.dart

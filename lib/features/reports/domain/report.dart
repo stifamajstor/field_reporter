@@ -21,6 +21,7 @@ class Report {
     required this.title,
     this.notes,
     this.aiSummary,
+    this.aiSummaryQueued = false,
     this.status = ReportStatus.draft,
     this.entryCount = 0,
     required this.createdAt,
@@ -41,6 +42,9 @@ class Report {
 
   /// AI-generated summary of the report.
   final String? aiSummary;
+
+  /// Whether AI summary generation is queued for later (when online).
+  final bool aiSummaryQueued;
 
   /// Current status of the report.
   final ReportStatus status;
@@ -64,6 +68,7 @@ class Report {
           title == other.title &&
           notes == other.notes &&
           aiSummary == other.aiSummary &&
+          aiSummaryQueued == other.aiSummaryQueued &&
           status == other.status &&
           entryCount == other.entryCount &&
           createdAt == other.createdAt &&
@@ -76,6 +81,7 @@ class Report {
       title.hashCode ^
       notes.hashCode ^
       aiSummary.hashCode ^
+      aiSummaryQueued.hashCode ^
       status.hashCode ^
       entryCount.hashCode ^
       createdAt.hashCode ^
@@ -87,6 +93,7 @@ class Report {
     String? title,
     String? notes,
     String? aiSummary,
+    bool? aiSummaryQueued,
     ReportStatus? status,
     int? entryCount,
     DateTime? createdAt,
@@ -98,6 +105,7 @@ class Report {
       title: title ?? this.title,
       notes: notes ?? this.notes,
       aiSummary: aiSummary ?? this.aiSummary,
+      aiSummaryQueued: aiSummaryQueued ?? this.aiSummaryQueued,
       status: status ?? this.status,
       entryCount: entryCount ?? this.entryCount,
       createdAt: createdAt ?? this.createdAt,

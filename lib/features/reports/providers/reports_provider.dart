@@ -96,6 +96,19 @@ class AllReportsNotifier extends _$AllReportsNotifier {
     await updateReport(summarizedReport);
     return summarizedReport;
   }
+
+  /// Queues AI summary generation for later when online.
+  Future<void> queueSummaryForLater(String reportId) async {
+    final currentReports = state.valueOrNull ?? [];
+    final report = currentReports.firstWhere((r) => r.id == reportId);
+
+    final queuedReport = report.copyWith(
+      aiSummaryQueued: true,
+      updatedAt: DateTime.now(),
+    );
+
+    await updateReport(queuedReport);
+  }
 }
 
 /// Provider for fetching reports by project ID.

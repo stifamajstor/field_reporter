@@ -199,6 +199,16 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     });
   }
 
+  Future<void> _queueSummaryForLater() async {
+    HapticFeedback.lightImpact();
+    await ref
+        .read(allReportsNotifierProvider.notifier)
+        .queueSummaryForLater(_report.id);
+    setState(() {
+      _report = _report.copyWith(aiSummaryQueued: true);
+    });
+  }
+
   Future<void> _generatePdf() async {
     HapticFeedback.lightImpact();
     setState(() {
@@ -851,10 +861,12 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
                       report: _report,
                       isGenerating: _isGeneratingSummary,
                       isEditing: _isEditingSummary,
+                      isOffline: isOffline,
                       summaryController: _summaryController,
                       onGenerateSummary: _generateSummary,
                       onStartEditing: _startEditingSummary,
                       onSaveEdit: _saveSummaryEdit,
+                      onQueueForLater: _queueSummaryForLater,
                     ),
                     AppSpacing.verticalLg,
 
@@ -2410,24 +2422,29 @@ class _AiSummarySection extends StatelessWidget {
     required this.report,
     required this.isGenerating,
     required this.isEditing,
+    required this.isOffline,
     required this.summaryController,
     required this.onGenerateSummary,
     required this.onStartEditing,
     required this.onSaveEdit,
+    required this.onQueueForLater,
   });
 
   final bool isDark;
   final Report report;
   final bool isGenerating;
   final bool isEditing;
+  final bool isOffline;
   final TextEditingController summaryController;
   final VoidCallback onGenerateSummary;
   final VoidCallback onStartEditing;
   final VoidCallback onSaveEdit;
+  final VoidCallback onQueueForLater;
 
   @override
   Widget build(BuildContext context) {
     final hasSummary = report.aiSummary != null && report.aiSummary!.isNotEmpty;
+    final isQueued = report.aiSummaryQueued;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2526,8 +2543,115 @@ class _AiSummarySection extends StatelessWidget {
                 ),
               ),
             ),
+        ] else if (isQueued) ...[
+          // Summary is queued for later processing
+          Container(
+            key: const Key('ai_queued_message'),
+            width: double.infinity,
+            padding: AppSpacing.cardInsets,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkAmberSubtle : AppColors.amber50,
+              borderRadius: AppSpacing.borderRadiusLg,
+              border: Border.all(
+                color: isDark
+                    ? AppColors.darkAmber.withOpacity(0.3)
+                    : AppColors.amber500.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.schedule,
+                  size: 20,
+                  color: isDark ? AppColors.darkAmber : AppColors.amber500,
+                ),
+                AppSpacing.horizontalSm,
+                Expanded(
+                  child: Text(
+                    'AI summary will be generated when online',
+                    style: AppTypography.body2.copyWith(
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.slate900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ] else if (isOffline) ...[
+          // Offline - show unavailable message and queue option
+          Container(
+            key: const Key('ai_offline_message'),
+            width: double.infinity,
+            padding: AppSpacing.cardInsets,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
+              borderRadius: AppSpacing.borderRadiusLg,
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.slate200,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.cloud_off,
+                      size: 20,
+                      color:
+                          isDark ? AppColors.darkTextMuted : AppColors.slate400,
+                    ),
+                    AppSpacing.horizontalSm,
+                    Expanded(
+                      child: Text(
+                        'AI features require an internet connection',
+                        style: AppTypography.body2.copyWith(
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.slate700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                AppSpacing.verticalMd,
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    key: const Key('queue_for_later_button'),
+                    onPressed: onQueueForLater,
+                    icon: Icon(
+                      Icons.schedule,
+                      color: isDark ? AppColors.darkAmber : AppColors.amber500,
+                    ),
+                    label: Text(
+                      'Queue for Later',
+                      style: AppTypography.button.copyWith(
+                        color:
+                            isDark ? AppColors.darkAmber : AppColors.amber500,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.sm,
+                      ),
+                      side: BorderSide(
+                        color:
+                            isDark ? AppColors.darkAmber : AppColors.amber500,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ] else ...[
-          // No summary yet - show generate button
+          // Online - no summary yet - show generate button
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(

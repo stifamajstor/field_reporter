@@ -383,7 +383,7 @@
       "Verify message that AI features require connection",
       "Verify option to queue for later processing"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
