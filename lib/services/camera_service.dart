@@ -1,6 +1,30 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// Error types for camera service.
+enum CameraError {
+  cameraFailure,
+  permissionDenied,
+}
+
+/// Exception thrown by camera service.
+class CameraException implements Exception {
+  final CameraError error;
+
+  const CameraException(this.error);
+
+  String get message {
+    switch (error) {
+      case CameraError.cameraFailure:
+        return 'Unable to access camera';
+      case CameraError.permissionDenied:
+        return 'Camera permission is required';
+    }
+  }
+
+  bool get isPermissionError => error == CameraError.permissionDenied;
+}
+
 /// Result of a video recording.
 @immutable
 class VideoRecordingResult {

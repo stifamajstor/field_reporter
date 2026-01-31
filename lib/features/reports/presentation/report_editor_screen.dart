@@ -86,6 +86,11 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
   bool _showScanOverlay = false;
   ScanResult? _scanResult;
 
+  // State for camera error handling
+  bool _showCameraError = false;
+  CameraException? _cameraException;
+  VoidCallback? _retryCallback;
+
   @override
   void initState() {
     super.initState();
@@ -284,14 +289,22 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
 
     final cameraService = ref.read(cameraServiceProvider);
 
-    // Open camera and capture photo
-    await cameraService.openCamera();
-    final photoPath = await cameraService.capturePhoto();
+    try {
+      // Open camera and capture photo
+      await cameraService.openCamera();
+      final photoPath = await cameraService.capturePhoto();
 
-    if (photoPath != null) {
+      if (photoPath != null) {
+        setState(() {
+          _capturedPhotoPath = photoPath;
+          _showPhotoPreview = true;
+        });
+      }
+    } on CameraException catch (e) {
       setState(() {
-        _capturedPhotoPath = photoPath;
-        _showPhotoPreview = true;
+        _cameraException = e;
+        _showCameraError = true;
+        _retryCallback = _handlePhotoCapture;
       });
     }
   }
@@ -342,6 +355,26 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     });
   }
 
+  void _dismissCameraError() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _showCameraError = false;
+      _cameraException = null;
+      _retryCallback = null;
+    });
+  }
+
+  void _retryCameraOperation() {
+    HapticFeedback.mediumImpact();
+    final callback = _retryCallback;
+    setState(() {
+      _showCameraError = false;
+      _cameraException = null;
+      _retryCallback = null;
+    });
+    callback?.call();
+  }
+
   Future<void> _handleVideoCapture() async {
     setState(() {
       _showEntryTypeOptions = false;
@@ -349,17 +382,25 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
 
     final cameraService = ref.read(cameraServiceProvider);
 
-    // Open camera in video mode and start recording
-    await cameraService.openCameraForVideo();
-    await cameraService.startRecording();
-    final result = await cameraService.stopRecording();
+    try {
+      // Open camera in video mode and start recording
+      await cameraService.openCameraForVideo();
+      await cameraService.startRecording();
+      final result = await cameraService.stopRecording();
 
-    if (result != null) {
+      if (result != null) {
+        setState(() {
+          _capturedVideoPath = result.path;
+          _capturedVideoThumbnailPath = result.thumbnailPath;
+          _capturedVideoDuration = result.durationSeconds;
+          _showVideoPreview = true;
+        });
+      }
+    } on CameraException catch (e) {
       setState(() {
-        _capturedVideoPath = result.path;
-        _capturedVideoThumbnailPath = result.thumbnailPath;
-        _capturedVideoDuration = result.durationSeconds;
-        _showVideoPreview = true;
+        _cameraException = e;
+        _showCameraError = true;
+        _retryCallback = _handleVideoCapture;
       });
     }
   }
@@ -973,6 +1014,15 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
                     scanResult: _scanResult,
                     onConfirm: _confirmScanEntry,
                     onCancel: _cancelScanOverlay,
+                  ),
+
+                // Camera error overlay
+                if (_showCameraError && _cameraException != null)
+                  _CameraErrorOverlay(
+                    isDark: isDark,
+                    exception: _cameraException!,
+                    onRetry: _retryCameraOperation,
+                    onCancel: _dismissCameraError,
                   ),
               ],
             ),
@@ -3331,6 +3381,152 @@ class _DeleteReportConfirmationDialog extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Overlay displayed when camera capture fails.
+class _CameraErrorOverlay extends StatelessWidget {
+  const _CameraErrorOverlay({
+    required this.isDark,
+    required this.exception,
+    required this.onRetry,
+    required this.onCancel,
+  });
+
+  final bool isDark;
+  final CameraException exception;
+  final VoidCallback onRetry;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final isPermissionError = exception.isPermissionError;
+    final title = isPermissionError ? 'Permission Required' : 'Camera Error';
+    final message = exception.message;
+    final retryLabel = isPermissionError ? 'Check Permissions' : 'Retry';
+
+    return Container(
+      key: const Key('camera_error_overlay'),
+      color: Colors.black87,
+      child: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: AppSpacing.screenPadding,
+            child: Container(
+              padding: AppSpacing.cardInsets,
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : AppColors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Error icon
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: (isDark ? AppColors.darkRose : AppColors.rose500)
+                          .withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isPermissionError
+                          ? Icons.lock_outline
+                          : Icons.camera_alt_outlined,
+                      size: 32,
+                      color: isDark ? AppColors.darkRose : AppColors.rose500,
+                    ),
+                  ),
+                  AppSpacing.verticalLg,
+
+                  // Title
+                  Text(
+                    title,
+                    style: AppTypography.headline3.copyWith(
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.slate900,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  AppSpacing.verticalSm,
+
+                  // Message
+                  Text(
+                    message,
+                    style: AppTypography.body1.copyWith(
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.slate700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  AppSpacing.verticalXl,
+
+                  // Action buttons
+                  Row(
+                    children: [
+                      // Cancel button
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: onCancel,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.slate700,
+                            side: BorderSide(
+                              color: isDark
+                                  ? AppColors.darkBorder
+                                  : AppColors.slate200,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.md,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('Cancel'),
+                        ),
+                      ),
+                      AppSpacing.horizontalMd,
+
+                      // Retry button
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: onRetry,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isDark
+                                ? AppColors.darkOrange
+                                : AppColors.orange500,
+                            foregroundColor: AppColors.white,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.md,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(retryLabel),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

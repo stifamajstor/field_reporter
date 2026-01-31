@@ -434,7 +434,7 @@
       "Grant permissions and retry",
       "Verify capture succeeds"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "error-handling",
