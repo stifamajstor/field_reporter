@@ -7,11 +7,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:field_reporter/core/theme/app_colors.dart';
 import 'package:field_reporter/features/capture/presentation/camera_capture_screen.dart';
-import 'package:field_reporter/features/capture/providers/level_indicator_provider.dart';
+import 'package:field_reporter/features/capture/presentation/photo_preview_screen.dart';
+import 'package:field_reporter/features/capture/providers/compass_provider.dart';
 import 'package:field_reporter/services/accelerometer_service.dart';
 import 'package:field_reporter/services/camera_service.dart';
+import 'package:field_reporter/services/compass_service.dart';
 import 'package:field_reporter/services/location_service.dart';
 import 'package:field_reporter/services/permission_service.dart';
 
@@ -35,6 +36,16 @@ class MockPermissionService implements PermissionService {
 
 /// Mock camera service for testing.
 class MockCameraService implements CameraService {
+  String? _capturedPhotoPath;
+  double? _capturedCompassHeading;
+
+  String? get capturedPhotoPath => _capturedPhotoPath;
+  double? get capturedCompassHeading => _capturedCompassHeading;
+
+  void setCapturedPhotoPath(String path) {
+    _capturedPhotoPath = path;
+  }
+
   @override
   CameraLensDirection get lensDirection => CameraLensDirection.back;
 
@@ -51,7 +62,10 @@ class MockCameraService implements CameraService {
   Future<void> openCameraForVideo() async {}
 
   @override
-  Future<String?> capturePhoto({double? compassHeading}) async => '/path/to/photo.jpg';
+  Future<String?> capturePhoto({double? compassHeading}) async {
+    _capturedCompassHeading = compassHeading;
+    return _capturedPhotoPath ?? '/path/to/photo.jpg';
+  }
 
   @override
   Future<void> startRecording() async {}
@@ -98,18 +112,44 @@ class MockLocationService implements LocationService {
 /// Mock accelerometer service for testing.
 class MockAccelerometerService implements AccelerometerService {
   final _controller = StreamController<AccelerometerData>.broadcast();
-  AccelerometerData _currentData = const AccelerometerData(x: 0, y: 0, z: 9.8);
-
-  void emitData(AccelerometerData data) {
-    _currentData = data;
-    _controller.add(data);
-  }
 
   @override
   Stream<AccelerometerData> get accelerometerStream => _controller.stream;
 
   @override
-  AccelerometerData get currentData => _currentData;
+  AccelerometerData get currentData =>
+      const AccelerometerData(x: 0, y: 0, z: 9.8);
+
+  @override
+  void startListening() {}
+
+  @override
+  void stopListening() {}
+
+  void dispose() {
+    _controller.close();
+  }
+}
+
+/// Mock compass service for testing.
+class MockCompassService implements CompassService {
+  final _controller = StreamController<CompassData>.broadcast();
+  CompassData _currentData = const CompassData(heading: 0, accuracy: 1);
+
+  void setInitialHeading(double heading) {
+    _currentData = CompassData(heading: heading, accuracy: 1);
+  }
+
+  void emitData(CompassData data) {
+    _currentData = data;
+    _controller.add(data);
+  }
+
+  @override
+  Stream<CompassData> get compassStream => _controller.stream;
+
+  @override
+  CompassData get currentData => _currentData;
 
   @override
   void startListening() {}
@@ -123,29 +163,26 @@ class MockAccelerometerService implements AccelerometerService {
 }
 
 void main() {
-  group('Camera shows level indicator using accelerometer', () {
+  group('Camera captures compass direction metadata', () {
     late MockPermissionService mockPermissionService;
     late MockCameraService mockCameraService;
     late MockLocationService mockLocationService;
     late MockAccelerometerService mockAccelerometerService;
-    late List<MethodCall> hapticCalls;
+    late MockCompassService mockCompassService;
 
     setUp(() {
       mockPermissionService = MockPermissionService();
       mockCameraService = MockCameraService();
       mockLocationService = MockLocationService();
       mockAccelerometerService = MockAccelerometerService();
+      mockCompassService = MockCompassService();
       SharedPreferences.setMockInitialValues({});
 
-      // Track haptic feedback calls
-      hapticCalls = [];
+      // Mock haptic feedback
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
         SystemChannels.platform,
         (MethodCall methodCall) async {
-          if (methodCall.method == 'HapticFeedback.vibrate') {
-            hapticCalls.add(methodCall);
-          }
           return null;
         },
       );
@@ -153,229 +190,212 @@ void main() {
 
     tearDown(() {
       mockAccelerometerService.dispose();
+      mockCompassService.dispose();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(SystemChannels.platform, null);
     });
 
-    Widget createTestWidget({ProviderContainer? container}) {
+    Widget createTestWidget() {
       return ProviderScope(
-        parent: container,
-        overrides: container == null
-            ? [
-                permissionServiceProvider
-                    .overrideWithValue(mockPermissionService),
-                cameraServiceProvider.overrideWithValue(mockCameraService),
-                locationServiceProvider.overrideWithValue(mockLocationService),
-                accelerometerServiceProvider
-                    .overrideWithValue(mockAccelerometerService),
-              ]
-            : [],
+        overrides: [
+          permissionServiceProvider.overrideWithValue(mockPermissionService),
+          cameraServiceProvider.overrideWithValue(mockCameraService),
+          locationServiceProvider.overrideWithValue(mockLocationService),
+          accelerometerServiceProvider
+              .overrideWithValue(mockAccelerometerService),
+          compassServiceProvider.overrideWithValue(mockCompassService),
+        ],
         child: const MaterialApp(
           home: CameraCaptureScreen(),
         ),
       );
     }
 
-    testWidgets('level indicator is visible when camera is open',
+    testWidgets(
+        'compass direction is captured when photo is taken facing north',
         (tester) async {
-      // Step 1: Open camera
-      await tester.pumpWidget(createTestWidget());
-      await tester.pumpAndSettle();
-
-      // Step 2: Verify level indicator is visible
-      expect(find.byKey(const Key('level_indicator')), findsOneWidget);
-    });
-
-    testWidgets('level indicator shows tilt when device tilted left',
-        (tester) async {
-      late ProviderContainer container;
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            permissionServiceProvider.overrideWithValue(mockPermissionService),
-            cameraServiceProvider.overrideWithValue(mockCameraService),
-            locationServiceProvider.overrideWithValue(mockLocationService),
-            accelerometerServiceProvider
-                .overrideWithValue(mockAccelerometerService),
-          ],
-          child: Consumer(
-            builder: (context, ref, child) {
-              container = ProviderScope.containerOf(context);
-              return const MaterialApp(
-                home: CameraCaptureScreen(),
-              );
-            },
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Step 3: Tilt device left (negative x acceleration)
-      final leftTiltData = const AccelerometerData(x: -3.0, y: 0, z: 9.8);
-      mockAccelerometerService.emitData(leftTiltData);
-      container
-          .read(levelIndicatorProvider.notifier)
-          .updateFromData(leftTiltData);
-      await tester.pump(const Duration(milliseconds: 100));
-
-      // Step 4: Verify level indicator shows tilt
-      final levelState = container.read(levelIndicatorProvider);
-      expect(levelState.tiltAngle, isNot(0));
-      expect(levelState.tiltAngle, lessThan(0)); // Left tilt = negative angle
-    });
-
-    testWidgets('level indicator reflects change when tilted right',
-        (tester) async {
-      late ProviderContainer container;
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            permissionServiceProvider.overrideWithValue(mockPermissionService),
-            cameraServiceProvider.overrideWithValue(mockCameraService),
-            locationServiceProvider.overrideWithValue(mockLocationService),
-            accelerometerServiceProvider
-                .overrideWithValue(mockAccelerometerService),
-          ],
-          child: Consumer(
-            builder: (context, ref, child) {
-              container = ProviderScope.containerOf(context);
-              return const MaterialApp(
-                home: CameraCaptureScreen(),
-              );
-            },
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Step 5: Tilt device right (positive x acceleration)
-      final rightTiltData = const AccelerometerData(x: 3.0, y: 0, z: 9.8);
-      mockAccelerometerService.emitData(rightTiltData);
-      container
-          .read(levelIndicatorProvider.notifier)
-          .updateFromData(rightTiltData);
-      await tester.pump(const Duration(milliseconds: 100));
-
-      // Step 6: Verify level indicator reflects change
-      final levelState = container.read(levelIndicatorProvider);
-      expect(
-          levelState.tiltAngle, greaterThan(0)); // Right tilt = positive angle
-    });
-
-    testWidgets('level indicator shows green/centered when device is level',
-        (tester) async {
-      late ProviderContainer container;
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            permissionServiceProvider.overrideWithValue(mockPermissionService),
-            cameraServiceProvider.overrideWithValue(mockCameraService),
-            locationServiceProvider.overrideWithValue(mockLocationService),
-            accelerometerServiceProvider
-                .overrideWithValue(mockAccelerometerService),
-          ],
-          child: Consumer(
-            builder: (context, ref, child) {
-              container = ProviderScope.containerOf(context);
-              return const MaterialApp(
-                home: CameraCaptureScreen(),
-              );
-            },
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Step 7: Hold device perfectly level (x close to 0)
-      final levelData = const AccelerometerData(x: 0.0, y: 0, z: 9.8);
-      mockAccelerometerService.emitData(levelData);
-      container.read(levelIndicatorProvider.notifier).updateFromData(levelData);
-      await tester.pump(const Duration(milliseconds: 100));
-
-      // Step 8: Verify level indicator shows green/centered
-      final levelState = container.read(levelIndicatorProvider);
-      expect(levelState.isLevel, isTrue);
-      // The widget uses emerald500 when level
-      expect(AppColors.emerald500, equals(const Color(0xFF10B981)));
-    });
-
-    testWidgets('haptic feedback when level achieved', (tester) async {
-      late ProviderContainer container;
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            permissionServiceProvider.overrideWithValue(mockPermissionService),
-            cameraServiceProvider.overrideWithValue(mockCameraService),
-            locationServiceProvider.overrideWithValue(mockLocationService),
-            accelerometerServiceProvider
-                .overrideWithValue(mockAccelerometerService),
-          ],
-          child: Consumer(
-            builder: (context, ref, child) {
-              container = ProviderScope.containerOf(context);
-              return const MaterialApp(
-                home: CameraCaptureScreen(),
-              );
-            },
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Start tilted
-      final tiltedData = const AccelerometerData(x: 3.0, y: 0, z: 9.8);
-      mockAccelerometerService.emitData(tiltedData);
-      container
-          .read(levelIndicatorProvider.notifier)
-          .updateFromData(tiltedData);
-      await tester.pump(const Duration(milliseconds: 100));
-
-      hapticCalls.clear();
-
-      // Step 9: Move to level position
-      final levelData = const AccelerometerData(x: 0.0, y: 0, z: 9.8);
-      mockAccelerometerService.emitData(levelData);
-      container.read(levelIndicatorProvider.notifier).updateFromData(levelData);
-      await tester.pump(const Duration(milliseconds: 100));
-
-      // Verify haptic feedback when level achieved
-      expect(hapticCalls, isNotEmpty);
-    });
-
-    testWidgets('level indicator can be toggled off', (tester) async {
-      await tester.pumpWidget(createTestWidget());
-      await tester.pumpAndSettle();
-
-      // Verify indicator is visible initially
-      expect(find.byKey(const Key('level_indicator')), findsOneWidget);
-
-      // Find and tap the level indicator toggle button
-      final toggleButton = find.byKey(const Key('level_indicator_toggle'));
-      expect(toggleButton, findsOneWidget);
-
-      await tester.tap(toggleButton);
-      await tester.pumpAndSettle();
-
-      // Verify indicator is hidden
-      expect(find.byKey(const Key('level_indicator')), findsNothing);
-    });
-
-    testWidgets('level indicator visibility persists across sessions',
-        (tester) async {
-      // Set up SharedPreferences with level indicator disabled
-      SharedPreferences.setMockInitialValues({
-        'level_indicator_enabled': false,
-      });
+      // Step 1: Open camera facing north (heading = 0)
+      mockCompassService.emitData(const CompassData(heading: 0, accuracy: 1));
 
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      // Level indicator should be hidden based on saved preference
-      expect(find.byKey(const Key('level_indicator')), findsNothing);
+      // Step 2: Capture photo
+      final captureButton = find.byKey(const Key('capture_button'));
+      expect(captureButton, findsOneWidget);
+      await tester.tap(captureButton);
+      await tester.pumpAndSettle();
+
+      // Step 3: Verify compass direction is recorded (0° = North)
+      expect(mockCameraService.capturedCompassHeading, isNotNull);
+      expect(mockCameraService.capturedCompassHeading, equals(0.0));
+    });
+
+    testWidgets('compass direction is captured when photo is taken facing east',
+        (tester) async {
+      // Step 5: Rotate to face east (heading = 90)
+      // Set initial heading before widget pumps
+      mockCompassService.setInitialHeading(90);
+
+      late ProviderContainer container;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            permissionServiceProvider.overrideWithValue(mockPermissionService),
+            cameraServiceProvider.overrideWithValue(mockCameraService),
+            locationServiceProvider.overrideWithValue(mockLocationService),
+            accelerometerServiceProvider
+                .overrideWithValue(mockAccelerometerService),
+            compassServiceProvider.overrideWithValue(mockCompassService),
+          ],
+          child: Consumer(
+            builder: (context, ref, child) {
+              container = ProviderScope.containerOf(context);
+              return const MaterialApp(
+                home: CameraCaptureScreen(),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Update compass state with east heading
+      container
+          .read(compassProvider.notifier)
+          .updateFromData(const CompassData(heading: 90, accuracy: 1));
+      await tester.pump();
+
+      // Step 6: Capture another photo
+      final captureButton = find.byKey(const Key('capture_button'));
+      await tester.tap(captureButton);
+      await tester.pumpAndSettle();
+
+      // Step 7: Verify direction is different (90° = East)
+      expect(mockCameraService.capturedCompassHeading, isNotNull);
+      expect(mockCameraService.capturedCompassHeading, equals(90.0));
+    });
+
+    testWidgets('different compass directions result in different metadata',
+        (tester) async {
+      // Test that north and east produce different values
+      late ProviderContainer container;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            permissionServiceProvider.overrideWithValue(mockPermissionService),
+            cameraServiceProvider.overrideWithValue(mockCameraService),
+            locationServiceProvider.overrideWithValue(mockLocationService),
+            accelerometerServiceProvider
+                .overrideWithValue(mockAccelerometerService),
+            compassServiceProvider.overrideWithValue(mockCompassService),
+          ],
+          child: Consumer(
+            builder: (context, ref, child) {
+              container = ProviderScope.containerOf(context);
+              return const MaterialApp(
+                home: CameraCaptureScreen(),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Set heading to North
+      mockCompassService.emitData(const CompassData(heading: 0, accuracy: 1));
+      container
+          .read(compassProvider.notifier)
+          .updateFromData(const CompassData(heading: 0, accuracy: 1));
+      await tester.pump();
+
+      final northHeading = container.read(compassProvider).heading;
+
+      // Set heading to East
+      mockCompassService.emitData(const CompassData(heading: 90, accuracy: 1));
+      container
+          .read(compassProvider.notifier)
+          .updateFromData(const CompassData(heading: 90, accuracy: 1));
+      await tester.pump();
+
+      final eastHeading = container.read(compassProvider).heading;
+
+      // Verify they are different
+      expect(northHeading, isNot(equals(eastHeading)));
+      expect(northHeading, equals(0.0));
+      expect(eastHeading, equals(90.0));
+    });
+
+    testWidgets('compass direction is displayed in preview after capture',
+        (tester) async {
+      // Set compass to north
+      mockCompassService.emitData(const CompassData(heading: 0, accuracy: 1));
+
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      // Capture photo
+      final captureButton = find.byKey(const Key('capture_button'));
+      await tester.tap(captureButton);
+      await tester.pumpAndSettle();
+
+      // Check that we navigated to preview with compass direction
+      // The preview screen should show compass direction metadata
+      expect(find.byType(PhotoPreviewScreen), findsOneWidget);
+      expect(find.textContaining('N'), findsWidgets); // North direction display
+    });
+
+    testWidgets('compass heading converts to cardinal direction correctly',
+        (tester) async {
+      late ProviderContainer container;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            permissionServiceProvider.overrideWithValue(mockPermissionService),
+            cameraServiceProvider.overrideWithValue(mockCameraService),
+            locationServiceProvider.overrideWithValue(mockLocationService),
+            accelerometerServiceProvider
+                .overrideWithValue(mockAccelerometerService),
+            compassServiceProvider.overrideWithValue(mockCompassService),
+          ],
+          child: Consumer(
+            builder: (context, ref, child) {
+              container = ProviderScope.containerOf(context);
+              return const MaterialApp(
+                home: CameraCaptureScreen(),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Test North (0°)
+      container
+          .read(compassProvider.notifier)
+          .updateFromData(const CompassData(heading: 0, accuracy: 1));
+      expect(container.read(compassProvider).cardinalDirection, equals('N'));
+
+      // Test East (90°)
+      container
+          .read(compassProvider.notifier)
+          .updateFromData(const CompassData(heading: 90, accuracy: 1));
+      expect(container.read(compassProvider).cardinalDirection, equals('E'));
+
+      // Test South (180°)
+      container
+          .read(compassProvider.notifier)
+          .updateFromData(const CompassData(heading: 180, accuracy: 1));
+      expect(container.read(compassProvider).cardinalDirection, equals('S'));
+
+      // Test West (270°)
+      container
+          .read(compassProvider.notifier)
+          .updateFromData(const CompassData(heading: 270, accuracy: 1));
+      expect(container.read(compassProvider).cardinalDirection, equals('W'));
     });
   });
 }

@@ -54,7 +54,7 @@ class MockCameraService implements CameraService {
   Future<void> openCameraForVideo() async {}
 
   @override
-  Future<String?> capturePhoto() async => '/test/photo.jpg';
+  Future<String?> capturePhoto({double? compassHeading}) async => '/test/photo.jpg';
 
   @override
   Future<void> startRecording() async {}

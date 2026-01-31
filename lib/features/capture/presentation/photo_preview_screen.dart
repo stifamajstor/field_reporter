@@ -13,6 +13,7 @@ class PhotoPreviewArguments {
   const PhotoPreviewArguments({
     required this.photoPath,
     this.capturedTimestamp,
+    this.compassHeading,
   });
 
   /// Path to the captured photo file.
@@ -20,6 +21,30 @@ class PhotoPreviewArguments {
 
   /// Timestamp when photo was captured.
   final DateTime? capturedTimestamp;
+
+  /// Compass heading in degrees (0-360) when photo was captured.
+  final double? compassHeading;
+
+  /// Get cardinal direction from compass heading.
+  String? get cardinalDirection {
+    if (compassHeading == null) return null;
+    final heading = compassHeading!;
+    if (heading >= 337.5 || heading < 22.5) return 'N';
+    if (heading >= 22.5 && heading < 67.5) return 'NE';
+    if (heading >= 67.5 && heading < 112.5) return 'E';
+    if (heading >= 112.5 && heading < 157.5) return 'SE';
+    if (heading >= 157.5 && heading < 202.5) return 'S';
+    if (heading >= 202.5 && heading < 247.5) return 'SW';
+    if (heading >= 247.5 && heading < 292.5) return 'W';
+    if (heading >= 292.5 && heading < 337.5) return 'NW';
+    return 'N';
+  }
+
+  /// Get formatted compass heading.
+  String? get formattedHeading {
+    if (compassHeading == null) return null;
+    return '${compassHeading!.round()}°';
+  }
 }
 
 /// Screen that displays the captured photo with accept/retake options.
@@ -121,6 +146,42 @@ class PhotoPreviewScreen extends ConsumerWidget {
                     const SizedBox(width: 4),
                     Text(
                       _formatTimestamp(arguments.capturedTimestamp!),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Compass direction overlay on preview
+          if (arguments.compassHeading != null)
+            Positioned(
+              left: 16,
+              bottom: 120,
+              child: Container(
+                key: const Key('preview_compass_overlay'),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.explore,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${arguments.cardinalDirection} ${arguments.formattedHeading}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,

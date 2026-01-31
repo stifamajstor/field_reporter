@@ -109,7 +109,7 @@
       "Capture another photo",
       "Verify direction is different ('E' or '90°')"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

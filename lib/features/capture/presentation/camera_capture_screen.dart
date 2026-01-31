@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../services/camera_service.dart';
 import '../../../services/permission_service.dart';
+import '../providers/compass_provider.dart';
 import '../providers/gps_overlay_provider.dart';
 import '../providers/level_indicator_provider.dart';
 import '../providers/timestamp_overlay_provider.dart';
@@ -53,6 +54,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
       ref.read(gpsOverlayProvider.notifier).initialize();
       ref.read(timestampOverlayProvider.notifier).initialize();
       ref.read(levelIndicatorProvider.notifier).initialize();
+      ref.read(compassProvider.notifier).initialize();
     });
   }
 
@@ -191,13 +193,18 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
       // Capture timestamp at moment of capture
       final capturedTimestamp = DateTime.now();
 
+      // Capture compass heading at moment of capture
+      final compassState = ref.read(compassProvider);
+      final compassHeading = compassState.heading;
+
       // Show shutter animation
       setState(() {
         _showShutterAnimation = true;
       });
 
       final cameraService = ref.read(cameraServiceProvider);
-      final photoPath = await cameraService.capturePhoto();
+      final photoPath =
+          await cameraService.capturePhoto(compassHeading: compassHeading);
 
       // Hide shutter animation after brief delay
       await Future.delayed(const Duration(milliseconds: 100));
@@ -215,6 +222,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
               arguments: PhotoPreviewArguments(
                 photoPath: photoPath,
                 capturedTimestamp: capturedTimestamp,
+                compassHeading: compassHeading,
               ),
             ),
           ),

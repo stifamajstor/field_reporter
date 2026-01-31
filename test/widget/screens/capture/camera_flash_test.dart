@@ -59,7 +59,7 @@ class MockCameraService implements CameraService {
   }
 
   @override
-  Future<String?> capturePhoto() async {
+  Future<String?> capturePhoto({double? compassHeading}) async {
     // Simulate flash firing when flash is on
     if (_flashMode == FlashMode.on) {
       _flashFiredOnCapture = true;

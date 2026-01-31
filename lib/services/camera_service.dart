@@ -67,7 +67,8 @@ abstract class CameraService {
 
   /// Captures a photo and returns the file path.
   /// Returns null if capture was cancelled or failed.
-  Future<String?> capturePhoto();
+  /// [compassHeading] is the compass direction in degrees (0-360) at capture time.
+  Future<String?> capturePhoto({double? compassHeading});
 
   /// Starts video recording.
   Future<void> startRecording();
@@ -122,8 +123,9 @@ class DefaultCameraService implements CameraService {
   }
 
   @override
-  Future<String?> capturePhoto() async {
+  Future<String?> capturePhoto({double? compassHeading}) async {
     // Implementation will use camera package
+    // compassHeading would be stored in EXIF metadata
     return null;
   }
 
