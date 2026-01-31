@@ -125,7 +125,7 @@
       "Verify video preview plays automatically",
       "Verify accept/retake options visible"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

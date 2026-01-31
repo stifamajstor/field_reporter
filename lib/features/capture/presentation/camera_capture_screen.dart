@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +14,13 @@ import '../providers/gps_overlay_provider.dart';
 import '../providers/level_indicator_provider.dart';
 import '../providers/timestamp_overlay_provider.dart';
 import 'photo_preview_screen.dart';
+import 'video_preview_screen.dart';
+
+/// Camera mode enum.
+enum CameraMode {
+  photo,
+  video,
+}
 
 /// Screen for capturing photos/videos with the camera.
 class CameraCaptureScreen extends ConsumerStatefulWidget {
@@ -33,6 +42,12 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
   FlashMode _flashMode = FlashMode.auto;
   late AnimationController _switchAnimationController;
   late Animation<double> _switchAnimation;
+
+  // Video recording state
+  CameraMode _cameraMode = CameraMode.photo;
+  bool _isRecording = false;
+  int _recordingSeconds = 0;
+  Timer? _recordingTimer;
 
   @override
   void initState() {
@@ -62,6 +77,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
 
   @override
   void dispose() {
+    _recordingTimer?.cancel();
     _switchAnimationController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _cameraService?.closeCamera();
@@ -241,6 +257,81 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
         _showShutterAnimation = false;
       });
     }
+  }
+
+  void _switchToVideoMode() {
+    setState(() {
+      _cameraMode = CameraMode.video;
+    });
+  }
+
+  void _switchToPhotoMode() {
+    setState(() {
+      _cameraMode = CameraMode.photo;
+    });
+  }
+
+  Future<void> _startRecording() async {
+    HapticFeedback.lightImpact();
+
+    final cameraService = ref.read(cameraServiceProvider);
+    await cameraService.startRecording();
+
+    setState(() {
+      _isRecording = true;
+      _recordingSeconds = 0;
+    });
+
+    // Start the recording timer
+    _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _recordingSeconds++;
+        });
+      }
+    });
+  }
+
+  Future<void> _stopRecording() async {
+    HapticFeedback.lightImpact();
+
+    _recordingTimer?.cancel();
+    _recordingTimer = null;
+
+    final cameraService = ref.read(cameraServiceProvider);
+    final result = await cameraService.stopRecording();
+
+    setState(() {
+      _isRecording = false;
+    });
+
+    if (mounted && result != null) {
+      // Navigate to video preview screen
+      final previewResult =
+          await Navigator.of(context).push<VideoPreviewResult>(
+        MaterialPageRoute(
+          builder: (context) => VideoPreviewScreen(
+            arguments: VideoPreviewArguments(
+              videoPath: result.path,
+              durationSeconds: result.durationSeconds,
+            ),
+          ),
+        ),
+      );
+
+      if (!mounted) return;
+
+      if (previewResult == VideoPreviewResult.accept) {
+        Navigator.of(context).pop(result.path);
+      }
+      // If retake, stay on camera screen
+    }
+  }
+
+  String _formatRecordingTime(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -432,33 +523,174 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
             child: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Capture button
-                    GestureDetector(
-                      key: const Key('capture_button'),
-                      onTap: _capturePhoto,
-                      child: Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 4,
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: Container(
+                    // Recording indicator and timer (only when recording)
+                    if (_isRecording) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            key: const Key('recording_indicator'),
+                            width: 12,
+                            height: 12,
                             decoration: const BoxDecoration(
+                              color: Colors.red,
                               shape: BoxShape.circle,
-                              color: Colors.white,
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Text(
+                            key: const Key('recording_timer'),
+                            _formatRecordingTime(_recordingSeconds),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 16),
+                    ],
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        // Photo mode button (left side)
+                        if (!_isRecording)
+                          GestureDetector(
+                            key: const Key('photo_mode_button'),
+                            onTap: _cameraMode == CameraMode.video
+                                ? _switchToPhotoMode
+                                : null,
+                            child: Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _cameraMode == CameraMode.photo
+                                    ? Colors.white.withOpacity(0.3)
+                                    : Colors.transparent,
+                              ),
+                              child: Icon(
+                                Icons.camera_alt,
+                                color: _cameraMode == CameraMode.photo
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.5),
+                                size: 24,
+                              ),
+                            ),
+                          )
+                        else
+                          const SizedBox(width: 48),
+
+                        // Main capture/record button (center)
+                        if (_cameraMode == CameraMode.photo)
+                          GestureDetector(
+                            key: const Key('capture_button'),
+                            onTap: _capturePhoto,
+                            child: Container(
+                              width: 72,
+                              height: 72,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 4,
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(4),
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        else if (!_isRecording)
+                          GestureDetector(
+                            key: const Key('record_button'),
+                            onTap: _startRecording,
+                            child: Container(
+                              width: 72,
+                              height: 72,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 4,
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(4),
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          GestureDetector(
+                            key: const Key('stop_button'),
+                            onTap: _stopRecording,
+                            child: Container(
+                              width: 72,
+                              height: 72,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 4,
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(4),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                        // Video mode button (right side)
+                        if (!_isRecording)
+                          GestureDetector(
+                            key: const Key('video_mode_button'),
+                            onTap: _cameraMode == CameraMode.photo
+                                ? _switchToVideoMode
+                                : null,
+                            child: Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _cameraMode == CameraMode.video
+                                    ? Colors.white.withOpacity(0.3)
+                                    : Colors.transparent,
+                              ),
+                              child: Icon(
+                                Icons.videocam,
+                                color: _cameraMode == CameraMode.video
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.5),
+                                size: 24,
+                              ),
+                            ),
+                          )
+                        else
+                          const SizedBox(width: 48),
+                      ],
                     ),
                   ],
                 ),
