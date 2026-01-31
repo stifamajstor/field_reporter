@@ -527,6 +527,12 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     }
   }
 
+  Future<void> _handleReorderEntries(int oldIndex, int newIndex) async {
+    await ref
+        .read(entriesNotifierProvider.notifier)
+        .reorderEntries(_report.id, oldIndex, newIndex);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
@@ -604,6 +610,8 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
                 entries: entries,
                 onAddEntry: _showAddEntryOptions,
                 onDeleteEntry: _handleDeleteEntry,
+                onReorder: (oldIndex, newIndex) =>
+                    _handleReorderEntries(oldIndex, newIndex),
               ),
             ],
           ),
@@ -905,12 +913,14 @@ class _EntriesSection extends StatelessWidget {
     required this.entries,
     required this.onAddEntry,
     required this.onDeleteEntry,
+    required this.onReorder,
   });
 
   final bool isDark;
   final List<Entry> entries;
   final VoidCallback onAddEntry;
   final void Function(Entry) onDeleteEntry;
+  final void Function(int oldIndex, int newIndex) onReorder;
 
   @override
   Widget build(BuildContext context) {
@@ -927,16 +937,53 @@ class _EntriesSection extends StatelessWidget {
 
         // Show entries if we have them
         if (entries.isNotEmpty) ...[
-          ...entries.map(
-            (entry) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: _SwipeableEntryCard(
-                key: Key('entry_card_${entry.id}'),
-                entry: entry,
-                isDark: isDark,
-                onDelete: () => onDeleteEntry(entry),
-              ),
-            ),
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: entries.length,
+            onReorder: (oldIndex, newIndex) {
+              HapticFeedback.mediumImpact();
+              // ReorderableListView passes newIndex as if the item was already removed
+              // So we need to adjust it
+              if (newIndex > oldIndex) {
+                newIndex -= 1;
+              }
+              onReorder(oldIndex, newIndex);
+            },
+            proxyDecorator: (child, index, animation) {
+              return AnimatedBuilder(
+                animation: animation,
+                builder: (context, child) {
+                  final scale = Tween<double>(begin: 1.0, end: 1.05)
+                      .animate(CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeInOut,
+                  ));
+                  return Transform.scale(
+                    scale: scale.value,
+                    child: Material(
+                      elevation: 4,
+                      borderRadius: AppSpacing.borderRadiusLg,
+                      child: child,
+                    ),
+                  );
+                },
+                child: child,
+              );
+            },
+            itemBuilder: (context, index) {
+              final entry = entries[index];
+              return Padding(
+                key: Key('reorderable_entry_$index'),
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: _SwipeableEntryCard(
+                  key: Key('entry_card_${entry.id}'),
+                  entry: entry,
+                  isDark: isDark,
+                  onDelete: () => onDeleteEntry(entry),
+                ),
+              );
+            },
           ),
           AppSpacing.verticalSm,
           SizedBox(

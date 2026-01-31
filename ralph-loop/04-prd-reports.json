@@ -182,7 +182,7 @@
       "Verify entry is in new position",
       "Verify order is persisted"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
