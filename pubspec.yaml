@@ -46,8 +46,8 @@ dependencies:
   # flutter_map: ^6.0.1
   # latlong2: ^0.9.0
 
-  # Sensors (Phase 6 - not yet implemented)
-  # sensors_plus: ^4.0.2
+  # Sensors
+  sensors_plus: ^4.0.2
   # flutter_compass: ^0.8.0
 
   # Scanning (not yet implemented)

@@ -95,7 +95,7 @@
       "Verify level indicator shows green/centered",
       "Verify haptic feedback when level achieved"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

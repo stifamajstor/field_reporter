@@ -8,6 +8,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../services/camera_service.dart';
 import '../../../services/permission_service.dart';
 import '../providers/gps_overlay_provider.dart';
+import '../providers/level_indicator_provider.dart';
 import '../providers/timestamp_overlay_provider.dart';
 import 'photo_preview_screen.dart';
 
@@ -51,6 +52,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
       _checkPermissionAndInitialize();
       ref.read(gpsOverlayProvider.notifier).initialize();
       ref.read(timestampOverlayProvider.notifier).initialize();
+      ref.read(levelIndicatorProvider.notifier).initialize();
     });
   }
 
@@ -477,6 +479,29 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
                     ),
                     Row(
                       children: [
+                        // Level indicator toggle button
+                        IconButton(
+                          key: const Key('level_indicator_toggle'),
+                          onPressed: () {
+                            ref
+                                .read(levelIndicatorProvider.notifier)
+                                .toggleOverlay();
+                          },
+                          icon: Consumer(
+                            builder: (context, ref, child) {
+                              final levelState =
+                                  ref.watch(levelIndicatorProvider);
+                              return Icon(
+                                levelState.isEnabled
+                                    ? Icons.straighten
+                                    : Icons.straighten_outlined,
+                                color: Colors.white,
+                                size: 28,
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         // Timestamp overlay toggle button
                         IconButton(
                           key: const Key('timestamp_overlay_toggle'),
@@ -565,6 +590,16 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
             right: 16,
             bottom: 120,
             child: TimestampOverlayWidget(),
+          ),
+
+          // Level indicator
+          const Positioned(
+            left: 0,
+            right: 0,
+            top: 100,
+            child: Center(
+              child: LevelIndicatorWidget(),
+            ),
           ),
         ],
       ),
@@ -694,6 +729,102 @@ class TimestampOverlayWidget extends ConsumerWidget {
               fontSize: 12,
               fontWeight: FontWeight.w500,
               fontFamily: 'monospace',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Widget that displays a level indicator using accelerometer data.
+class LevelIndicatorWidget extends ConsumerWidget {
+  const LevelIndicatorWidget({
+    super.key,
+    this.tiltAngle,
+    this.isLevel,
+    this.indicatorColor,
+  });
+
+  /// Override tilt angle for testing.
+  final double? tiltAngle;
+
+  /// Override isLevel for testing.
+  final bool? isLevel;
+
+  /// Override indicator color for testing.
+  final Color? indicatorColor;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final levelState = ref.watch(levelIndicatorProvider);
+
+    if (!levelState.isEnabled) {
+      return const SizedBox.shrink();
+    }
+
+    final currentTiltAngle = tiltAngle ?? levelState.tiltAngle;
+    final currentIsLevel = isLevel ?? levelState.isLevel;
+    final currentIndicatorColor = indicatorColor ??
+        (currentIsLevel ? AppColors.emerald500 : Colors.white);
+
+    return Container(
+      key: const Key('level_indicator'),
+      width: 200,
+      height: 40,
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Center line indicator
+          Container(
+            width: 2,
+            height: 20,
+            color: Colors.white.withOpacity(0.3),
+          ),
+          // Bubble indicator
+          Transform.translate(
+            offset: Offset(
+              // Clamp the offset to keep bubble within bounds
+              (currentTiltAngle / 45.0 * 80.0).clamp(-80.0, 80.0),
+              0,
+            ),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: currentIndicatorColor,
+                boxShadow: currentIsLevel
+                    ? [
+                        BoxShadow(
+                          color: AppColors.emerald500.withOpacity(0.5),
+                          blurRadius: 8,
+                          spreadRadius: 2,
+                        ),
+                      ]
+                    : null,
+              ),
+            ),
+          ),
+          // Side markers
+          Positioned(
+            left: 20,
+            child: Container(
+              width: 1,
+              height: 12,
+              color: Colors.white.withOpacity(0.3),
+            ),
+          ),
+          Positioned(
+            right: 20,
+            child: Container(
+              width: 1,
+              height: 12,
+              color: Colors.white.withOpacity(0.3),
             ),
           ),
         ],
