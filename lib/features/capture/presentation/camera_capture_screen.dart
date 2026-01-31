@@ -44,6 +44,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
   bool _isInitialized = false;
   bool _hasPermission = false;
   bool _isCheckingPermission = true;
+  bool _isPermissionPermanentlyDenied = false;
   String? _errorMessage;
   bool _showShutterAnimation = false;
   bool _showSwitchAnimation = false;
@@ -115,12 +116,14 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
       setState(() {
         _hasPermission = true;
         _isCheckingPermission = false;
+        _isPermissionPermanentlyDenied = false;
       });
       await _initializeCamera();
     } else {
       setState(() {
         _hasPermission = false;
         _isCheckingPermission = false;
+        _isPermissionPermanentlyDenied = status.isPermanentlyDenied;
       });
     }
   }
@@ -132,11 +135,19 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
     if (status.isGranted) {
       setState(() {
         _hasPermission = true;
+        _isPermissionPermanentlyDenied = false;
       });
       await _initializeCamera();
     } else if (status.isPermanentlyDenied) {
-      await permissionService.openAppSettings();
+      setState(() {
+        _isPermissionPermanentlyDenied = true;
+      });
     }
+  }
+
+  Future<void> _openAppSettings() async {
+    final permissionService = ref.read(permissionServiceProvider);
+    await permissionService.openAppSettings();
   }
 
   Future<void> _initializeCamera() async {
@@ -437,24 +448,45 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _requestPermission,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.orange500,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              if (!_isPermissionPermanentlyDenied)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _requestPermission,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.orange500,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Grant Permission',
+                      style: AppTypography.button,
                     ),
                   ),
-                  child: const Text(
-                    'Grant Permission',
-                    style: AppTypography.button,
+                ),
+              if (_isPermissionPermanentlyDenied)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    key: const Key('open_settings_button'),
+                    onPressed: _openAppSettings,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.orange500,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Open Settings',
+                      style: AppTypography.button,
+                    ),
                   ),
                 ),
-              ),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),

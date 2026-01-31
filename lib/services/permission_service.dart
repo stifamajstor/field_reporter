@@ -1,19 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
+
+// Re-export PermissionStatus for consumers of this service
+export 'package:permission_handler/permission_handler.dart'
+    show PermissionStatus;
 
 /// Service for handling app permissions.
 abstract class PermissionService {
   /// Checks the current camera permission status.
-  Future<PermissionStatus> checkCameraPermission();
+  Future<ph.PermissionStatus> checkCameraPermission();
 
   /// Requests camera permission from the user.
-  Future<PermissionStatus> requestCameraPermission();
+  Future<ph.PermissionStatus> requestCameraPermission();
 
   /// Checks the current microphone permission status.
-  Future<PermissionStatus> checkMicrophonePermission();
+  Future<ph.PermissionStatus> checkMicrophonePermission();
 
   /// Requests microphone permission from the user.
-  Future<PermissionStatus> requestMicrophonePermission();
+  Future<ph.PermissionStatus> requestMicrophonePermission();
 
   /// Opens the app settings page.
   Future<bool> openAppSettings();
@@ -22,28 +26,28 @@ abstract class PermissionService {
 /// Default implementation using permission_handler package.
 class DefaultPermissionService implements PermissionService {
   @override
-  Future<PermissionStatus> checkCameraPermission() async {
-    return Permission.camera.status;
+  Future<ph.PermissionStatus> checkCameraPermission() async {
+    return ph.Permission.camera.status;
   }
 
   @override
-  Future<PermissionStatus> requestCameraPermission() async {
-    return Permission.camera.request();
+  Future<ph.PermissionStatus> requestCameraPermission() async {
+    return ph.Permission.camera.request();
   }
 
   @override
-  Future<PermissionStatus> checkMicrophonePermission() async {
-    return Permission.microphone.status;
+  Future<ph.PermissionStatus> checkMicrophonePermission() async {
+    return ph.Permission.microphone.status;
   }
 
   @override
-  Future<PermissionStatus> requestMicrophonePermission() async {
-    return Permission.microphone.request();
+  Future<ph.PermissionStatus> requestMicrophonePermission() async {
+    return ph.Permission.microphone.request();
   }
 
   @override
   Future<bool> openAppSettings() async {
-    return openAppSettings();
+    return ph.openAppSettings();
   }
 }
 
