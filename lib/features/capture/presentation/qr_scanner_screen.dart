@@ -46,6 +46,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
   ScannerState _scannerState = ScannerState.scanning;
   ScanResult? _detectedCode;
   ScanResult? _capturedResult;
+  bool _isFlashlightOn = false;
 
   @override
   void initState() {
@@ -131,6 +132,14 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
         format: _capturedResult!.format,
       ));
     }
+  }
+
+  Future<void> _toggleFlashlight() async {
+    final scannerService = ref.read(barcodeScannerServiceProvider);
+    await scannerService.toggleFlashlight();
+    setState(() {
+      _isFlashlightOn = scannerService.isFlashlightOn;
+    });
   }
 
   @override
@@ -256,7 +265,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
           if (_scannerState == ScannerState.captured && _capturedResult != null)
             _buildResultDisplay(),
 
-          // Top bar with close button
+          // Top bar with close button and flashlight toggle
           Positioned(
             left: 0,
             right: 0,
@@ -277,6 +286,15 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
                       ),
                     ),
                     const Spacer(),
+                    IconButton(
+                      key: const Key('flashlight_toggle_button'),
+                      onPressed: _toggleFlashlight,
+                      icon: Icon(
+                        _isFlashlightOn ? Icons.flash_on : Icons.flash_off,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
                   ],
                 ),
               ),

@@ -36,6 +36,7 @@ class MockBarcodeScannerService implements MockableBarcodeScannerService {
   bool shouldDetectCode = false;
   ScanResult? detectedCode;
   bool isStable = false;
+  bool _flashlightOn = false;
 
   // Callbacks for scanner events
   @override
@@ -64,6 +65,14 @@ class MockBarcodeScannerService implements MockableBarcodeScannerService {
   @override
   Future<void> dispose() async {
     isScanning = false;
+  }
+
+  @override
+  bool get isFlashlightOn => _flashlightOn;
+
+  @override
+  Future<void> toggleFlashlight() async {
+    _flashlightOn = !_flashlightOn;
   }
 }
 
@@ -308,6 +317,103 @@ void main() {
 
       // Find and tap close button
       expect(find.byKey(const Key('close_button')), findsOneWidget);
+    });
+
+    group('Flashlight Toggle', () {
+      testWidgets('shows flashlight toggle button in scanner view',
+          (tester) async {
+        await tester.pumpWidget(createTestWidget(
+          permissionService: mockPermissionService,
+          scannerService: mockScannerService,
+        ));
+        await tester.pumpAndSettle();
+
+        // Verify flashlight toggle button is visible
+        expect(
+            find.byKey(const Key('flashlight_toggle_button')), findsOneWidget);
+      });
+
+      testWidgets('flashlight toggle turns on flashlight when tapped',
+          (tester) async {
+        await tester.pumpWidget(createTestWidget(
+          permissionService: mockPermissionService,
+          scannerService: mockScannerService,
+        ));
+        await tester.pumpAndSettle();
+
+        // Verify flashlight is initially off
+        expect(mockScannerService.isFlashlightOn, isFalse);
+
+        // Tap flashlight toggle button
+        await tester.tap(find.byKey(const Key('flashlight_toggle_button')));
+        await tester.pumpAndSettle();
+
+        // Verify flashlight is now on
+        expect(mockScannerService.isFlashlightOn, isTrue);
+      });
+
+      testWidgets('flashlight toggle shows correct icon state', (tester) async {
+        await tester.pumpWidget(createTestWidget(
+          permissionService: mockPermissionService,
+          scannerService: mockScannerService,
+        ));
+        await tester.pumpAndSettle();
+
+        // Verify initial icon is flash_off
+        expect(find.byIcon(Icons.flash_off), findsOneWidget);
+
+        // Tap flashlight toggle button
+        await tester.tap(find.byKey(const Key('flashlight_toggle_button')));
+        await tester.pumpAndSettle();
+
+        // Verify icon changed to flash_on
+        expect(find.byIcon(Icons.flash_on), findsOneWidget);
+      });
+
+      testWidgets('flashlight toggle turns off flashlight when tapped again',
+          (tester) async {
+        await tester.pumpWidget(createTestWidget(
+          permissionService: mockPermissionService,
+          scannerService: mockScannerService,
+        ));
+        await tester.pumpAndSettle();
+
+        // Turn flashlight on
+        await tester.tap(find.byKey(const Key('flashlight_toggle_button')));
+        await tester.pumpAndSettle();
+        expect(mockScannerService.isFlashlightOn, isTrue);
+
+        // Turn flashlight off
+        await tester.tap(find.byKey(const Key('flashlight_toggle_button')));
+        await tester.pumpAndSettle();
+        expect(mockScannerService.isFlashlightOn, isFalse);
+      });
+
+      testWidgets('can scan barcode successfully with flashlight on',
+          (tester) async {
+        await tester.pumpWidget(createTestWidget(
+          permissionService: mockPermissionService,
+          scannerService: mockScannerService,
+        ));
+        await tester.pumpAndSettle();
+
+        // Turn flashlight on for low light
+        await tester.tap(find.byKey(const Key('flashlight_toggle_button')));
+        await tester.pumpAndSettle();
+        expect(mockScannerService.isFlashlightOn, isTrue);
+
+        // Simulate successful scan with flashlight on
+        const scanResult = ScanResult(
+          data: 'https://example.com/low-light-scan',
+          format: BarcodeFormat.qrCode,
+        );
+        mockScannerService.simulateStableCapture(scanResult);
+        await tester.pump();
+
+        // Verify scan was successful
+        expect(find.byKey(const Key('scan_result_content')), findsOneWidget);
+        expect(find.text('https://example.com/low-light-scan'), findsOneWidget);
+      });
     });
   });
 }

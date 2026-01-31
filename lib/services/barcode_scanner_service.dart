@@ -75,11 +75,19 @@ abstract class BarcodeScannerService {
 
   /// Releases any resources held by the scanner.
   Future<void> dispose();
+
+  /// Whether the flashlight is currently on.
+  bool get isFlashlightOn;
+
+  /// Toggles the flashlight on or off.
+  Future<void> toggleFlashlight();
 }
 
 /// Default implementation of BarcodeScannerService.
 /// In production, this would use the mobile_scanner package.
 class DefaultBarcodeScannerService implements BarcodeScannerService {
+  bool _flashlightOn = false;
+
   @override
   Future<ScanResult?> scan() async {
     // Implementation will use mobile_scanner package
@@ -89,6 +97,15 @@ class DefaultBarcodeScannerService implements BarcodeScannerService {
   @override
   Future<void> dispose() async {
     // Implementation will dispose scanner controller
+  }
+
+  @override
+  bool get isFlashlightOn => _flashlightOn;
+
+  @override
+  Future<void> toggleFlashlight() async {
+    _flashlightOn = !_flashlightOn;
+    // In production, this would toggle the device flashlight via mobile_scanner
   }
 }
 

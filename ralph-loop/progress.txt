@@ -123,3 +123,4 @@
 [2026-01-31 15:57] | camera-media | Shake-to-record starts voice recording | PASS | lib/services/shake_detector_service.dart, lib/features/capture/presentation/shake_to_record_wrapper.dart, test/unit/services/shake_to_record_test.dart, test/widget/screens/capture/shake_to_record_integration_test.dart
 [2026-01-31 16:07] | camera-media | QR code scanner detects and decodes QR codes | PASS | lib/features/capture/presentation/qr_scanner_screen.dart, lib/services/barcode_scanner_service.dart, test/widget/screens/capture/qr_scanner_test.dart
 [2026-01-31 16:10] | camera-media | Barcode scanner detects various barcode formats | PASS | test/widget/screens/capture/barcode_format_scanner_test.dart
+[2026-01-31 16:11] | camera-media | Scanner can use flashlight for low light | PASS | lib/services/barcode_scanner_service.dart, lib/features/capture/presentation/qr_scanner_screen.dart, test/widget/screens/capture/qr_scanner_test.dart

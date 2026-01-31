@@ -256,7 +256,7 @@
       "Tap flashlight toggle again",
       "Verify flashlight turns off"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
