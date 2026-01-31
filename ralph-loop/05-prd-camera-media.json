@@ -413,7 +413,7 @@
       "Verify on small phone screen",
       "Verify on large phone/tablet"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",

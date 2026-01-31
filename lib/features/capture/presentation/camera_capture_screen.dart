@@ -563,14 +563,15 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
               },
             ),
 
-          // Bottom controls
+          // Bottom controls - positioned to ensure capture button is in bottom third and centered
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -594,7 +595,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
                               color: Colors.white,
                               size: 20,
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 4),
                             Text(
                               '${_timeRemainingSeconds}s remaining',
                               style: const TextStyle(
@@ -622,7 +623,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
                               shape: BoxShape.circle,
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 4),
                           Text(
                             key: const Key('recording_timer'),
                             _formatRecordingTime(_recordingSeconds),
@@ -637,142 +638,162 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
                       ),
                       const SizedBox(height: 16),
                     ],
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        // Photo mode button (left side)
-                        if (!_isRecording)
-                          GestureDetector(
-                            key: const Key('photo_mode_button'),
-                            onTap: _cameraMode == CameraMode.video
-                                ? _switchToPhotoMode
-                                : null,
-                            child: Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: _cameraMode == CameraMode.photo
-                                    ? Colors.white.withOpacity(0.3)
-                                    : Colors.transparent,
-                              ),
-                              child: Icon(
-                                Icons.camera_alt,
-                                color: _cameraMode == CameraMode.photo
-                                    ? Colors.white
-                                    : Colors.white.withOpacity(0.5),
-                                size: 24,
-                              ),
-                            ),
-                          )
-                        else
-                          const SizedBox(width: 48),
-
-                        // Main capture/record button (center)
-                        if (_cameraMode == CameraMode.photo)
-                          GestureDetector(
-                            key: const Key('capture_button'),
-                            onTap: _capturePhoto,
-                            child: Container(
-                              width: 72,
-                              height: 72,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 4,
+                    // Controls row with centered capture button using SizedBox constraints
+                    SizedBox(
+                      height: 72,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Photo mode button (left side) - fixed width container
+                          if (!_isRecording)
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 24),
+                                  child: GestureDetector(
+                                    key: const Key('photo_mode_button'),
+                                    onTap: _cameraMode == CameraMode.video
+                                        ? _switchToPhotoMode
+                                        : null,
+                                    child: Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: _cameraMode == CameraMode.photo
+                                            ? Colors.white.withOpacity(0.3)
+                                            : Colors.transparent,
+                                      ),
+                                      child: Icon(
+                                        Icons.camera_alt,
+                                        color: _cameraMode == CameraMode.photo
+                                            ? Colors.white
+                                            : Colors.white.withOpacity(0.5),
+                                        size: 24,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(4),
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
+                            )
+                          else
+                            const Expanded(child: SizedBox()),
+
+                          // Main capture/record button (center)
+                          if (_cameraMode == CameraMode.photo)
+                            GestureDetector(
+                              key: const Key('capture_button'),
+                              onTap: _capturePhoto,
+                              child: Container(
+                                width: 72,
+                                height: 72,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
                                     color: Colors.white,
+                                    width: 4,
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          else if (!_isRecording)
+                            GestureDetector(
+                              key: const Key('record_button'),
+                              onTap: _startRecording,
+                              child: Container(
+                                width: 72,
+                                height: 72,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 4,
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            GestureDetector(
+                              key: const Key('stop_button'),
+                              onTap: _stopRecording,
+                              child: Container(
+                                width: 72,
+                                height: 72,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 4,
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      color: Colors.red,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          )
-                        else if (!_isRecording)
-                          GestureDetector(
-                            key: const Key('record_button'),
-                            onTap: _startRecording,
-                            child: Container(
-                              width: 72,
-                              height: 72,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 4,
-                                ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(4),
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.red,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )
-                        else
-                          GestureDetector(
-                            key: const Key('stop_button'),
-                            onTap: _stopRecording,
-                            child: Container(
-                              width: 72,
-                              height: 72,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 4,
-                                ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(4),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    color: Colors.red,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
 
-                        // Video mode button (right side)
-                        if (!_isRecording)
-                          GestureDetector(
-                            key: const Key('video_mode_button'),
-                            onTap: _cameraMode == CameraMode.photo
-                                ? _switchToVideoMode
-                                : null,
-                            child: Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: _cameraMode == CameraMode.video
-                                    ? Colors.white.withOpacity(0.3)
-                                    : Colors.transparent,
+                          // Video mode button (right side) - fixed width container
+                          if (!_isRecording)
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 24),
+                                  child: GestureDetector(
+                                    key: const Key('video_mode_button'),
+                                    onTap: _cameraMode == CameraMode.photo
+                                        ? _switchToVideoMode
+                                        : null,
+                                    child: Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: _cameraMode == CameraMode.video
+                                            ? Colors.white.withOpacity(0.3)
+                                            : Colors.transparent,
+                                      ),
+                                      child: Icon(
+                                        Icons.videocam,
+                                        color: _cameraMode == CameraMode.video
+                                            ? Colors.white
+                                            : Colors.white.withOpacity(0.5),
+                                        size: 24,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
-                              child: Icon(
-                                Icons.videocam,
-                                color: _cameraMode == CameraMode.video
-                                    ? Colors.white
-                                    : Colors.white.withOpacity(0.5),
-                                size: 24,
-                              ),
-                            ),
-                          )
-                        else
-                          const SizedBox(width: 48),
-                      ],
+                            )
+                          else
+                            const Expanded(child: SizedBox()),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -787,112 +808,123 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
             top: 0,
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
+                      padding: const EdgeInsets.all(8),
+                      constraints: const BoxConstraints(),
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(
                         Icons.close,
                         color: Colors.white,
-                        size: 28,
+                        size: 24,
                       ),
                     ),
-                    Row(
-                      children: [
-                        // Level indicator toggle button
-                        IconButton(
-                          key: const Key('level_indicator_toggle'),
-                          onPressed: () {
-                            ref
-                                .read(levelIndicatorProvider.notifier)
-                                .toggleOverlay();
-                          },
-                          icon: Consumer(
-                            builder: (context, ref, child) {
-                              final levelState =
-                                  ref.watch(levelIndicatorProvider);
-                              return Icon(
-                                levelState.isEnabled
-                                    ? Icons.straighten
-                                    : Icons.straighten_outlined,
-                                color: Colors.white,
-                                size: 28,
-                              );
+                    Flexible(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Level indicator toggle button
+                          IconButton(
+                            key: const Key('level_indicator_toggle'),
+                            padding: const EdgeInsets.all(6),
+                            constraints: const BoxConstraints(),
+                            onPressed: () {
+                              ref
+                                  .read(levelIndicatorProvider.notifier)
+                                  .toggleOverlay();
                             },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        // Timestamp overlay toggle button
-                        IconButton(
-                          key: const Key('timestamp_overlay_toggle'),
-                          onPressed: () {
-                            ref
-                                .read(timestampOverlayProvider.notifier)
-                                .toggleOverlay();
-                          },
-                          icon: Consumer(
-                            builder: (context, ref, child) {
-                              final timestampState =
-                                  ref.watch(timestampOverlayProvider);
-                              return Icon(
-                                timestampState.isEnabled
-                                    ? Icons.access_time_filled
-                                    : Icons.access_time,
-                                color: Colors.white,
-                                size: 28,
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        // GPS overlay toggle button
-                        IconButton(
-                          key: const Key('gps_overlay_toggle'),
-                          onPressed: () {
-                            ref
-                                .read(gpsOverlayProvider.notifier)
-                                .toggleOverlay();
-                          },
-                          icon: Consumer(
-                            builder: (context, ref, child) {
-                              final gpsState = ref.watch(gpsOverlayProvider);
-                              return Icon(
-                                gpsState.isEnabled
-                                    ? Icons.location_on
-                                    : Icons.location_off,
-                                color: Colors.white,
-                                size: 28,
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Semantics(
-                          label: _getFlashLabel(),
-                          button: true,
-                          child: IconButton(
-                            key: const Key('flash_button'),
-                            onPressed: _toggleFlashMode,
-                            icon: Icon(
-                              _getFlashIcon(),
-                              color: Colors.white,
-                              size: 28,
+                            icon: Consumer(
+                              builder: (context, ref, child) {
+                                final levelState =
+                                    ref.watch(levelIndicatorProvider);
+                                return Icon(
+                                  levelState.isEnabled
+                                      ? Icons.straighten
+                                      : Icons.straighten_outlined,
+                                  color: Colors.white,
+                                  size: 22,
+                                );
+                              },
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          key: const Key('camera_switch_button'),
-                          onPressed: _switchCamera,
-                          icon: const Icon(
-                            Icons.cameraswitch,
-                            color: Colors.white,
-                            size: 28,
+                          // Timestamp overlay toggle button
+                          IconButton(
+                            key: const Key('timestamp_overlay_toggle'),
+                            padding: const EdgeInsets.all(6),
+                            constraints: const BoxConstraints(),
+                            onPressed: () {
+                              ref
+                                  .read(timestampOverlayProvider.notifier)
+                                  .toggleOverlay();
+                            },
+                            icon: Consumer(
+                              builder: (context, ref, child) {
+                                final timestampState =
+                                    ref.watch(timestampOverlayProvider);
+                                return Icon(
+                                  timestampState.isEnabled
+                                      ? Icons.access_time_filled
+                                      : Icons.access_time,
+                                  color: Colors.white,
+                                  size: 22,
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      ],
+                          // GPS overlay toggle button
+                          IconButton(
+                            key: const Key('gps_overlay_toggle'),
+                            padding: const EdgeInsets.all(6),
+                            constraints: const BoxConstraints(),
+                            onPressed: () {
+                              ref
+                                  .read(gpsOverlayProvider.notifier)
+                                  .toggleOverlay();
+                            },
+                            icon: Consumer(
+                              builder: (context, ref, child) {
+                                final gpsState = ref.watch(gpsOverlayProvider);
+                                return Icon(
+                                  gpsState.isEnabled
+                                      ? Icons.location_on
+                                      : Icons.location_off,
+                                  color: Colors.white,
+                                  size: 22,
+                                );
+                              },
+                            ),
+                          ),
+                          Semantics(
+                            label: _getFlashLabel(),
+                            button: true,
+                            child: IconButton(
+                              key: const Key('flash_button'),
+                              padding: const EdgeInsets.all(6),
+                              constraints: const BoxConstraints(),
+                              onPressed: _toggleFlashMode,
+                              icon: Icon(
+                                _getFlashIcon(),
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            key: const Key('camera_switch_button'),
+                            padding: const EdgeInsets.all(6),
+                            constraints: const BoxConstraints(),
+                            onPressed: _switchCamera,
+                            icon: const Icon(
+                              Icons.cameraswitch,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
