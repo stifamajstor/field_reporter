@@ -52,7 +52,7 @@
       "Capture photo with flash on in low light",
       "Verify flash fires during capture"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

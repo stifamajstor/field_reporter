@@ -26,6 +26,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
   String? _errorMessage;
   bool _showShutterAnimation = false;
   bool _showSwitchAnimation = false;
+  FlashMode _flashMode = FlashMode.auto;
   late AnimationController _switchAnimationController;
   late Animation<double> _switchAnimation;
 
@@ -141,6 +142,39 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
         _showSwitchAnimation = false;
       });
     }
+  }
+
+  Future<void> _toggleFlashMode() async {
+    final cameraService = ref.read(cameraServiceProvider);
+    final nextMode = switch (_flashMode) {
+      FlashMode.auto => FlashMode.on,
+      FlashMode.on => FlashMode.off,
+      FlashMode.off => FlashMode.auto,
+    };
+
+    await cameraService.setFlashMode(nextMode);
+
+    if (mounted) {
+      setState(() {
+        _flashMode = nextMode;
+      });
+    }
+  }
+
+  IconData _getFlashIcon() {
+    return switch (_flashMode) {
+      FlashMode.auto => Icons.flash_auto,
+      FlashMode.on => Icons.flash_on,
+      FlashMode.off => Icons.flash_off,
+    };
+  }
+
+  String _getFlashLabel() {
+    return switch (_flashMode) {
+      FlashMode.auto => 'Flash: Auto',
+      FlashMode.on => 'Flash: On',
+      FlashMode.off => 'Flash: Off',
+    };
   }
 
   Future<void> _capturePhoto() async {
@@ -412,7 +446,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
             ),
           ),
 
-          // Top bar with close button and camera switch
+          // Top bar with close button, flash, and camera switch
           Positioned(
             left: 0,
             right: 0,
@@ -431,14 +465,32 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
                         size: 28,
                       ),
                     ),
-                    IconButton(
-                      key: const Key('camera_switch_button'),
-                      onPressed: _switchCamera,
-                      icon: const Icon(
-                        Icons.cameraswitch,
-                        color: Colors.white,
-                        size: 28,
-                      ),
+                    Row(
+                      children: [
+                        Semantics(
+                          label: _getFlashLabel(),
+                          button: true,
+                          child: IconButton(
+                            key: const Key('flash_button'),
+                            onPressed: _toggleFlashMode,
+                            icon: Icon(
+                              _getFlashIcon(),
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          key: const Key('camera_switch_button'),
+                          onPressed: _switchCamera,
+                          icon: const Icon(
+                            Icons.cameraswitch,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

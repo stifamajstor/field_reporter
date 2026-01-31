@@ -40,12 +40,21 @@ class MockCameraService implements CameraService {
   bool _isInitialized = false;
   bool _isPreviewActive = false;
   CameraLensDirection _lensDirection = CameraLensDirection.back;
+  FlashMode _flashMode = FlashMode.auto;
 
   bool get isInitialized => _isInitialized;
   bool get isPreviewActive => _isPreviewActive;
 
   @override
   CameraLensDirection get lensDirection => _lensDirection;
+
+  @override
+  FlashMode get currentFlashMode => _flashMode;
+
+  @override
+  Future<void> setFlashMode(FlashMode mode) async {
+    _flashMode = mode;
+  }
 
   @override
   Future<void> openCamera() async {

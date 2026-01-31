@@ -31,12 +31,21 @@ class MockPermissionService implements PermissionService {
 class MockCameraService implements CameraService {
   bool _isOpen = false;
   CameraLensDirection _lensDirection = CameraLensDirection.back;
+  FlashMode _flashMode = FlashMode.auto;
   bool capturePhotoCalled = false;
   String? capturedPhotoPath;
   bool shouldShowShutterAnimation = true;
 
   @override
   CameraLensDirection get lensDirection => _lensDirection;
+
+  @override
+  FlashMode get currentFlashMode => _flashMode;
+
+  @override
+  Future<void> setFlashMode(FlashMode mode) async {
+    _flashMode = mode;
+  }
 
   @override
   Future<void> openCamera() async {

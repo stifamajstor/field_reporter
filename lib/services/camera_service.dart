@@ -7,6 +7,13 @@ enum CameraLensDirection {
   back,
 }
 
+/// Flash mode for camera.
+enum FlashMode {
+  auto,
+  on,
+  off,
+}
+
 /// Error types for camera service.
 enum CameraError {
   cameraFailure,
@@ -77,20 +84,36 @@ abstract class CameraService {
 
   /// Gets the current lens direction.
   CameraLensDirection get lensDirection;
+
+  /// Sets the flash mode.
+  Future<void> setFlashMode(FlashMode mode);
+
+  /// Gets the current flash mode.
+  FlashMode get currentFlashMode;
 }
 
 /// Default implementation of CameraService.
 /// In production, this would use the camera package.
 class DefaultCameraService implements CameraService {
   CameraLensDirection _lensDirection = CameraLensDirection.back;
+  FlashMode _flashMode = FlashMode.auto;
 
   @override
   CameraLensDirection get lensDirection => _lensDirection;
 
   @override
+  FlashMode get currentFlashMode => _flashMode;
+
+  @override
+  Future<void> setFlashMode(FlashMode mode) async {
+    _flashMode = mode;
+  }
+
+  @override
   Future<void> openCamera() async {
     // Implementation will use camera package
     _lensDirection = CameraLensDirection.back;
+    _flashMode = FlashMode.auto;
   }
 
   @override
