@@ -473,6 +473,7 @@ class MockAudioRecorderService implements AudioRecorderService {
   bool startRecordingCalled = false;
   bool stopRecordingCalled = false;
   bool playbackStarted = false;
+  List<double> _recordedWaveform = [];
 
   MockAudioRecorderService({
     this.recordedAudioPath,
@@ -503,6 +504,30 @@ class MockAudioRecorderService implements AudioRecorderService {
 
   @override
   Future<void> stopPlayback() async {}
+
+  @override
+  Future<void> pausePlayback() async {}
+
+  @override
+  Future<void> resumePlayback() async {}
+
+  @override
+  void setPositionListener(void Function(Duration)? listener) {}
+
+  @override
+  void setCompletionListener(void Function()? listener) {}
+
+  @override
+  void setAmplitudeListener(void Function(List<double>)? listener) {}
+
+  @override
+  void setPlaybackWaveformListener(void Function(List<double>)? listener) {}
+
+  @override
+  List<double> get recordedWaveform => _recordedWaveform;
+
+  @override
+  Duration get currentPosition => Duration.zero;
 
   @override
   Future<void> dispose() async {}

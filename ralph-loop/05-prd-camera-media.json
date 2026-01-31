@@ -441,7 +441,7 @@
       "Play back recording",
       "Verify waveform displays during playback"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "error-handling",

@@ -9,6 +9,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../services/audio_recorder_service.dart';
 import '../../../services/permission_service.dart';
+import 'widgets/audio_waveform_widget.dart';
 
 /// Result type for voice memo screen.
 enum VoiceMemoResult {
@@ -36,6 +37,8 @@ class _VoiceMemoScreenState extends ConsumerState<VoiceMemoScreen> {
   bool _isPlaying = false;
   Duration _playbackPosition = Duration.zero;
   bool _isPaused = false;
+  List<double> _recordingAmplitudes = [];
+  List<double> _recordedWaveform = [];
 
   @override
   void initState() {
@@ -89,11 +92,22 @@ class _VoiceMemoScreenState extends ConsumerState<VoiceMemoScreen> {
     HapticFeedback.lightImpact();
 
     final audioService = ref.read(audioRecorderServiceProvider);
+
+    // Set up amplitude listener for waveform visualization
+    audioService.setAmplitudeListener((amplitudes) {
+      if (mounted) {
+        setState(() {
+          _recordingAmplitudes = amplitudes;
+        });
+      }
+    });
+
     await audioService.startRecording();
 
     setState(() {
       _isRecording = true;
       _recordingSeconds = 0;
+      _recordingAmplitudes = [];
     });
 
     _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -120,6 +134,7 @@ class _VoiceMemoScreenState extends ConsumerState<VoiceMemoScreen> {
         _hasRecording = true;
         _recordedPath = result.path;
         _recordedDuration = result.durationSeconds;
+        _recordedWaveform = result.waveformData;
       });
     }
   }
@@ -242,6 +257,8 @@ class _VoiceMemoScreenState extends ConsumerState<VoiceMemoScreen> {
         _isPlaying = false;
         _isPaused = false;
         _playbackPosition = Duration.zero;
+        _recordingAmplitudes = [];
+        _recordedWaveform = [];
       });
     }
   }
@@ -391,7 +408,19 @@ class _VoiceMemoScreenState extends ConsumerState<VoiceMemoScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
+          // Waveform visualization during recording
+          SizedBox(
+            width: 280,
+            height: 60,
+            child: AudioWaveformWidget(
+              key: const Key('recording_waveform'),
+              amplitudes: _recordingAmplitudes,
+              isRecording: true,
+              activeColor: AppColors.orange500,
+            ),
+          ),
+          const SizedBox(height: 24),
           Text(
             key: const Key('recording_timer'),
             _formatTime(_recordingSeconds),
@@ -464,20 +493,19 @@ class _VoiceMemoScreenState extends ConsumerState<VoiceMemoScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Spacer(),
-        // Waveform placeholder
-        Container(
-          width: 200,
+        // Waveform visualization during playback
+        SizedBox(
+          width: 280,
           height: 80,
-          decoration: BoxDecoration(
-            color: AppColors.slate700.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Center(
-            child: Icon(
-              Icons.graphic_eq,
-              size: 48,
-              color: AppColors.orange500,
-            ),
+          child: AudioWaveformWidget(
+            key: const Key('playback_waveform'),
+            amplitudes: _recordedWaveform.isEmpty
+                ? List.generate(30, (i) => 0.3 + (i % 5) * 0.1)
+                : _recordedWaveform,
+            isRecording: false,
+            progress: progress,
+            activeColor: AppColors.orange500,
+            inactiveColor: AppColors.slate700.withOpacity(0.5),
           ),
         ),
         const SizedBox(height: 24),

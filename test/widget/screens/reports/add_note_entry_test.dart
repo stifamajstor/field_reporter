@@ -415,6 +415,30 @@ class MockAudioRecorderService implements AudioRecorderService {
   Future<void> stopPlayback() async {}
 
   @override
+  Future<void> pausePlayback() async {}
+
+  @override
+  Future<void> resumePlayback() async {}
+
+  @override
+  void setPositionListener(void Function(Duration)? listener) {}
+
+  @override
+  void setCompletionListener(void Function()? listener) {}
+
+  @override
+  void setAmplitudeListener(void Function(List<double>)? listener) {}
+
+  @override
+  void setPlaybackWaveformListener(void Function(List<double>)? listener) {}
+
+  @override
+  List<double> get recordedWaveform => [];
+
+  @override
+  Duration get currentPosition => Duration.zero;
+
+  @override
   Future<void> dispose() async {}
 }
 
@@ -442,7 +466,8 @@ class MockCameraService implements CameraService {
     double? compassHeading,
     LocationPosition? location,
     bool? isLocationStale,
-  }) async => null;
+  }) async =>
+      null;
 
   @override
   Future<void> openCameraForVideo({bool enableAudio = true}) async {}

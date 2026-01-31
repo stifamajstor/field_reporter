@@ -66,6 +66,7 @@ class MockAudioRecorderService implements AudioRecorderService {
   bool _isRecording = false;
   bool startRecordingCalled = false;
   bool stopRecordingCalled = false;
+  List<double> _recordedWaveform = [];
 
   @override
   Future<void> startRecording() async {
@@ -100,6 +101,15 @@ class MockAudioRecorderService implements AudioRecorderService {
 
   @override
   void setCompletionListener(void Function()? listener) {}
+
+  @override
+  void setAmplitudeListener(void Function(List<double>)? listener) {}
+
+  @override
+  void setPlaybackWaveformListener(void Function(List<double>)? listener) {}
+
+  @override
+  List<double> get recordedWaveform => _recordedWaveform;
 
   @override
   Duration get currentPosition => Duration.zero;
@@ -172,7 +182,8 @@ void main() {
       expect(mockAudioRecorderService.startRecordingCalled, isTrue);
 
       // Step 4: Verify recording indicator is shown
-      expect(find.byKey(const Key('shake_recording_indicator')), findsOneWidget);
+      expect(
+          find.byKey(const Key('shake_recording_indicator')), findsOneWidget);
 
       // Step 4b: Verify haptic confirmation (onHapticFeedback callback was called)
       // Note: Haptic feedback is triggered via the service's callback mechanism

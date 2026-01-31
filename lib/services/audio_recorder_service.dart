@@ -7,6 +7,7 @@ class AudioRecordingResult {
   const AudioRecordingResult({
     required this.path,
     required this.durationSeconds,
+    this.waveformData = const [],
   });
 
   /// Path to the recorded audio file.
@@ -14,6 +15,9 @@ class AudioRecordingResult {
 
   /// Duration of the audio in seconds.
   final int durationSeconds;
+
+  /// Waveform amplitude data captured during recording.
+  final List<double> waveformData;
 }
 
 /// Service for audio recording operations.
@@ -43,6 +47,15 @@ abstract class AudioRecorderService {
   /// Sets a listener for playback completion.
   void setCompletionListener(void Function()? listener);
 
+  /// Sets a listener for amplitude updates during recording.
+  void setAmplitudeListener(void Function(List<double>)? listener);
+
+  /// Sets a listener for playback waveform updates.
+  void setPlaybackWaveformListener(void Function(List<double>)? listener);
+
+  /// Gets the waveform data recorded during the last recording session.
+  List<double> get recordedWaveform;
+
   /// Gets the current playback position.
   Duration get currentPosition;
 
@@ -54,10 +67,15 @@ abstract class AudioRecorderService {
 /// In production, this would use the record package.
 class DefaultAudioRecorderService implements AudioRecorderService {
   Duration _currentPosition = Duration.zero;
+  List<double> _recordedWaveform = [];
   // ignore: unused_field - will be used by actual audio player implementation
   void Function(Duration)? _positionListener;
   // ignore: unused_field - will be used by actual audio player implementation
   void Function()? _completionListener;
+  // ignore: unused_field - will be used by actual audio player implementation
+  void Function(List<double>)? _amplitudeListener;
+  // ignore: unused_field - will be used by actual audio player implementation
+  void Function(List<double>)? _playbackWaveformListener;
 
   @override
   Future<void> startRecording() async {
@@ -103,6 +121,19 @@ class DefaultAudioRecorderService implements AudioRecorderService {
   }
 
   @override
+  void setAmplitudeListener(void Function(List<double>)? listener) {
+    _amplitudeListener = listener;
+  }
+
+  @override
+  void setPlaybackWaveformListener(void Function(List<double>)? listener) {
+    _playbackWaveformListener = listener;
+  }
+
+  @override
+  List<double> get recordedWaveform => _recordedWaveform;
+
+  @override
   Duration get currentPosition => _currentPosition;
 
   @override
@@ -110,6 +141,8 @@ class DefaultAudioRecorderService implements AudioRecorderService {
     // Clean up resources
     _positionListener = null;
     _completionListener = null;
+    _amplitudeListener = null;
+    _playbackWaveformListener = null;
   }
 }
 

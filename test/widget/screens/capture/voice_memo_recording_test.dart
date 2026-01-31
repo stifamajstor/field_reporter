@@ -60,6 +60,9 @@ class MockAudioRecorderService implements AudioRecorderService {
   Duration _playbackPosition = Duration.zero;
   void Function(Duration)? onPositionChanged;
   void Function()? onPlaybackComplete;
+  void Function(List<double>)? _amplitudeListener;
+  void Function(List<double>)? _playbackWaveformListener;
+  List<double> _recordedWaveform = [];
 
   bool get isRecording => _isRecording;
   bool get isPlaying => _isPlaying;
@@ -93,6 +96,7 @@ class MockAudioRecorderService implements AudioRecorderService {
     return AudioRecordingResult(
       path: '/path/to/voice_memo.m4a',
       durationSeconds: _recordedDurationSeconds,
+      waveformData: _recordedWaveform,
     );
   }
 
@@ -131,6 +135,19 @@ class MockAudioRecorderService implements AudioRecorderService {
   void setCompletionListener(void Function()? listener) {
     onPlaybackComplete = listener;
   }
+
+  @override
+  void setAmplitudeListener(void Function(List<double>)? listener) {
+    _amplitudeListener = listener;
+  }
+
+  @override
+  void setPlaybackWaveformListener(void Function(List<double>)? listener) {
+    _playbackWaveformListener = listener;
+  }
+
+  @override
+  List<double> get recordedWaveform => _recordedWaveform;
 
   @override
   Duration get currentPosition => _playbackPosition;

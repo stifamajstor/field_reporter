@@ -137,3 +137,4 @@
 [2026-01-31 23:23] | camera-media | Camera UI overlays don't obstruct capture area | PASS | lib/features/capture/presentation/camera_capture_screen.dart, test/widget/screens/capture/camera_ui_overlay_layout_test.dart
 [2026-01-31 23:23] | camera-media | Camera UI overlays don't obstruct capture area | PASS | lib/features/capture/presentation/camera_capture_screen.dart, test/widget/screens/capture/camera_ui_overlay_layout_test.dart
 [2026-01-31 23:30] | camera-media | Recording indicator is clearly visible | PASS | test/widget/screens/capture/recording_indicator_visibility_test.dart
+[2026-01-31 23:35] | camera-media | Voice memo shows audio waveform visualization | PASS | lib/features/capture/presentation/widgets/audio_waveform_widget.dart, lib/features/capture/presentation/voice_memo_screen.dart, lib/services/audio_recorder_service.dart, test/widget/screens/capture/voice_memo_waveform_test.dart

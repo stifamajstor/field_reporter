@@ -336,6 +336,7 @@ class _MockCameraService implements CameraService {
 class _MockAudioRecorderService implements AudioRecorderService {
   AudioRecordingResult? _audioRecordingResult;
   Duration _currentPosition = Duration.zero;
+  List<double> _recordedWaveform = [];
 
   void setAudioRecordingResult(AudioRecordingResult result) {
     _audioRecordingResult = result;
@@ -368,6 +369,15 @@ class _MockAudioRecorderService implements AudioRecorderService {
 
   @override
   void setCompletionListener(void Function()? listener) {}
+
+  @override
+  void setAmplitudeListener(void Function(List<double>)? listener) {}
+
+  @override
+  void setPlaybackWaveformListener(void Function(List<double>)? listener) {}
+
+  @override
+  List<double> get recordedWaveform => _recordedWaveform;
 
   @override
   Duration get currentPosition => _currentPosition;

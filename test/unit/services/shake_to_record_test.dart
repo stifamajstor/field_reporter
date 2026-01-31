@@ -79,6 +79,7 @@ class MockAudioRecorderService implements AudioRecorderService {
   bool stopRecordingCalled = false;
   int _recordedDurationSeconds = 5;
   String? recordedFilePath;
+  List<double> _recordedWaveform = [];
 
   bool get isRecording => _isRecording;
 
@@ -120,6 +121,15 @@ class MockAudioRecorderService implements AudioRecorderService {
 
   @override
   void setCompletionListener(void Function()? listener) {}
+
+  @override
+  void setAmplitudeListener(void Function(List<double>)? listener) {}
+
+  @override
+  void setPlaybackWaveformListener(void Function(List<double>)? listener) {}
+
+  @override
+  List<double> get recordedWaveform => _recordedWaveform;
 
   @override
   Duration get currentPosition => Duration.zero;
