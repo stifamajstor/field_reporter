@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../services/camera_service.dart';
 import '../../../services/permission_service.dart';
+import '../providers/gps_overlay_provider.dart';
 import 'photo_preview_screen.dart';
 
 /// Screen for capturing photos/videos with the camera.
@@ -47,6 +48,7 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _cameraService = ref.read(cameraServiceProvider);
       _checkPermissionAndInitialize();
+      ref.read(gpsOverlayProvider.notifier).initialize();
     });
   }
 
@@ -467,6 +469,28 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
                     ),
                     Row(
                       children: [
+                        // GPS overlay toggle button
+                        IconButton(
+                          key: const Key('gps_overlay_toggle'),
+                          onPressed: () {
+                            ref
+                                .read(gpsOverlayProvider.notifier)
+                                .toggleOverlay();
+                          },
+                          icon: Consumer(
+                            builder: (context, ref, child) {
+                              final gpsState = ref.watch(gpsOverlayProvider);
+                              return Icon(
+                                gpsState.isEnabled
+                                    ? Icons.location_on
+                                    : Icons.location_off,
+                                color: Colors.white,
+                                size: 28,
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         Semantics(
                           label: _getFlashLabel(),
                           button: true,
@@ -497,6 +521,13 @@ class _CameraCaptureScreenState extends ConsumerState<CameraCaptureScreen>
               ),
             ),
           ),
+
+          // GPS coordinates overlay
+          const Positioned(
+            left: 16,
+            bottom: 120,
+            child: GpsOverlayWidget(),
+          ),
         ],
       ),
     );
@@ -518,6 +549,74 @@ class CameraPreviewWidget extends StatelessWidget {
     return Container(
       color: Colors.black,
       child: const SizedBox.expand(),
+    );
+  }
+}
+
+/// Widget that displays GPS coordinates overlay on the camera.
+class GpsOverlayWidget extends ConsumerWidget {
+  const GpsOverlayWidget({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final gpsState = ref.watch(gpsOverlayProvider);
+
+    if (!gpsState.isEnabled) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      key: const Key('gps_overlay'),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.location_on,
+                color:
+                    gpsState.hasPermission ? Colors.white : AppColors.slate400,
+                size: 16,
+              ),
+              const SizedBox(width: 4),
+              if (!gpsState.hasPermission)
+                const Text(
+                  'Location unavailable',
+                  style: TextStyle(
+                    color: AppColors.slate400,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                )
+              else if (gpsState.hasPosition)
+                Text(
+                  '${gpsState.formattedLatitude}, ${gpsState.formattedLongitude}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                )
+              else
+                const Text(
+                  'Acquiring location...',
+                  style: TextStyle(
+                    color: AppColors.slate400,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
