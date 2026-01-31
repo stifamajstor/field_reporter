@@ -421,7 +421,7 @@
       "Wait for completion",
       "Verify 'Complete' badge displayed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "error-handling",

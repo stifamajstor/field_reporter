@@ -834,7 +834,11 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
                     ],
 
                     // Status indicator
-                    _StatusBadge(status: _report.status, isDark: isDark),
+                    _StatusBadge(
+                      status: _report.status,
+                      isDark: isDark,
+                      isGeneratingPdf: _isGeneratingPdf,
+                    ),
                     AppSpacing.verticalMd,
 
                     // Report title field
@@ -1036,14 +1040,19 @@ class _StatusBadge extends StatelessWidget {
   const _StatusBadge({
     required this.status,
     required this.isDark,
+    this.isGeneratingPdf = false,
   });
 
   final ReportStatus status;
   final bool isDark;
+  final bool isGeneratingPdf;
 
   @override
   Widget build(BuildContext context) {
-    final (backgroundColor, textColor, label) = switch (status) {
+    // Show Processing badge when generating PDF
+    final effectiveStatus = isGeneratingPdf ? ReportStatus.processing : status;
+
+    final (backgroundColor, textColor, label) = switch (effectiveStatus) {
       ReportStatus.draft => (
           isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
           isDark ? AppColors.darkTextSecondary : AppColors.slate700,
@@ -1064,6 +1073,7 @@ class _StatusBadge extends StatelessWidget {
     return Row(
       children: [
         Container(
+          key: const Key('report_status_badge'),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.sm,
             vertical: AppSpacing.xs,
