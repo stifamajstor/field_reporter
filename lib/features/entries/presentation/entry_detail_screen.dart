@@ -26,8 +26,12 @@ class EntryDetailScreen extends ConsumerStatefulWidget {
 class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
   late Entry _currentEntry;
   bool _isEditingAnnotation = false;
+  bool _isTranscribing = false;
+  bool _isEditingTranscription = false;
   late TextEditingController _annotationController;
+  late TextEditingController _transcriptionController;
   final FocusNode _annotationFocusNode = FocusNode();
+  final FocusNode _transcriptionFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -35,12 +39,16 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     _currentEntry = widget.entry;
     _annotationController =
         TextEditingController(text: _currentEntry.annotation ?? '');
+    _transcriptionController =
+        TextEditingController(text: _currentEntry.content ?? '');
   }
 
   @override
   void dispose() {
     _annotationController.dispose();
     _annotationFocusNode.dispose();
+    _transcriptionController.dispose();
+    _transcriptionFocusNode.dispose();
     super.dispose();
   }
 
@@ -75,6 +83,63 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     setState(() {
       _isEditingAnnotation = false;
       _annotationController.text = _currentEntry.annotation ?? '';
+    });
+  }
+
+  Future<void> _requestTranscription() async {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isTranscribing = true;
+    });
+
+    try {
+      final transcribedEntry = await ref
+          .read(entriesNotifierProvider.notifier)
+          .transcribeEntry(_currentEntry.id);
+
+      setState(() {
+        _currentEntry = transcribedEntry;
+        _transcriptionController.text = transcribedEntry.content ?? '';
+        _isTranscribing = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isTranscribing = false;
+      });
+    }
+  }
+
+  void _startEditingTranscription() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isEditingTranscription = true;
+      _transcriptionController.text = _currentEntry.content ?? '';
+    });
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _transcriptionFocusNode.requestFocus();
+    });
+  }
+
+  Future<void> _saveTranscription() async {
+    HapticFeedback.lightImpact();
+    final newContent = _transcriptionController.text.trim();
+    final updatedEntry = _currentEntry.copyWith(
+      content: newContent.isNotEmpty ? newContent : null,
+    );
+
+    await ref.read(entriesNotifierProvider.notifier).updateEntry(updatedEntry);
+
+    setState(() {
+      _currentEntry = updatedEntry;
+      _isEditingTranscription = false;
+    });
+  }
+
+  void _cancelEditingTranscription() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isEditingTranscription = false;
+      _transcriptionController.text = _currentEntry.content ?? '';
     });
   }
 
@@ -124,6 +189,23 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                   if (_currentEntry.type == EntryType.note ||
                       _currentEntry.type == EntryType.scan) ...[
                     _ContentSection(entry: _currentEntry, isDark: isDark),
+                    AppSpacing.verticalLg,
+                  ],
+
+                  // Transcription section (for audio entries)
+                  if (_currentEntry.type == EntryType.audio) ...[
+                    _TranscriptionSection(
+                      entry: _currentEntry,
+                      isDark: isDark,
+                      isTranscribing: _isTranscribing,
+                      isEditing: _isEditingTranscription,
+                      controller: _transcriptionController,
+                      focusNode: _transcriptionFocusNode,
+                      onRequestTranscription: _requestTranscription,
+                      onStartEditing: _startEditingTranscription,
+                      onSave: _saveTranscription,
+                      onCancel: _cancelEditingTranscription,
+                    ),
                     AppSpacing.verticalLg,
                   ],
 
@@ -756,6 +838,272 @@ class _AnnotationSection extends StatelessWidget {
               AppSpacing.horizontalSm,
               ElevatedButton(
                 key: const Key('annotation_save_button'),
+                onPressed: onSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      isDark ? AppColors.darkOrange : AppColors.orange500,
+                  foregroundColor: AppColors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('Save'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TranscriptionSection extends StatelessWidget {
+  const _TranscriptionSection({
+    required this.entry,
+    required this.isDark,
+    required this.isTranscribing,
+    required this.isEditing,
+    required this.controller,
+    required this.focusNode,
+    required this.onRequestTranscription,
+    required this.onStartEditing,
+    required this.onSave,
+    required this.onCancel,
+  });
+
+  final Entry entry;
+  final bool isDark;
+  final bool isTranscribing;
+  final bool isEditing;
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final VoidCallback onRequestTranscription;
+  final VoidCallback onStartEditing;
+  final VoidCallback onSave;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasTranscription = entry.content != null && entry.content!.isNotEmpty;
+
+    if (isTranscribing) {
+      return _buildProcessingState();
+    }
+
+    if (isEditing) {
+      return _buildEditingState();
+    }
+
+    if (hasTranscription) {
+      return _buildTranscriptionDisplay();
+    }
+
+    return _buildTranscribeButton();
+  }
+
+  Widget _buildTranscribeButton() {
+    return GestureDetector(
+      key: const Key('transcribe_button'),
+      onTap: onRequestTranscription,
+      child: Container(
+        width: double.infinity,
+        padding: AppSpacing.cardInsets,
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : AppColors.white,
+          borderRadius: AppSpacing.borderRadiusLg,
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.slate200,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.transcribe,
+              size: 20,
+              color: isDark ? AppColors.darkOrange : AppColors.orange500,
+            ),
+            AppSpacing.horizontalSm,
+            Text(
+              'Transcribe',
+              style: AppTypography.body2.copyWith(
+                color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProcessingState() {
+    return Container(
+      key: const Key('transcription_processing_indicator'),
+      width: double.infinity,
+      padding: AppSpacing.cardInsets,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.white,
+        borderRadius: AppSpacing.borderRadiusLg,
+        border: Border.all(
+          color: isDark ? AppColors.darkOrange : AppColors.orange500,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation(
+                isDark ? AppColors.darkOrange : AppColors.orange500,
+              ),
+            ),
+          ),
+          AppSpacing.horizontalMd,
+          Text(
+            'Transcribing audio...',
+            style: AppTypography.body2.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTranscriptionDisplay() {
+    return GestureDetector(
+      key: const Key('transcription_section'),
+      onTap: onStartEditing,
+      child: Container(
+        width: double.infinity,
+        padding: AppSpacing.cardInsets,
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : AppColors.white,
+          borderRadius: AppSpacing.borderRadiusLg,
+          border: isDark ? null : Border.all(color: AppColors.slate200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.transcribe,
+                  size: 16,
+                  color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                ),
+                AppSpacing.horizontalXs,
+                Text(
+                  'Transcription',
+                  style: AppTypography.caption.copyWith(
+                    color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.edit_outlined,
+                  size: 16,
+                  color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+                ),
+              ],
+            ),
+            AppSpacing.verticalSm,
+            Text(
+              entry.content!,
+              style: AppTypography.body1.copyWith(
+                color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditingState() {
+    return Container(
+      width: double.infinity,
+      padding: AppSpacing.cardInsets,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.white,
+        borderRadius: AppSpacing.borderRadiusLg,
+        border: Border.all(
+          color: isDark ? AppColors.darkOrange : AppColors.orange500,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.transcribe,
+                size: 16,
+                color: isDark ? AppColors.darkOrange : AppColors.orange500,
+              ),
+              AppSpacing.horizontalXs,
+              Text(
+                'Transcription',
+                style: AppTypography.caption.copyWith(
+                  color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          AppSpacing.verticalSm,
+          TextField(
+            key: const Key('transcription_text_field'),
+            controller: controller,
+            focusNode: focusNode,
+            maxLines: 6,
+            decoration: InputDecoration(
+              hintText: 'Edit transcription...',
+              hintStyle: AppTypography.body1.copyWith(
+                color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+              ),
+              filled: true,
+              fillColor:
+                  isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.all(AppSpacing.sm),
+            ),
+            style: AppTypography.body1.copyWith(
+              color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+            ),
+          ),
+          AppSpacing.verticalMd,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                key: const Key('transcription_cancel_button'),
+                onPressed: onCancel,
+                child: Text(
+                  'Cancel',
+                  style: AppTypography.button.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.slate700,
+                  ),
+                ),
+              ),
+              AppSpacing.horizontalSm,
+              ElevatedButton(
+                key: const Key('transcription_save_button'),
                 onPressed: onSave,
                 style: ElevatedButton.styleFrom(
                   backgroundColor:

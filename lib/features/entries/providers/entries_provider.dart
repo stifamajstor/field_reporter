@@ -76,6 +76,21 @@ class EntriesNotifier extends _$EntriesNotifier {
 
     state = AsyncData(updatedEntries);
   }
+
+  /// Transcribes an audio entry using AI.
+  /// Returns the transcribed entry.
+  Future<Entry> transcribeEntry(String entryId) async {
+    final currentEntries = state.valueOrNull ?? [];
+    final entry = currentEntries.firstWhere((e) => e.id == entryId);
+
+    // Simulate AI transcription (in production, this would call an API)
+    await Future.delayed(const Duration(milliseconds: 500));
+    const transcribedText = 'Transcribed audio content from AI.';
+
+    final transcribedEntry = entry.copyWith(content: transcribedText);
+    await updateEntry(transcribedEntry);
+    return transcribedEntry;
+  }
 }
 
 /// Provider for getting entries for a specific report.

@@ -196,7 +196,7 @@
       "Verify transcribed text appears",
       "Verify text is editable for corrections"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
