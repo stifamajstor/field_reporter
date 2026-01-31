@@ -8,6 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../services/camera_service.dart';
+import '../../../services/location_service.dart';
 import '../../../services/permission_service.dart';
 import '../providers/camera_focus_provider.dart';
 import '../providers/camera_zoom_provider.dart';
@@ -1271,6 +1272,20 @@ class _FocusIndicatorWidgetState extends State<FocusIndicatorWidget>
 class GpsOverlayWidget extends ConsumerWidget {
   const GpsOverlayWidget({super.key});
 
+  void _showManualLocationDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => ManualLocationDialog(
+        onConfirm: (latitude, longitude) {
+          ref.read(gpsOverlayProvider.notifier).setManualLocation(
+                LocationPosition(latitude: latitude, longitude: longitude),
+              );
+          Navigator.of(dialogContext).pop();
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final gpsState = ref.watch(gpsOverlayProvider);
@@ -1278,6 +1293,11 @@ class GpsOverlayWidget extends ConsumerWidget {
     if (!gpsState.isEnabled) {
       return const SizedBox.shrink();
     }
+
+    // Show unavailable when we don't have a position and aren't actively loading
+    // But if we have a manual location set, we do have a position
+    final showLocationUnavailable =
+        !gpsState.hasPosition && !gpsState.isLoading;
 
     return Container(
       key: const Key('gps_overlay'),
@@ -1300,8 +1320,7 @@ class GpsOverlayWidget extends ConsumerWidget {
                 size: 16,
               ),
               const SizedBox(width: 4),
-              if (!gpsState.hasPermission ||
-                  (!gpsState.hasPosition && !gpsState.isLoading))
+              if (showLocationUnavailable)
                 const Text(
                   'Location unavailable',
                   style: TextStyle(
@@ -1330,12 +1349,79 @@ class GpsOverlayWidget extends ConsumerWidget {
                 ),
             ],
           ),
-          // Stale location indicator
-          if (gpsState.isLocationStale && gpsState.hasPosition)
+          // Add location button when location is unavailable
+          if (showLocationUnavailable)
             Padding(
-              padding: const EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.only(top: 8),
+              child: GestureDetector(
+                key: const Key('add_location_button'),
+                onTap: () => _showManualLocationDialog(context, ref),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.orange500.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: AppColors.orange500.withOpacity(0.5),
+                      width: 1,
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.add_location_alt,
+                        color: AppColors.orange500,
+                        size: 14,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        'Add location',
+                        style: TextStyle(
+                          color: AppColors.orange500,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          // Manual location indicator
+          if (gpsState.isManualLocation && gpsState.hasPosition)
+            const Padding(
+              padding: EdgeInsets.only(top: 4),
               child: Row(
-                key: const Key('stale_location_indicator'),
+                key: Key('manual_location_indicator'),
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.edit_location,
+                    color: AppColors.orange500,
+                    size: 12,
+                  ),
+                  SizedBox(width: 4),
+                  Text(
+                    'Manual location',
+                    style: TextStyle(
+                      color: AppColors.orange500,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          // Stale location indicator
+          if (gpsState.isLocationStale &&
+              gpsState.hasPosition &&
+              !gpsState.isManualLocation)
+            const Padding(
+              padding: EdgeInsets.only(top: 4),
+              child: Row(
+                key: Key('stale_location_indicator'),
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
@@ -1343,8 +1429,8 @@ class GpsOverlayWidget extends ConsumerWidget {
                     color: AppColors.orange500,
                     size: 12,
                   ),
-                  const SizedBox(width: 4),
-                  const Text(
+                  SizedBox(width: 4),
+                  Text(
                     'Location may be stale',
                     style: TextStyle(
                       color: AppColors.orange500,
@@ -1356,6 +1442,196 @@ class GpsOverlayWidget extends ConsumerWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Dialog for entering manual location coordinates.
+class ManualLocationDialog extends StatefulWidget {
+  const ManualLocationDialog({
+    super.key,
+    required this.onConfirm,
+  });
+
+  final void Function(double latitude, double longitude) onConfirm;
+
+  @override
+  State<ManualLocationDialog> createState() => _ManualLocationDialogState();
+}
+
+class _ManualLocationDialogState extends State<ManualLocationDialog> {
+  final _latitudeController = TextEditingController();
+  final _longitudeController = TextEditingController();
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _latitudeController.dispose();
+    _longitudeController.dispose();
+    super.dispose();
+  }
+
+  void _onConfirm() {
+    final latText = _latitudeController.text.trim();
+    final lonText = _longitudeController.text.trim();
+
+    final latitude = double.tryParse(latText);
+    final longitude = double.tryParse(lonText);
+
+    if (latitude == null || longitude == null) {
+      setState(() {
+        _errorMessage = 'Please enter valid coordinates';
+      });
+      return;
+    }
+
+    if (latitude < -90 || latitude > 90) {
+      setState(() {
+        _errorMessage = 'Latitude must be between -90 and 90';
+      });
+      return;
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      setState(() {
+        _errorMessage = 'Longitude must be between -180 and 180';
+      });
+      return;
+    }
+
+    widget.onConfirm(latitude, longitude);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      key: const Key('manual_location_dialog'),
+      backgroundColor: AppColors.darkSurfaceHigh,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.add_location_alt,
+                  color: AppColors.orange500,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Add Location',
+                  style: AppTypography.headline3.copyWith(
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Enter GPS coordinates manually',
+              style: AppTypography.body2.copyWith(
+                color: AppColors.slate400,
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Latitude field
+            TextField(
+              key: const Key('manual_latitude_field'),
+              controller: _latitudeController,
+              keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true, signed: true),
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Latitude',
+                labelStyle: const TextStyle(color: AppColors.slate400),
+                hintText: 'e.g., 45.8150',
+                hintStyle:
+                    TextStyle(color: AppColors.slate400.withOpacity(0.5)),
+                filled: true,
+                fillColor: AppColors.darkSurface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: AppColors.orange500),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Longitude field
+            TextField(
+              key: const Key('manual_longitude_field'),
+              controller: _longitudeController,
+              keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true, signed: true),
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Longitude',
+                labelStyle: const TextStyle(color: AppColors.slate400),
+                hintText: 'e.g., 15.9819',
+                hintStyle:
+                    TextStyle(color: AppColors.slate400.withOpacity(0.5)),
+                filled: true,
+                fillColor: AppColors.darkSurface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: AppColors.orange500),
+                ),
+              ),
+            ),
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                _errorMessage!,
+                style: const TextStyle(
+                  color: AppColors.rose500,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    'Cancel',
+                    style: AppTypography.button.copyWith(
+                      color: AppColors.slate400,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  key: const Key('confirm_manual_location'),
+                  onPressed: _onConfirm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.orange500,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Confirm'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

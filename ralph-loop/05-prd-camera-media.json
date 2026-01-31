@@ -480,7 +480,7 @@
       "Verify metadata notes location unavailable",
       "Verify option to add location manually later"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "error-handling",

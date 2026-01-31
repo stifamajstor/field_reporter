@@ -21,6 +21,7 @@ class GpsOverlayState {
     this.isLoading = false,
     this.isLocationStale = false,
     this.positionTimestamp,
+    this.isManualLocation = false,
   });
 
   const GpsOverlayState.initial()
@@ -29,7 +30,8 @@ class GpsOverlayState {
         currentPosition = null,
         isLoading = true,
         isLocationStale = false,
-        positionTimestamp = null;
+        positionTimestamp = null,
+        isManualLocation = false;
 
   final bool isEnabled;
   final LocationPermissionStatus permissionStatus;
@@ -37,6 +39,7 @@ class GpsOverlayState {
   final bool isLoading;
   final bool isLocationStale;
   final DateTime? positionTimestamp;
+  final bool isManualLocation;
 
   bool get hasPermission =>
       permissionStatus == LocationPermissionStatus.granted;
@@ -59,6 +62,7 @@ class GpsOverlayState {
     bool? isLoading,
     bool? isLocationStale,
     DateTime? positionTimestamp,
+    bool? isManualLocation,
     bool clearPosition = false,
   }) {
     return GpsOverlayState(
@@ -69,6 +73,7 @@ class GpsOverlayState {
       isLoading: isLoading ?? this.isLoading,
       isLocationStale: isLocationStale ?? this.isLocationStale,
       positionTimestamp: positionTimestamp ?? this.positionTimestamp,
+      isManualLocation: isManualLocation ?? this.isManualLocation,
     );
   }
 }
@@ -144,6 +149,17 @@ class GpsOverlayNotifier extends StateNotifier<GpsOverlayState> {
       currentPosition: position,
       positionTimestamp: DateTime.now(),
       isLocationStale: isStale,
+      isManualLocation: false,
+    );
+  }
+
+  /// Sets a manual location when automatic location is unavailable.
+  void setManualLocation(LocationPosition position) {
+    state = state.copyWith(
+      currentPosition: position,
+      positionTimestamp: DateTime.now(),
+      isLocationStale: false,
+      isManualLocation: true,
     );
   }
 
