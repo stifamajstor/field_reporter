@@ -13,6 +13,9 @@ import '../providers/reports_provider.dart';
 /// Provider for the current status filter.
 final statusFilterProvider = StateProvider<ReportStatus?>((ref) => null);
 
+/// Provider for the current project filter.
+final projectFilterProvider = StateProvider<String?>((ref) => null);
+
 /// Screen displaying the list of all reports.
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
@@ -22,6 +25,7 @@ class ReportsScreen extends ConsumerWidget {
     final reportsAsync = ref.watch(allReportsNotifierProvider);
     final projectsAsync = ref.watch(projectsNotifierProvider);
     final statusFilter = ref.watch(statusFilterProvider);
+    final projectFilter = ref.watch(projectFilterProvider);
     final isDark = context.isDarkMode;
 
     return Scaffold(
@@ -31,7 +35,7 @@ class ReportsScreen extends ConsumerWidget {
           IconButton(
             key: const Key('filter_button'),
             icon: Icon(
-              statusFilter != null
+              statusFilter != null || projectFilter != null
                   ? Icons.filter_alt
                   : Icons.filter_alt_outlined,
             ),
@@ -66,10 +70,17 @@ class ReportsScreen extends ConsumerWidget {
           ),
         ),
         data: (reports) {
-          // Apply status filter
-          final filteredReports = statusFilter != null
-              ? reports.where((r) => r.status == statusFilter).toList()
-              : reports;
+          // Apply status and project filters
+          var filteredReports = reports;
+          if (statusFilter != null) {
+            filteredReports =
+                filteredReports.where((r) => r.status == statusFilter).toList();
+          }
+          if (projectFilter != null) {
+            filteredReports = filteredReports
+                .where((r) => r.projectId == projectFilter)
+                .toList();
+          }
 
           if (filteredReports.isEmpty) {
             return const EmptyState(
@@ -122,6 +133,7 @@ class ReportsScreen extends ConsumerWidget {
 
   void _showFilterMenu(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final projectsAsync = ref.read(projectsNotifierProvider);
 
     showModalBottomSheet(
       context: context,
@@ -129,6 +141,7 @@ class ReportsScreen extends ConsumerWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
+      isScrollControlled: true,
       builder: (context) {
         return SafeArea(
           child: SingleChildScrollView(
@@ -137,6 +150,7 @@ class ReportsScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Status filter section
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
@@ -188,6 +202,59 @@ class ReportsScreen extends ConsumerWidget {
                           ReportStatus.complete;
                       Navigator.pop(context);
                     },
+                  ),
+
+                  // Project filter section
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Filter by Project',
+                          style: AppTypography.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? AppColors.darkTextPrimary
+                                : AppColors.slate900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ListTile(
+                    key: const Key('all_projects_filter'),
+                    title: const Text('All Projects'),
+                    leading: const Icon(Icons.folder_outlined),
+                    onTap: () {
+                      ref.read(projectFilterProvider.notifier).state = null;
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ...projectsAsync.maybeWhen(
+                    data: (projects) => projects.map(
+                      (project) => ListTile(
+                        key: Key('project_filter_${project.id}'),
+                        title: Text(project.name),
+                        leading: const Icon(Icons.folder),
+                        onTap: () {
+                          ref.read(projectFilterProvider.notifier).state =
+                              project.id;
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                    orElse: () => const [
+                      ListTile(
+                        title: Text('Loading projects...'),
+                        leading: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
