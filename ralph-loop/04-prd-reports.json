@@ -126,7 +126,7 @@
       "Tap 'Save' to add to report",
       "Verify scan entry added with decoded data"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

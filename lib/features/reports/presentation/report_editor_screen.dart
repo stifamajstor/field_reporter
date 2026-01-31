@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/theme/theme.dart';
 import '../../../services/audio_recorder_service.dart';
+import '../../../services/barcode_scanner_service.dart';
 import '../../../services/camera_service.dart';
 import '../../entries/domain/entry.dart';
 import '../../entries/presentation/entry_card.dart';
@@ -67,6 +68,10 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
   // State for note entry
   bool _showNoteEditor = false;
   final TextEditingController _noteContentController = TextEditingController();
+
+  // State for scan entry
+  bool _showScanOverlay = false;
+  ScanResult? _scanResult;
 
   @override
   void initState() {
@@ -430,6 +435,73 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     });
   }
 
+  void _handleScanCapture() {
+    setState(() {
+      _showEntryTypeOptions = false;
+      _showScanOverlay = true;
+      _scanResult = null;
+    });
+
+    // Start scanning
+    _startScanning();
+  }
+
+  Future<void> _startScanning() async {
+    final scannerService = ref.read(barcodeScannerServiceProvider);
+    final result = await scannerService.scan();
+    if (result != null && mounted) {
+      setState(() {
+        _scanResult = result;
+      });
+    }
+  }
+
+  Future<void> _confirmScanEntry() async {
+    if (_scanResult == null) return;
+
+    HapticFeedback.lightImpact();
+
+    // Get current entries to determine sort order
+    final entriesNotifier = ref.read(entriesNotifierProvider.notifier);
+    final currentEntries = ref.read(entriesNotifierProvider).valueOrNull ?? [];
+    final reportEntries =
+        currentEntries.where((e) => e.reportId == _report.id).toList();
+
+    // Create the entry
+    final entry = Entry(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      reportId: _report.id,
+      type: EntryType.scan,
+      content: _scanResult!.data,
+      sortOrder: reportEntries.length,
+      capturedAt: DateTime.now(),
+      createdAt: DateTime.now(),
+    );
+
+    await entriesNotifier.addEntry(entry);
+
+    // Update report entry count
+    final updatedReport = _report.copyWith(
+      entryCount: _report.entryCount + 1,
+      updatedAt: DateTime.now(),
+    );
+    _report = updatedReport;
+    ref.read(allReportsNotifierProvider.notifier).updateReport(updatedReport);
+
+    setState(() {
+      _showScanOverlay = false;
+      _scanResult = null;
+    });
+  }
+
+  void _cancelScanOverlay() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _showScanOverlay = false;
+      _scanResult = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
@@ -519,6 +591,7 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
               onVideoSelected: _handleVideoCapture,
               onVoiceMemoSelected: _handleVoiceMemoCapture,
               onNoteSelected: _handleNoteCapture,
+              onScanSelected: _handleScanCapture,
             ),
 
           // Photo preview overlay
@@ -562,6 +635,15 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
               controller: _noteContentController,
               onConfirm: _confirmNoteEntry,
               onCancel: _cancelNoteEditor,
+            ),
+
+          // Scan overlay
+          if (_showScanOverlay)
+            _ScanOverlay(
+              isDark: isDark,
+              scanResult: _scanResult,
+              onConfirm: _confirmScanEntry,
+              onCancel: _cancelScanOverlay,
             ),
         ],
       ),
@@ -904,6 +986,7 @@ class _EntryTypeOptionsOverlay extends StatelessWidget {
     required this.onVideoSelected,
     required this.onVoiceMemoSelected,
     required this.onNoteSelected,
+    required this.onScanSelected,
   });
 
   final bool isDark;
@@ -912,6 +995,7 @@ class _EntryTypeOptionsOverlay extends StatelessWidget {
   final VoidCallback onVideoSelected;
   final VoidCallback onVoiceMemoSelected;
   final VoidCallback onNoteSelected;
+  final VoidCallback onScanSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -968,9 +1052,7 @@ class _EntryTypeOptionsOverlay extends StatelessWidget {
                   icon: Icons.qr_code_scanner,
                   label: 'Scan',
                   isDark: isDark,
-                  onTap: () {
-                    // TODO: Implement scan
-                  },
+                  onTap: onScanSelected,
                 ),
               ],
             ),
@@ -1602,6 +1684,212 @@ class _NoteEditorOverlay extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ScanOverlay extends StatelessWidget {
+  const _ScanOverlay({
+    required this.isDark,
+    required this.scanResult,
+    required this.onConfirm,
+    required this.onCancel,
+  });
+
+  final bool isDark;
+  final ScanResult? scanResult;
+  final VoidCallback onConfirm;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('scan_overlay'),
+      color: Colors.black87,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Top bar with cancel
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: onCancel,
+                    child: Text(
+                      'Cancel',
+                      style: AppTypography.button.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'Scan',
+                    style: AppTypography.headline3.copyWith(
+                      color: AppColors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 60), // Balance the layout
+                ],
+              ),
+            ),
+
+            // Scan content area
+            Expanded(
+              child: Center(
+                child: scanResult == null
+                    ? _buildScanningState()
+                    : _buildResultState(),
+              ),
+            ),
+
+            // Bottom bar with save (only show when result available)
+            if (scanResult != null)
+              Padding(
+                padding: AppSpacing.screenPadding,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    key: const Key('scan_save_button'),
+                    onPressed: onConfirm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.orange500,
+                      foregroundColor: AppColors.white,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.md,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Save'),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScanningState() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Scanner frame indicator
+        Container(
+          width: 250,
+          height: 250,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: AppColors.orange500,
+              width: 3,
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Center(
+            child: Icon(
+              Icons.qr_code_scanner,
+              size: 100,
+              color: AppColors.orange500,
+            ),
+          ),
+        ),
+        AppSpacing.verticalLg,
+        Text(
+          'Point at QR code or barcode',
+          style: AppTypography.body1.copyWith(
+            color: AppColors.white,
+          ),
+        ),
+        AppSpacing.verticalSm,
+        const SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation(AppColors.orange500),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResultState() {
+    return Padding(
+      padding: AppSpacing.screenPadding,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Success icon
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.emerald500.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check,
+              size: 48,
+              color: AppColors.emerald500,
+            ),
+          ),
+          AppSpacing.verticalLg,
+
+          // Format badge
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.xs,
+            ),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurfaceHigh : AppColors.slate100,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              scanResult!.formatDisplayName,
+              style: AppTypography.caption.copyWith(
+                color:
+                    isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          AppSpacing.verticalMd,
+
+          // Scanned data
+          Container(
+            width: double.infinity,
+            padding: AppSpacing.cardInsets,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : AppColors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Scanned Data',
+                  style: AppTypography.caption.copyWith(
+                    color:
+                        isDark ? AppColors.darkTextMuted : AppColors.slate400,
+                  ),
+                ),
+                AppSpacing.verticalXs,
+                Text(
+                  scanResult!.data,
+                  style: AppTypography.monoLarge.copyWith(
+                    color:
+                        isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
