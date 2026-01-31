@@ -286,7 +286,7 @@
       "Verify annotations visible on saved photo",
       "Verify original photo preserved separately"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

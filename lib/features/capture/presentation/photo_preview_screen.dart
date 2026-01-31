@@ -98,7 +98,7 @@ class PhotoPreviewScreen extends ConsumerWidget {
             ),
           ),
 
-          // Top bar with close button
+          // Top bar with close button and annotate button
           Positioned(
             left: 0,
             right: 0,
@@ -114,6 +114,41 @@ class PhotoPreviewScreen extends ConsumerWidget {
                         Icons.close,
                         color: Colors.white,
                         size: 28,
+                      ),
+                    ),
+                    const Spacer(),
+                    // Annotate button
+                    GestureDetector(
+                      key: const Key('annotate_photo_button'),
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.of(context).pop(PhotoPreviewResult.annotate);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.edit,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Annotate',
+                              style: AppTypography.button
+                                  .copyWith(color: Colors.white),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -288,4 +323,5 @@ class PhotoPreviewScreen extends ConsumerWidget {
 enum PhotoPreviewResult {
   accept,
   retake,
+  annotate,
 }
