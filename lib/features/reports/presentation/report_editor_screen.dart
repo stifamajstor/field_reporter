@@ -678,6 +678,29 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     }
   }
 
+  Future<void> _showDeleteReportDialog(
+      BuildContext context, bool isDark) async {
+    HapticFeedback.mediumImpact();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => _DeleteReportConfirmationDialog(
+        isDark: isDark,
+        entryCount: _report.entryCount,
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      HapticFeedback.mediumImpact();
+      await ref
+          .read(allReportsNotifierProvider.notifier)
+          .deleteReport(_report.id);
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
   /// Returns true if the report is editable (not complete)
   bool get _isEditable => _report.status != ReportStatus.complete;
 
@@ -718,6 +741,39 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
                 color: isDark ? AppColors.darkOrange : AppColors.orange500,
               ),
             ),
+          ),
+          PopupMenuButton<String>(
+            key: const Key('more_options_button'),
+            icon: Icon(
+              Icons.more_vert,
+              color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+            ),
+            onSelected: (value) {
+              if (value == 'delete') {
+                _showDeleteReportDialog(context, isDark);
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem<String>(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.delete_outline,
+                      color: isDark ? AppColors.darkRose : AppColors.rose500,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Delete Report',
+                      style: AppTypography.body1.copyWith(
+                        color: isDark ? AppColors.darkRose : AppColors.rose500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -2869,6 +2925,69 @@ class _MarkCompleteConfirmationDialog extends StatelessWidget {
           ),
           child: Text(
             'Mark Complete',
+            style: AppTypography.button.copyWith(
+              color: AppColors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DeleteReportConfirmationDialog extends StatelessWidget {
+  const _DeleteReportConfirmationDialog({
+    required this.isDark,
+    required this.entryCount,
+  });
+
+  final bool isDark;
+  final int entryCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final warningMessage = entryCount > 0
+        ? 'This report contains $entryCount ${entryCount == 1 ? 'entry' : 'entries'}. '
+            'This action will permanently delete the report and all its entries.'
+        : 'This action will permanently delete this report.';
+
+    return AlertDialog(
+      backgroundColor: isDark ? AppColors.darkSurfaceHigh : AppColors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      title: Text(
+        'Delete Report?',
+        style: AppTypography.headline3.copyWith(
+          color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+        ),
+      ),
+      content: Text(
+        warningMessage,
+        style: AppTypography.body2.copyWith(
+          color: isDark ? AppColors.darkTextSecondary : AppColors.slate700,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(
+            'Cancel',
+            style: AppTypography.button.copyWith(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.slate500,
+            ),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isDark ? AppColors.darkRose : AppColors.rose500,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Text(
+            'Delete',
             style: AppTypography.button.copyWith(
               color: AppColors.white,
             ),

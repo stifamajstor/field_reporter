@@ -282,7 +282,7 @@
       "Verify navigation to Reports list",
       "Verify report no longer appears"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

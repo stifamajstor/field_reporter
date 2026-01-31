@@ -91,3 +91,4 @@
 [2026-01-31 07:49] | reports | User can generate PDF from report | PASS | lib/services/pdf_generation_service.dart, lib/features/reports/presentation/report_editor_screen.dart, test/widget/screens/reports/generate_pdf_test.dart
 [2026-01-31 07:55] | reports | User can share report via native share sheet | PASS | lib/services/share_service.dart, lib/features/reports/presentation/report_editor_screen.dart, test/widget/screens/reports/report_share_test.dart
 [2026-01-31 07:59] | reports | User can mark report as complete | PASS | lib/features/reports/presentation/report_editor_screen.dart, test/widget/screens/reports/mark_report_complete_test.dart
+[2026-01-31 08:05] | reports | User can delete a report | PASS | test/widget/screens/reports/delete_report_test.dart, lib/features/reports/presentation/report_editor_screen.dart
