@@ -198,16 +198,52 @@ class _VoiceMemoScreenState extends ConsumerState<VoiceMemoScreen> {
     Navigator.of(context).pop(_recordedPath);
   }
 
-  void _retakeRecording() {
+  Future<void> _retakeRecording() async {
     HapticFeedback.lightImpact();
-    setState(() {
-      _hasRecording = false;
-      _recordedPath = null;
-      _recordedDuration = 0;
-      _isPlaying = false;
-      _isPaused = false;
-      _playbackPosition = Duration.zero;
-    });
+
+    // Show confirmation dialog before discarding
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.darkSurfaceHigh,
+        title: Text(
+          'Discard Recording?',
+          style: AppTypography.headline3.copyWith(color: Colors.white),
+        ),
+        content: Text(
+          'Your current recording will be lost. Do you want to continue?',
+          style:
+              AppTypography.body1.copyWith(color: AppColors.darkTextSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancel',
+              style: AppTypography.button.copyWith(color: AppColors.slate400),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Discard',
+              style: AppTypography.button.copyWith(color: AppColors.rose500),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() {
+        _hasRecording = false;
+        _recordedPath = null;
+        _recordedDuration = 0;
+        _isPlaying = false;
+        _isPaused = false;
+        _playbackPosition = Duration.zero;
+      });
+    }
   }
 
   String _formatTime(int seconds) {

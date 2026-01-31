@@ -199,7 +199,7 @@
       "Record new audio",
       "Verify new recording replaces old"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

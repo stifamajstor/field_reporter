@@ -352,7 +352,7 @@ void main() {
       expect(resultPath, '/path/to/voice_memo.m4a');
     });
 
-    testWidgets('allows retaking recording', (tester) async {
+    testWidgets('allows retaking recording with confirmation', (tester) async {
       mockPermissionService.setMicrophoneStatus(PermissionStatus.granted);
       mockAudioRecorderService.setRecordedDuration(5);
 
@@ -369,9 +369,136 @@ void main() {
       await tester.tap(find.byKey(const Key('retake_button')));
       await tester.pumpAndSettle();
 
+      // Confirm discard
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+
       // Verify back to recording UI
       expect(find.byKey(const Key('record_button')), findsOneWidget);
       expect(find.byKey(const Key('playback_controls')), findsNothing);
+    });
+  });
+
+  group('Voice memo re-record', () {
+    late MockPermissionService mockPermissionService;
+    late MockAudioRecorderService mockAudioRecorderService;
+
+    setUp(() {
+      mockPermissionService = MockPermissionService();
+      mockAudioRecorderService = MockAudioRecorderService();
+    });
+
+    Widget createTestWidget() {
+      return ProviderScope(
+        overrides: [
+          permissionServiceProvider.overrideWithValue(mockPermissionService),
+          audioRecorderServiceProvider
+              .overrideWithValue(mockAudioRecorderService),
+        ],
+        child: const MaterialApp(
+          home: VoiceMemoScreen(),
+        ),
+      );
+    }
+
+    Future<void> recordAndStopMemo(WidgetTester tester) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+
+      // Record
+      await tester.tap(find.byKey(const Key('record_button')));
+      await tester.pump();
+
+      // Stop
+      await tester.tap(find.byKey(const Key('stop_button')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('re-record flow shows confirmation and allows re-recording',
+        (tester) async {
+      // Step 1: Record a voice memo
+      mockPermissionService.setMicrophoneStatus(PermissionStatus.granted);
+      mockAudioRecorderService.setRecordedDuration(5);
+
+      await recordAndStopMemo(tester);
+
+      // Step 2: Preview the recording (playback controls visible)
+      expect(find.byKey(const Key('playback_controls')), findsOneWidget);
+
+      // Step 3: Tap 'Re-record' or 'Discard' button
+      await tester.tap(find.byKey(const Key('retake_button')));
+      await tester.pumpAndSettle();
+
+      // Step 4: Verify confirmation if recording will be lost
+      expect(find.text('Discard Recording?'), findsOneWidget);
+      expect(
+        find.text(
+            'Your current recording will be lost. Do you want to continue?'),
+        findsOneWidget,
+      );
+      expect(find.text('Cancel'), findsOneWidget);
+      expect(find.text('Discard'), findsOneWidget);
+
+      // Step 5: Confirm re-record
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+
+      // Step 6: Verify recording UI resets
+      expect(find.byKey(const Key('record_button')), findsOneWidget);
+      expect(find.byKey(const Key('playback_controls')), findsNothing);
+
+      // Step 7: Record new audio
+      await tester.tap(find.byKey(const Key('record_button')));
+      await tester.pump();
+
+      expect(mockAudioRecorderService.startRecordingCalled, isTrue);
+      expect(find.byKey(const Key('recording_indicator')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('stop_button')));
+      await tester.pumpAndSettle();
+
+      // Step 8: Verify new recording replaces old
+      expect(find.byKey(const Key('playback_controls')), findsOneWidget);
+    });
+
+    testWidgets('cancel confirmation keeps existing recording', (tester) async {
+      mockPermissionService.setMicrophoneStatus(PermissionStatus.granted);
+      mockAudioRecorderService.setRecordedDuration(5);
+
+      await recordAndStopMemo(tester);
+
+      // Tap retake
+      await tester.tap(find.byKey(const Key('retake_button')));
+      await tester.pumpAndSettle();
+
+      // Verify confirmation dialog appears
+      expect(find.text('Discard Recording?'), findsOneWidget);
+
+      // Tap Cancel
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      // Verify still in playback UI (recording kept)
+      expect(find.byKey(const Key('playback_controls')), findsOneWidget);
+      expect(find.byKey(const Key('record_button')), findsNothing);
+    });
+
+    testWidgets('discard button also shows confirmation', (tester) async {
+      mockPermissionService.setMicrophoneStatus(PermissionStatus.granted);
+      mockAudioRecorderService.setRecordedDuration(5);
+
+      await recordAndStopMemo(tester);
+
+      // Both buttons should trigger confirmation
+      // Retake button exists
+      expect(find.byKey(const Key('retake_button')), findsOneWidget);
+
+      // Tap retake
+      await tester.tap(find.byKey(const Key('retake_button')));
+      await tester.pumpAndSettle();
+
+      // Verify confirmation appears
+      expect(find.text('Discard Recording?'), findsOneWidget);
     });
   });
 
