@@ -7,6 +7,7 @@ import '../../../core/theme/theme.dart';
 import '../../../services/audio_recorder_service.dart';
 import '../../../services/barcode_scanner_service.dart';
 import '../../../services/camera_service.dart';
+import '../../../services/connectivity_service.dart';
 import '../../../services/pdf_generation_service.dart';
 import '../../../services/share_service.dart';
 import '../../entries/domain/entry.dart';
@@ -709,6 +710,8 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     final isDark = context.isDarkMode;
     final projectsAsync = ref.watch(projectsNotifierProvider);
     final entriesAsync = ref.watch(entriesNotifierProvider);
+    final connectivityService = ref.watch(connectivityServiceProvider);
+    final isOffline = !connectivityService.isOnline;
 
     // Get project details using the report's projectId or widget.projectId
     final projectId = _report.projectId.isNotEmpty
@@ -777,150 +780,187 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
           ),
         ],
       ),
-      body: Stack(
+      body: Column(
         children: [
-          ListView(
-            padding: AppSpacing.screenPadding,
-            children: [
-              // Project info section
-              if (_project != null) ...[
-                _ProjectInfoCard(project: _project!, isDark: isDark),
-                AppSpacing.verticalMd,
-              ],
-
-              // Status indicator
-              _StatusBadge(status: _report.status, isDark: isDark),
-              AppSpacing.verticalMd,
-
-              // Report title field
-              _ReportTitleField(
-                isDark: isDark,
-                controller: _titleController,
-                focusNode: _titleFocusNode,
-                enabled: _isEditable,
+          // Offline indicator
+          if (isOffline)
+            Container(
+              key: const Key('offline_indicator'),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
               ),
-              AppSpacing.verticalLg,
-
-              // Report notes field
-              _ReportNotesField(
-                isDark: isDark,
-                controller: _notesController,
-                focusNode: _notesFocusNode,
-                enabled: _isEditable,
+              color: isDark ? AppColors.darkAmberSubtle : AppColors.amber50,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.cloud_off,
+                    size: 16,
+                    color: isDark ? AppColors.darkAmber : AppColors.amber500,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Offline mode',
+                    style: AppTypography.caption.copyWith(
+                      color: isDark ? AppColors.darkAmber : AppColors.amber500,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-              AppSpacing.verticalLg,
+            ),
+          Expanded(
+            child: Stack(
+              children: [
+                ListView(
+                  padding: AppSpacing.screenPadding,
+                  children: [
+                    // Project info section
+                    if (_project != null) ...[
+                      _ProjectInfoCard(project: _project!, isDark: isDark),
+                      AppSpacing.verticalMd,
+                    ],
 
-              // AI Summary section
-              _AiSummarySection(
-                isDark: isDark,
-                report: _report,
-                isGenerating: _isGeneratingSummary,
-                isEditing: _isEditingSummary,
-                summaryController: _summaryController,
-                onGenerateSummary: _generateSummary,
-                onStartEditing: _startEditingSummary,
-                onSaveEdit: _saveSummaryEdit,
-              ),
-              AppSpacing.verticalLg,
+                    // Status indicator
+                    _StatusBadge(status: _report.status, isDark: isDark),
+                    AppSpacing.verticalMd,
 
-              // PDF Generation section
-              _PdfGenerationSection(
-                isDark: isDark,
-                report: _report,
-                isGenerating: _isGeneratingPdf,
-                generatedPdfPath: _generatedPdfPath,
-                successMessage: _pdfSuccessMessage,
-                onGeneratePdf: _generatePdf,
-                onPreviewPdf: _previewPdf,
-                onSharePdf: _sharePdf,
-              ),
-              AppSpacing.verticalLg,
+                    // Report title field
+                    _ReportTitleField(
+                      isDark: isDark,
+                      controller: _titleController,
+                      focusNode: _titleFocusNode,
+                      enabled: _isEditable,
+                    ),
+                    AppSpacing.verticalLg,
 
-              // Mark Complete section (only for draft reports)
-              if (_report.status == ReportStatus.draft)
-                _MarkCompleteSection(
-                  isDark: isDark,
-                  onMarkComplete: _handleMarkComplete,
+                    // Report notes field
+                    _ReportNotesField(
+                      isDark: isDark,
+                      controller: _notesController,
+                      focusNode: _notesFocusNode,
+                      enabled: _isEditable,
+                    ),
+                    AppSpacing.verticalLg,
+
+                    // AI Summary section
+                    _AiSummarySection(
+                      isDark: isDark,
+                      report: _report,
+                      isGenerating: _isGeneratingSummary,
+                      isEditing: _isEditingSummary,
+                      summaryController: _summaryController,
+                      onGenerateSummary: _generateSummary,
+                      onStartEditing: _startEditingSummary,
+                      onSaveEdit: _saveSummaryEdit,
+                    ),
+                    AppSpacing.verticalLg,
+
+                    // PDF Generation section
+                    _PdfGenerationSection(
+                      isDark: isDark,
+                      report: _report,
+                      isGenerating: _isGeneratingPdf,
+                      generatedPdfPath: _generatedPdfPath,
+                      successMessage: _pdfSuccessMessage,
+                      onGeneratePdf: _generatePdf,
+                      onPreviewPdf: _previewPdf,
+                      onSharePdf: _sharePdf,
+                    ),
+                    AppSpacing.verticalLg,
+
+                    // Mark Complete section (only for draft reports)
+                    if (_report.status == ReportStatus.draft)
+                      _MarkCompleteSection(
+                        isDark: isDark,
+                        onMarkComplete: _handleMarkComplete,
+                      ),
+                    if (_report.status == ReportStatus.draft)
+                      AppSpacing.verticalLg,
+
+                    // Entries section
+                    _EntriesSection(
+                      isDark: isDark,
+                      entries: entries,
+                      onAddEntry: _isEditable ? _showAddEntryOptions : null,
+                      onDeleteEntry: _isEditable ? _handleDeleteEntry : null,
+                      onReorder: _isEditable
+                          ? (oldIndex, newIndex) =>
+                              _handleReorderEntries(oldIndex, newIndex)
+                          : null,
+                    ),
+                  ],
                 ),
-              if (_report.status == ReportStatus.draft) AppSpacing.verticalLg,
 
-              // Entries section
-              _EntriesSection(
-                isDark: isDark,
-                entries: entries,
-                onAddEntry: _isEditable ? _showAddEntryOptions : null,
-                onDeleteEntry: _isEditable ? _handleDeleteEntry : null,
-                onReorder: _isEditable
-                    ? (oldIndex, newIndex) =>
-                        _handleReorderEntries(oldIndex, newIndex)
-                    : null,
-              ),
-            ],
+                // Entry type options overlay
+                if (_showEntryTypeOptions)
+                  _EntryTypeOptionsOverlay(
+                    isDark: isDark,
+                    onClose: () =>
+                        setState(() => _showEntryTypeOptions = false),
+                    onPhotoSelected: _handlePhotoCapture,
+                    onVideoSelected: _handleVideoCapture,
+                    onVoiceMemoSelected: _handleVoiceMemoCapture,
+                    onNoteSelected: _handleNoteCapture,
+                    onScanSelected: _handleScanCapture,
+                  ),
+
+                // Photo preview overlay
+                if (_showPhotoPreview && _capturedPhotoPath != null)
+                  _PhotoPreviewOverlay(
+                    isDark: isDark,
+                    photoPath: _capturedPhotoPath!,
+                    onConfirm: _confirmPhotoEntry,
+                    onCancel: _cancelPhotoPreview,
+                  ),
+
+                // Video preview overlay
+                if (_showVideoPreview && _capturedVideoPath != null)
+                  _VideoPreviewOverlay(
+                    isDark: isDark,
+                    videoPath: _capturedVideoPath!,
+                    durationSeconds: _capturedVideoDuration ?? 0,
+                    onConfirm: _confirmVideoEntry,
+                    onCancel: _cancelVideoPreview,
+                  ),
+
+                // Voice memo recorder overlay
+                if (_showVoiceMemoRecorder)
+                  _VoiceMemoRecorderOverlay(
+                    isDark: isDark,
+                    isRecording: _isRecording,
+                    recordedAudioPath: _recordedAudioPath,
+                    recordedDuration: _recordedAudioDuration ?? 0,
+                    recordingSeconds: _recordingSeconds,
+                    onStartRecording: _startVoiceRecording,
+                    onStopRecording: _stopVoiceRecording,
+                    onPlayRecording: _playVoiceRecording,
+                    onConfirm: _confirmVoiceMemoEntry,
+                    onCancel: _cancelVoiceMemoRecording,
+                  ),
+
+                // Note editor overlay
+                if (_showNoteEditor)
+                  _NoteEditorOverlay(
+                    isDark: isDark,
+                    controller: _noteContentController,
+                    onConfirm: _confirmNoteEntry,
+                    onCancel: _cancelNoteEditor,
+                  ),
+
+                // Scan overlay
+                if (_showScanOverlay)
+                  _ScanOverlay(
+                    isDark: isDark,
+                    scanResult: _scanResult,
+                    onConfirm: _confirmScanEntry,
+                    onCancel: _cancelScanOverlay,
+                  ),
+              ],
+            ),
           ),
-
-          // Entry type options overlay
-          if (_showEntryTypeOptions)
-            _EntryTypeOptionsOverlay(
-              isDark: isDark,
-              onClose: () => setState(() => _showEntryTypeOptions = false),
-              onPhotoSelected: _handlePhotoCapture,
-              onVideoSelected: _handleVideoCapture,
-              onVoiceMemoSelected: _handleVoiceMemoCapture,
-              onNoteSelected: _handleNoteCapture,
-              onScanSelected: _handleScanCapture,
-            ),
-
-          // Photo preview overlay
-          if (_showPhotoPreview && _capturedPhotoPath != null)
-            _PhotoPreviewOverlay(
-              isDark: isDark,
-              photoPath: _capturedPhotoPath!,
-              onConfirm: _confirmPhotoEntry,
-              onCancel: _cancelPhotoPreview,
-            ),
-
-          // Video preview overlay
-          if (_showVideoPreview && _capturedVideoPath != null)
-            _VideoPreviewOverlay(
-              isDark: isDark,
-              videoPath: _capturedVideoPath!,
-              durationSeconds: _capturedVideoDuration ?? 0,
-              onConfirm: _confirmVideoEntry,
-              onCancel: _cancelVideoPreview,
-            ),
-
-          // Voice memo recorder overlay
-          if (_showVoiceMemoRecorder)
-            _VoiceMemoRecorderOverlay(
-              isDark: isDark,
-              isRecording: _isRecording,
-              recordedAudioPath: _recordedAudioPath,
-              recordedDuration: _recordedAudioDuration ?? 0,
-              recordingSeconds: _recordingSeconds,
-              onStartRecording: _startVoiceRecording,
-              onStopRecording: _stopVoiceRecording,
-              onPlayRecording: _playVoiceRecording,
-              onConfirm: _confirmVoiceMemoEntry,
-              onCancel: _cancelVoiceMemoRecording,
-            ),
-
-          // Note editor overlay
-          if (_showNoteEditor)
-            _NoteEditorOverlay(
-              isDark: isDark,
-              controller: _noteContentController,
-              onConfirm: _confirmNoteEntry,
-              onCancel: _cancelNoteEditor,
-            ),
-
-          // Scan overlay
-          if (_showScanOverlay)
-            _ScanOverlay(
-              isDark: isDark,
-              scanResult: _scanResult,
-              onConfirm: _confirmScanEntry,
-              onCancel: _cancelScanOverlay,
-            ),
         ],
       ),
     );
@@ -1238,6 +1278,7 @@ class _EntriesSection extends StatelessWidget {
         // Show entries if we have them
         if (entries.isNotEmpty) ...[
           ReorderableListView.builder(
+            key: const Key('entry_list'),
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: entries.length,

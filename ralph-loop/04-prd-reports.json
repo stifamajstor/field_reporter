@@ -371,7 +371,7 @@
       "Verify entries and media are viewable",
       "Verify offline indicator shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "offline",

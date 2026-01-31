@@ -10,6 +10,7 @@ import 'package:field_reporter/features/reports/presentation/report_editor_scree
 import 'package:field_reporter/features/reports/providers/reports_provider.dart';
 import 'package:field_reporter/features/projects/domain/project.dart';
 import 'package:field_reporter/features/projects/providers/projects_provider.dart';
+import 'package:field_reporter/services/connectivity_service.dart';
 
 void main() {
   group('User can reorder entries in report', () {
@@ -70,11 +71,13 @@ void main() {
       required _MockReportsNotifier mockReportsNotifier,
       required _MockProjectsNotifier mockProjectsNotifier,
     }) {
+      final connectivityService = ConnectivityService()..setOnline(true);
       return ProviderScope(
         overrides: [
           entriesNotifierProvider.overrideWith(() => mockEntriesNotifier),
           allReportsNotifierProvider.overrideWith(() => mockReportsNotifier),
           projectsNotifierProvider.overrideWith(() => mockProjectsNotifier),
+          connectivityServiceProvider.overrideWithValue(connectivityService),
         ],
         child: MaterialApp(
           theme: AppTheme.light,
