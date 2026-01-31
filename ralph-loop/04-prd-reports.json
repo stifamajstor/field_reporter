@@ -225,7 +225,7 @@
       "Verify summary is editable"
     ],
     "dependencies": ["10-prd-ai-features.json"],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

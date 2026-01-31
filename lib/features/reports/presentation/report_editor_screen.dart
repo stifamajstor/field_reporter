@@ -45,6 +45,11 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _notesFocusNode = FocusNode();
 
+  // State for AI summary
+  bool _isGeneratingSummary = false;
+  bool _isEditingSummary = false;
+  final TextEditingController _summaryController = TextEditingController();
+
   // State for entry type selection
   bool _showEntryTypeOptions = false;
 
@@ -93,6 +98,7 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
     _titleController.dispose();
     _notesController.dispose();
     _noteContentController.dispose();
+    _summaryController.dispose();
     super.dispose();
   }
 
@@ -138,6 +144,51 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
         createdAt: DateTime.now(),
       );
     }
+  }
+
+  Future<void> _generateSummary() async {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isGeneratingSummary = true;
+    });
+
+    try {
+      final updatedReport = await ref
+          .read(allReportsNotifierProvider.notifier)
+          .generateSummary(_report.id);
+      setState(() {
+        _report = updatedReport;
+        _isGeneratingSummary = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isGeneratingSummary = false;
+      });
+    }
+  }
+
+  void _startEditingSummary() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isEditingSummary = true;
+      _summaryController.text = _report.aiSummary ?? '';
+    });
+  }
+
+  Future<void> _saveSummaryEdit() async {
+    HapticFeedback.lightImpact();
+    final newSummary = _summaryController.text.trim();
+    final updatedReport = _report.copyWith(
+      aiSummary: newSummary.isNotEmpty ? newSummary : null,
+      updatedAt: DateTime.now(),
+    );
+    _report = updatedReport;
+    await ref
+        .read(allReportsNotifierProvider.notifier)
+        .updateReport(updatedReport);
+    setState(() {
+      _isEditingSummary = false;
+    });
   }
 
   void _showAddEntryOptions() {
@@ -601,6 +652,19 @@ class _ReportEditorScreenState extends ConsumerState<ReportEditorScreen> {
                 isDark: isDark,
                 controller: _notesController,
                 focusNode: _notesFocusNode,
+              ),
+              AppSpacing.verticalLg,
+
+              // AI Summary section
+              _AiSummarySection(
+                isDark: isDark,
+                report: _report,
+                isGenerating: _isGeneratingSummary,
+                isEditing: _isEditingSummary,
+                summaryController: _summaryController,
+                onGenerateSummary: _generateSummary,
+                onStartEditing: _startEditingSummary,
+                onSaveEdit: _saveSummaryEdit,
               ),
               AppSpacing.verticalLg,
 
@@ -2045,6 +2109,236 @@ class _ScanOverlay extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _AiSummarySection extends StatelessWidget {
+  const _AiSummarySection({
+    required this.isDark,
+    required this.report,
+    required this.isGenerating,
+    required this.isEditing,
+    required this.summaryController,
+    required this.onGenerateSummary,
+    required this.onStartEditing,
+    required this.onSaveEdit,
+  });
+
+  final bool isDark;
+  final Report report;
+  final bool isGenerating;
+  final bool isEditing;
+  final TextEditingController summaryController;
+  final VoidCallback onGenerateSummary;
+  final VoidCallback onStartEditing;
+  final VoidCallback onSaveEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSummary = report.aiSummary != null && report.aiSummary!.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'AI Summary',
+              style: AppTypography.headline3.copyWith(
+                color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+              ),
+            ),
+            if (isGenerating)
+              SizedBox(
+                key: const Key('summary_processing_indicator'),
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(
+                    isDark ? AppColors.darkOrange : AppColors.orange500,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        AppSpacing.verticalSm,
+        if (hasSummary) ...[
+          if (isEditing)
+            _SummaryEditField(
+              isDark: isDark,
+              controller: summaryController,
+              onSave: onSaveEdit,
+            )
+          else
+            GestureDetector(
+              key: const Key('ai_summary_section'),
+              onTap: onStartEditing,
+              child: Container(
+                width: double.infinity,
+                padding: AppSpacing.cardInsets,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.darkSurfaceHigh
+                      : AppColors.emerald50.withOpacity(0.5),
+                  borderRadius: AppSpacing.borderRadiusLg,
+                  border: Border.all(
+                    color: isDark
+                        ? AppColors.darkEmerald
+                        : AppColors.emerald500.withOpacity(0.3),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.auto_awesome,
+                          size: 16,
+                          color: isDark
+                              ? AppColors.darkEmerald
+                              : AppColors.emerald500,
+                        ),
+                        AppSpacing.horizontalXs,
+                        Text(
+                          'AI Generated',
+                          style: AppTypography.caption.copyWith(
+                            color: isDark
+                                ? AppColors.darkEmerald
+                                : AppColors.emerald500,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const Spacer(),
+                        Icon(
+                          Icons.edit_outlined,
+                          size: 16,
+                          color: isDark
+                              ? AppColors.darkTextMuted
+                              : AppColors.slate400,
+                        ),
+                      ],
+                    ),
+                    AppSpacing.verticalSm,
+                    Text(
+                      report.aiSummary!,
+                      style: AppTypography.body2.copyWith(
+                        color: isDark
+                            ? AppColors.darkTextPrimary
+                            : AppColors.slate900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ] else ...[
+          // No summary yet - show generate button
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              key: const Key('generate_summary_button'),
+              onPressed: isGenerating ? null : onGenerateSummary,
+              icon: Icon(
+                Icons.auto_awesome,
+                color: isDark ? AppColors.darkOrange : AppColors.orange500,
+              ),
+              label: Text(
+                'Generate Summary',
+                style: AppTypography.button.copyWith(
+                  color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.md,
+                ),
+                side: BorderSide(
+                  color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _SummaryEditField extends StatelessWidget {
+  const _SummaryEditField({
+    required this.isDark,
+    required this.controller,
+    required this.onSave,
+  });
+
+  final bool isDark;
+  final TextEditingController controller;
+  final VoidCallback onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        TextField(
+          key: const Key('ai_summary_text_field'),
+          controller: controller,
+          maxLines: 4,
+          decoration: InputDecoration(
+            hintText: 'Edit AI summary...',
+            hintStyle: AppTypography.body1.copyWith(
+              color: isDark ? AppColors.darkTextMuted : AppColors.slate400,
+            ),
+            filled: true,
+            fillColor: isDark ? AppColors.darkSurface : AppColors.slate100,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: isDark ? AppColors.darkOrange : AppColors.orange500,
+                width: 2,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.md,
+            ),
+          ),
+          style: AppTypography.body1.copyWith(
+            color: isDark ? AppColors.darkTextPrimary : AppColors.slate900,
+          ),
+        ),
+        AppSpacing.verticalSm,
+        Align(
+          alignment: Alignment.centerRight,
+          child: ElevatedButton(
+            key: const Key('ai_summary_save_button'),
+            onPressed: onSave,
+            style: ElevatedButton.styleFrom(
+              backgroundColor:
+                  isDark ? AppColors.darkOrange : AppColors.orange500,
+              foregroundColor: AppColors.white,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.sm,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Save'),
+          ),
+        ),
+      ],
     );
   }
 }

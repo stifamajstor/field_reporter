@@ -76,6 +76,26 @@ class AllReportsNotifier extends _$AllReportsNotifier {
         currentReports.where((r) => r.id != reportId).toList();
     state = AsyncData(updatedReports);
   }
+
+  /// Generates an AI summary for a report.
+  Future<Report> generateSummary(String reportId) async {
+    // Simulate AI processing delay
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final currentReports = state.valueOrNull ?? [];
+    final report = currentReports.firstWhere((r) => r.id == reportId);
+
+    // In a real implementation, this would call an AI service
+    // For now, generate a placeholder summary
+    final summarizedReport = report.copyWith(
+      aiSummary:
+          'This report contains ${report.entryCount} entries documenting field observations and findings.',
+      updatedAt: DateTime.now(),
+    );
+
+    await updateReport(summarizedReport);
+    return summarizedReport;
+  }
 }
 
 /// Provider for fetching reports by project ID.
