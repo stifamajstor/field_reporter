@@ -399,7 +399,7 @@
       "Verify video thumbnail generated from first frame",
       "Verify thumbnail displayed in report list"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "ui",
